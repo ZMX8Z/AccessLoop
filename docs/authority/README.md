@@ -29,4 +29,4 @@
 - [根目录 AI 入口](../../AGENTS.md)
 - [仓库 README](../../README.md)
 
-本目录是待实现约定，不表示接口已经存在或产品已部署。实际实现/验证结果记录在 docs/handoffs 和 docs/acceptance。
+本目录描述完整业务约定；初始化骨架只实现其中的基础入口，不表示全部接口已存在或产品已部署。实际实现/验证结果记录在 docs/handoffs 和 docs/acceptance。

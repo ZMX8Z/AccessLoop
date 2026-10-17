@@ -21,6 +21,6 @@
 ## 验收与交付
 
 - 按 [统一验收规则](docs/authority/ACCEPTANCE.md) 和本包 ACCEPTANCE.md 检查；人工只执行 MANUAL.md 的功能与界面操作。
-- 实际命令以实现后的 package.json 和运行环境为准。当前仓库仍是文档准备阶段，未安装应用，不宣称未运行的构建或服务已通过。
+- 实际命令以 package.json 和运行环境为准。骨架及业务完成状态以所属交接/验收记录为准，不宣称未运行的构建、服务或外部能力已通过。
 - 记录 baseDevCommit、headCommit、检查结果和真实/桩验证证据；外部依赖未验证如实标记阻塞。
 - 交接写入 docs/handoffs/wp-<a|b|c|d>.md，技术验收结果写入 docs/acceptance/wp-<a|b|c|d>.md；这两类是执行记录，不替代权威规则。
