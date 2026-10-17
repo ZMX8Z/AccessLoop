@@ -1,10 +1,9 @@
 import { getBusinessRepository } from '@/server/storage/runtime'
 
 import { readSessionCredential, sessionOwnerHash } from './session-cookie'
+import { AnonymousSessionRequired } from './errors'
 
-export class AnonymousSessionRequired extends Error {
-  constructor() { super('Initialize an anonymous session before continuing.') }
-}
+export { AnonymousSessionRequired } from './errors'
 
 export async function requireAnonymousSession(request: Request): Promise<{ ownerSessionHash: string }> {
   const credential = readSessionCredential(request.headers.get('cookie'), process.env.SESSION_SECRET ?? '')

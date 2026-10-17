@@ -73,7 +73,7 @@ test('OSS configuration uses a private server-only adapter with no local fallbac
   assert.equal(options.config.responseChecksumValidation, 'WHEN_REQUIRED')
   const photos = options.collections.photos
   assert.equal(photos.prefix, PHOTO_STORAGE_PREFIX)
-  assert.equal(photos.disablePayloadAccessControl, false)
+  assert.equal('disablePayloadAccessControl' in photos, false)
 })
 
 test('missing credentials and non-service, mismatched-region or credential-bearing OSS endpoints fail closed', () => {

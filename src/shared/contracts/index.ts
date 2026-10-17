@@ -3,3 +3,6 @@ export * from './routing';
 export * from './geo';
 export * from './region';
 export * from './route-result';
+export * from './photos';
+export * from './vision';
+export * from './hazards';

@@ -68,10 +68,28 @@ export const BusinessCollections: CollectionConfig[] = [
     date('occurredAt'),
   ]),
   internal('idempotency-records', [text('requestFingerprint'), json('result'), date('expiresAt')]),
+  internal('photo-upload-operations', [
+    text('requestFingerprint'), text('photoId'), text('filename'),
+    { name: 'state', type: 'select', required: true, options: ['pending', 'complete', 'failed'] },
+    text('leaseToken'), date('leaseExpiresAt'),
+    { name: 'result', type: 'json' },
+  ]),
+  internal('external-operations', [
+    text('regionId', true), text('ownerSessionHash', true), text('requestFingerprint'),
+    { name: 'status', type: 'select', required: true, options: ['pending', 'completed'] },
+    { name: 'leaseToken', type: 'text' },
+    { name: 'leaseExpiresAt', type: 'date' },
+    date('expiresAt'), { name: 'result', type: 'json' },
+  ]),
+  internal('ai-analyses', [
+    text('regionId', true), text('ownerSessionHash', true), text('photoId', true),
+    text('imageHash'), text('cacheKey', true), json('analysis'),
+  ]),
   internal('hazard-reports', [
     text('regionId', true), text('ownerSessionHash', true),
     { name: 'status', type: 'select', required: true, options: ['pending', 'ai_assessed', 'verified', 'resolved', 'rejected'] },
     version('rowVersion'),
+    { name: 'facts', type: 'json' },
     { name: 'publicSnapshot', type: 'json' },
   ]),
   internal('personal-avoidances', [

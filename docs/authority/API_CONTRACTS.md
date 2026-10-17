@@ -419,7 +419,7 @@ type CreateReportInput = {
 
 仅作者可修正 status 为 pending/ai_assessed 且从未公共发布的报告。已发布、已驳回或已解决的记录通过管理命令处理，返回 `409 INVALID_TRANSITION`。请求含 `expectedVersion`，其余可修改字段为 CreateReportInput 的字段；至少实际修改一项，`analysisId:null` 可解除分析关联，`passage:null` 可清除通道。
 
-换照片必须同请求提供匹配新照片的 analysisId 或显式 `analysisId:null`，不能保留旧分析。变更照片或分析关联后，后端按创建报告相同规则重新确定 pending/ai_assessed；未变更关联时不让迟到 AI 改写状态。更换照片/位置/观察时间/通道保存时，清除旧确认、停用个人避让；未改变确认依据的修正按 §3 保持绑定。成功 200 返回新 PrivateReportDTO，rowVersion 与本人 personalVersion 增版。不能借 PATCH 修改原始分析、公共状态或几何。
+换照片必须同请求提供匹配新照片的 analysisId 或显式 `analysisId:null`，不能保留旧分析。变更照片或分析关联后，后端按创建报告相同规则重新确定 pending/ai_assessed；未变更关联时不让迟到 AI 改写状态。更换照片/分析关联/位置/观察时间/通道保存时，清除旧确认、停用个人避让；未改变确认依据的修正按 §3 保持绑定。成功 200 返回新 PrivateReportDTO，rowVersion 与本人 personalVersion 增版。不能借 PATCH 修改原始分析、公共状态或几何。
 
 ### 7.3 `POST /api/reports/{id}/avoidance-preview`
 
