@@ -16,6 +16,20 @@ export function ReportSummary({ report, now, compact = false, onNavigate }: {
   const path = `/${privateReport ? 'my-reports' : 'route/barriers'}/${encodeURIComponent(report.id)}`
   const label = active ? 'Active Detour' : report.status === 'resolved' ? 'Resolved' : privateReport ? report.status.replaceAll('_', ' ') : publicStatus(report as PublicReportDTO, now)
   function open(event: React.MouseEvent<HTMLAnchorElement>) { if (onNavigate && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey) { event.preventDefault(); onNavigate(path) } }
+  if (compact) {
+    const category = report.category.replaceAll('_', ' ')
+    const shortId = report.id.slice(0, 8)
+    const validUntil = active ? privateReport!.personalAvoidance!.validUntil
+      : !privateReport && report.publicActivity === 'active' ? report.publicVerification?.validUntil : null
+    return <article className="report-record report-record-compact">
+      <Link className="report-compact-link" href={path} onClick={open} aria-label={`Open ${category} report ${report.id}. ${label}. ${report.description}`}>
+        <div className="report-compact-top"><div className="report-compact-title"><h2 title={category}>{category}</h2><span className="report-short-id" title={`Report ${report.id}`}>#{shortId}</span></div><span className={`report-status ${active ? 'report-status-active' : ''}`} title={label}>{label.split(' · ')[0]}</span></div>
+        <p className="report-record-location"><span aria-hidden="true">⌖</span> {report.location[1].toFixed(5)}, {report.location[0].toFixed(5)}</p>
+        <p className="report-record-description" title={report.description}>{report.description}</p>
+        <div className="report-compact-foot">{validUntil && <time dateTime={validUntil} title={validUntil}>Until {new Date(validUntil).toLocaleString('en-AU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</time>}<span aria-hidden="true">›</span></div>
+      </Link>
+    </article>
+  }
   return <article className={`report-record ${compact ? 'report-record-compact' : ''}`}>
     <div className="report-record-heading"><h2>{report.category.replaceAll('_', ' ')} <span>#{report.id}</span></h2><p className={`report-status ${active ? 'report-status-active' : ''}`}>{label}</p></div>
     <p className="report-record-location"><span aria-hidden="true">⌖</span> {report.location[1].toFixed(5)}, {report.location[0].toFixed(5)}</p>
@@ -68,7 +82,7 @@ export function ReportsList({ onNavigate, refreshKey }: { onNavigate?: (path: st
   }
   return <section className="report-flow reports-list" data-report-page="my-reports">
     <div className="reports-list-title"><h1>{scope === 'mine' ? 'My Reports' : 'Public reports'}</h1><span className="report-total">{items.length}{truncated ? '+' : ''} total</span><button type="button" className="report-icon-button" aria-label="Refresh reports" onClick={() => { setLoading(true); setReload((value) => value + 1) }}>↻</button></div>
-    <p className="report-note">{scope === 'mine' ? 'Private records for this browser session. Expiry does not mean a barrier is resolved.' : 'Separately approved public information and history. Private photos and analysis are not published.'}</p>
+    <p className="report-note">{scope === 'mine' ? 'Private records for this session. Expiry does not mean resolved.' : 'Separately approved public information and history. Private photos and analysis are not published.'} {items.some((report) => report.isDemo) && 'Demo records are not campus surveys.'} Times use your device timezone.</p>
     {scope === 'mine' && <div className="report-filters" role="group" aria-label="Filter my reports">{(['all', 'active', 'resolved'] as const).map((value) => <button type="button" key={value} aria-pressed={filter === value} className={filter === value ? 'is-selected' : ''} onClick={() => setFilter(value)}>{value === 'all' ? 'All' : value === 'active' ? 'Active Detour' : 'Resolved'}<span>{filterMyReports(mine, value, now).length}</span></button>)}</div>}
     {loading && <p role="status">Loading reports…</p>}
     {error && <p role="alert" className="report-error">{error} Current reports could not be verified. Previously loaded records may be outdated.</p>}
