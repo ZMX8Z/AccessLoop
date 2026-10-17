@@ -104,3 +104,8 @@
 - [OSS真实连接证据](../deployment/oss-connection-evidence.json)：随机合成对象上传200、授权读取200、匿名403、签名200、同一短期链接先200后过期403、删除204及删除后404。两次探针对象均已删除；首次过短签名时序的失败明确保留，没有计作通过。
 - C接线参数见[部署交接](../deployment/README.md#oss-接入实测参数交接给-c)。C0当前没有photos Collection或照片API，D没有越权修改C配置/集合。
 - 剩余：C1照片/GLM/报告/确认与Vision预算、A/B真实UI、C后续管理、现场通道、Zenith及业务恢复。OSS不再列为“配置缺失”，仍待照片/Zenith端到端验收。
+
+
+## A0 PR #11 独立审查
+
+PR head=`3b5e8db54b1098dbd61c22acb12aca09a8b0edbd`，target dev=`2f38fcdc449c400dfcfbb916e2c64730a2bfcdbb`。阶段未通过，未合入：360px报告确认页根画布锁定且无法滚至提交；共享PassagePicker换路线后可沿用越界旧索引。隔离合并树check113通过/3跳过、build exit0，不能替代功能验收。完整双轴报告、复现和截图见[A审查](a-pr-11-review.md)。Schema归并与后续A1迟到context风险分别列明，未把明确Design Demo或未交付后续功能本身算作A0失败。
