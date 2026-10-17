@@ -11,7 +11,7 @@
 | 环境 | Windows，Node 22.14.0，pnpm 10.20.0，Payload 3.91.0，本机 PostgreSQL 17.10 |
 | 数据库 | C0 独立开发库 accessloop_c0_dev 与可丢弃测试库 accessloop_c0_test；未对旧项目库执行迁移 |
 | 本地入口 | http://localhost:3100/c0-demo；只在 development 且 APP_MODE=demo 启用 |
-| 集成状态 | 准备阶段 PR，base=dev；尚未由 D 合入，不声称 Zenith 验证 |
+| PR / 集成状态 | [草稿 PR #7](https://github.com/ZMX8Z/AccessLoop/pull/7)，base=dev；尚未由 D 合入，不声称 Zenith 验证 |
 
 ## 实际检查与结果
 
@@ -91,3 +91,5 @@ node --env-file=.env.local --import tsx --test --test-force-exit tests/c0-http.i
 - C 整包与 Zenith 集成：待执行，不作通过结论。
 
 本阶段已经提供人工页面入口，人工只需点击检查。数据库服务恢复/备份、真实 ORS/Geocoding/POI、GLM、OSS、目标区域通行及完整无障碍用户测试均未被本记录宣布通过。
+
+交付时运行代码已提交并推送，后续文档记录提交不改变上述代码证据。开发服务运行期间 Next 自动把 next-env.d.ts 的类型路径切到 .next/dev/types，该本地生成差异未作为业务变更推送。

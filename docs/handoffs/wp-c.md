@@ -9,6 +9,7 @@
 - 最新同步 baseDevCommit：`7d0f552f9b99472c8a61ee7038f28a2539d45abe`，通过 merge 同步 D 服务基础与交接，不重写共享历史。
 - codeEvidenceCommit / headCommit：`d424b3e910fd71fdb6b3e2302a8b4dc69688c645`；后续仅文档提交可以复用运行代码证据，PR 最终 head 以平台为准。
 - 工程阶段技术验收及独立代码审查通过，完整 C0 的实测数据导入仍依赖 D。详细命令、平台限制与状态见 [C 验收](../acceptance/wp-c.md)。
+- 阶段草稿 PR：[#7](https://github.com/ZMX8Z/AccessLoop/pull/7)，base=dev，head=codex/c-backend-data-ai。创建时 deliveryHead=`53809a27186de6db67b0f246d5af4736895170b5`；之后仅补充交付链接记录，运行代码仍以 d424b3e 为证据。未执行合并，D 按团队约定集成。
 
 ## 本阶段范围
 
