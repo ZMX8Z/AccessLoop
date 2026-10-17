@@ -43,7 +43,7 @@ test('real report commands propagate private and public effective sets to both s
   let clock = Date.parse('2037-01-01T00:00:00.000Z')
   const options = {
     regionId: run, sessionSecret: 'public-routing-test-secret-at-least-32-bytes',
-    visionConfig: { model: 'glm-4.6v-flash', promptVersion: '1', schemaVersion: '1' }, now: () => clock,
+    visionConfig: { model: 'glm-4.6v', promptVersion: '1', schemaVersion: '1' }, now: () => clock,
   }
   const region = { ...dRoutingFixture.region, id: run }
   const passage = { ...dRoutingFixture.passages[0], id: `${run}-passage` }

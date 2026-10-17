@@ -33,7 +33,7 @@ test('C1 report and personal avoidance commands use real PostgreSQL transactions
   const photoStaging = `${runId}-photo-staging`
   const photoReview = `${runId}-photo-review`
   const imageHash = `sha256:${hash(runId)}`
-  const visionConfig = { model: 'glm-4.6v-flash', promptVersion: '1', schemaVersion: '1' }
+  const visionConfig = { model: 'glm-4.6v', promptVersion: '1', schemaVersion: '1' }
   let clock = Date.parse('2032-01-01T00:00:00.000Z')
   const service = createHazardService(payload, {
     regionId: runId, sessionSecret: 'synthetic-hazards-secret-at-least-32-bytes', visionConfig, now: () => clock,

@@ -103,7 +103,7 @@ test('invalid JSON, schema mismatch and refusal preserve explicit unavailable re
 
 test('analysis DTO rejects mismatched status, result and unavailability reason', () => {
   const metadata = {
-    analysisId: 'analysis-1', photoId: 'photo-1', model: 'glm-4.6v-flash', promptVersion: '1', schemaVersion: '1',
+    analysisId: 'analysis-1', photoId: 'photo-1', model: 'glm-4.6v', promptVersion: '1', schemaVersion: '1',
     createdAt: '2026-10-17T00:00:00.000Z', cacheHit: false,
   }
   const valid = { ...metadata, ...parseGlmToolResult(completion()) }
@@ -127,7 +127,7 @@ test('GLM sends native image bytes and the sole result tool only to the official
       messages: z.array(z.object({ role: z.string(), content: z.union([z.string(), z.array(z.object({
         type: z.string(), image_url: z.object({ url: z.string() }).optional(), text: z.string().optional(),
       }))]) })) }).parse(JSON.parse(String(options?.body)))
-    assert.equal(request.model, 'glm-4.6v-flash')
+    assert.equal(request.model, 'glm-4.6v')
     assert.equal(request.stream, false)
     assert.deepEqual(request.tools, [RecordHazardAnalysisTool])
     const content = request.messages[1].content
@@ -140,6 +140,14 @@ test('GLM sends native image bytes and the sole result tool only to the official
   assert.match(adapter.keyFingerprint, /^sha256:[a-f0-9]{64}$/)
   assert.ok(!adapter.identity.includes('server-secret'))
   assert.equal(adapter.timeoutMs, 8000)
+})
+
+test('paid GLM default separates model caches while preserving the shared key budget', () => {
+  const paid = createGlmAdapter({ apiKey: 'server-secret' })
+  const legacy = createGlmAdapter({ apiKey: 'server-secret', model: 'glm-4.6v-flash' })
+  assert.equal(paid.model, 'glm-4.6v')
+  assert.notEqual(paid.identity, legacy.identity)
+  assert.equal(paid.keyFingerprint, legacy.keyFingerprint)
 })
 
 test('GLM validates configuration and processed image size before requesting', async () => {

@@ -5,6 +5,8 @@ import { AppError } from '../http/errors'
 import { parseGlmToolResult, RecordHazardAnalysisTool, type VisionOutcome } from '../../shared/contracts/vision'
 import { ProviderError } from './provider-error'
 
+export const DEFAULT_VISION_MODEL = 'glm-4.6v'
+
 const GLM_ENDPOINT = 'https://open.bigmodel.cn/api/paas/v4/chat/completions'
 const ConfigurationSchema = z.object({
   apiKey: z.string().trim().min(1), model: z.string().trim().regex(/^[a-zA-Z0-9._-]{1,100}$/),
@@ -108,7 +110,7 @@ export function parseVisionPolicy(environment: Readonly<Record<string, string | 
 export function createGlmAdapter(options: {
   apiKey: string; model?: string; timeoutMs?: number; fetch?: typeof fetch
 }) {
-  const parsed = ConfigurationSchema.safeParse({ apiKey: options.apiKey, model: options.model ?? 'glm-4.6v-flash', timeoutMs: options.timeoutMs ?? 8000 })
+  const parsed = ConfigurationSchema.safeParse({ apiKey: options.apiKey, model: options.model ?? DEFAULT_VISION_MODEL, timeoutMs: options.timeoutMs ?? 8000 })
   if (!parsed.success) throw unavailable(false)
   const { apiKey, model, timeoutMs } = parsed.data
   const fetcher = options.fetch ?? fetch

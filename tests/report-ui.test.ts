@@ -25,7 +25,7 @@ test('report facts require an editable observation time instead of fabricating s
 test('uncertain AI findings still expose the saved description, evidence and uncertainty', () => {
   const html = renderToStaticMarkup(React.createElement(AIAnalysisFeedback, {
     analysis: { analysisId: 'analysis-uncertain', photoId: 'photo-uncertain', aiStatus: 'uncertain', unavailableReason: null,
-      model: 'glm-4.6v-flash', promptVersion: '1', schemaVersion: '1', createdAt: '2020-01-01T00:00:00.000Z', cacheHit: false,
+      model: 'glm-4.6v', promptVersion: '1', schemaVersion: '1', createdAt: '2020-01-01T00:00:00.000Z', cacheHit: false,
       result: { image_quality: 'poor', hazard_present: true, category: 'obstruction', visible_passage: 'unknown',
         description: 'The path edge is partially visible.', evidence: ['A bin covers part of the frame.'], uncertainties: ['The whole passage is outside the frame.'] } },
     isLoading: false, onApplyFindings: () => undefined, onManualFallback: () => undefined,
