@@ -7,7 +7,7 @@ Gavin 最新指令原文为“GLM不管了，直接推吧”。本阶段按该�
 - branch：`codex/c-backend-data-ai`。
 - baseDevCommit：`1d2cd2b9b3420a9b0c072a3b54ec258839a95b19`；同步时安全快进，未重写历史。
 - codeEvidenceCommit：`efe3269e0832f96e949786ac03120dbd5ee29813`。后续文档及生成迁移的空白整理不改变已验证逻辑。
-- C0 PR #7、供应商准备 PR #13 已由 D 合入。当前 C1 的 PR 链接在创建后补记。
+- C0 PR #7、供应商准备 PR #13 已由 D 合入。当前阶段为 [C1 PR #15](https://github.com/ZMX8Z/AccessLoop/pull/15)，base=dev，创建时 head=`c4679a126a5536dd1d580aa8a88fbeec57f02cd7`；平台确认 OPEN、非草稿、MERGEABLE，等待 D 复核集成。后续交付链接提交不改变运行代码，最终 head 以平台为准。
 - 实际结果及命令见 [C 技术验收](../acceptance/wp-c.md)；本机开发演示为 `http://localhost:3100/c1-demo`，生产环境返回 404。
 
 ### 本阶段可接线的功能

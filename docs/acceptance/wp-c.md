@@ -9,6 +9,7 @@
 | branch | codex/c-backend-data-ai |
 | baseDevCommit | 1d2cd2b9b3420a9b0c072a3b54ec258839a95b19 |
 | codeEvidenceCommit | efe3269e0832f96e949786ac03120dbd5ee29813 |
+| 阶段 PR | [#15](https://github.com/ZMX8Z/AccessLoop/pull/15)，base=dev，创建 head=c4679a126a5536dd1d580aa8a88fbeec57f02cd7；OPEN、非草稿、可合并，待 D 集成 |
 | 本机环境 | Windows、Node 22.14.0、pnpm 10.20.0、Payload 3.91.0、PostgreSQL 17.10 |
 | 开发演示 | http://localhost:3100/c1-demo；development 且 APP_MODE=demo 才启用 |
 
