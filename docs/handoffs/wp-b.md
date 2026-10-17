@@ -5,7 +5,7 @@
 - baseDevCommit：`d49eef50a59cd3c42b6c6ce3996a075822a68228`。
 - headCommit / 受检产品提交：`4b642c63dc8cdb3918123934673c3d72e242f646`；本记录随后以仅文档提交补充，产品证据可对应该提交。
 - 原交付 `adc42779af23db231b6b3a46d479751dc4e54162` 的 P0/P1“通过”结论撤回；该版本自动 fixture 成功、私人假导出及重复 Schema 已由本轮替换。
-- integratedDevCommit：待 D 通过 PR 集成后记录。本分支未 push、未合并 PR。
+- integratedDevCommit：以本文末尾链接的 PR #8 最终合并元数据为准。作者修复阶段当时尚未 push/合并；后续由 D 完成复验与平台集成。
 
 ## 已实现范围
 
@@ -26,7 +26,7 @@
 - B 的 `api.ts` 仅在 A `src/shared/client/api.ts` 上提供领域调用：严格响应解析、会话初始化、错误传递；幂等键由操作持有并在相同输入重试时复用。401 清会话缓存但不把旧写入自动重放到新身份。
 - `.gitignore` 的 `node_modules` 等价忽略同时覆盖目录与本工作树依赖符号链接；未提交依赖链接、环境文件或密钥。
 
-## 检查与边界
+## 作者修复阶段检查与边界（D最终复验见下）
 
 - `pnpm check`：exit 0，219 项通过，11 项依赖外部条件的集成测试跳过，0 失败。
 - `pnpm build`：exit 0；正常报告列表/新建为静态入口，详情及授权 API 为动态入口。
@@ -46,3 +46,27 @@
 6. P1 使用正式 `/admin`；独立证据、理由、公共范围和有效期由真实管理员明确提供。没有真实核查时不能把演示文字称作现场证据。
 
 120 秒建议：20 秒说明路线来源和限制；40 秒上报及明确区分真实 AI/人工路径；30 秒预览确认与手动重算；20 秒详情续期/停用及复制打印；10 秒展示正式后台的独立核实边界。未验证的 AI、路线、公共发布及部署不作完成声明。
+
+## D 最终独立复审与浏览器复验
+
+受检产品4b642c63dc8cdb3918123934673c3d72e242f646；baseDevCommit=d49eef50a59cd3c42b6c6ce3996a075822a68228。作者交付3047b4e仅补D17同步和B记录；后续本节及截图/脱敏JSON同样不改产品。最终deliveryHead与集成SHA由[PR #8](https://github.com/ZMX8Z/AccessLoop/pull/8)固定。
+
+### Standards
+
+旧e7头发现并真实复现两处迟到覆盖：详情PATCH回包关闭新换照草稿、旧poll.mine覆盖报告更新的新图层。新头通过父保存busy/编辑代次和统一layerEpoch/contextKey屏障修复；新报告reset、取消分析清loading也保留。独立只读复验31/31、0跳过，无剩余已知阶段阻塞，未发现额外需报告的heuristic问题。
+
+### Spec
+
+旧e7头的描述修正截断观察时间、100条本人列表截断隐藏旧报告操作、uncertain隐藏真实证据三项均修复并有先红后绿回归。截断只提供明确未知归属的PrivateDTO操作入口，不把owner设true，服务端权限未改；个人生效标签指向报告作者。独立只读固定头31/31通过，与Standards重复计数不相加。
+
+### 实际生产产物与浏览器
+
+D对最终含文案产品树重新pnpm build，exit0、无编译warnings，日志/private/tmp/accessloop-b-delivery-build.log。使用同一产物的隔离3108生产服务、独立_test库与明确合成区域/生成照片；真OSS，经真实C会话/报告/预览/确认接口。
+
+默认AI同意未选；上传→人工事实/位置/预设通道→保存（避让未启用）→自动预览→明确确认v2→新观察/新同意续期v3→仅改描述v4（报告观察时间及有效确认保持）→停用v5全部在真实浏览器操作通过。360px下contentWidth=viewportWidth=360。授权HTML和Copy Report Text成功；原生打印预览未能通过桌面工具读取，Escape返回原页，打印预览保留人工待验，没有声称真实打印成功。
+
+[脱敏JSON](../acceptance/b-browser-evidence.json)记录第二会话报告/照片/导出均404、该测试key零供应商预留、无AI分析及自有测试记录/真实OSS对象清理。补查脚本先两次误用存储字段，均在写入/外部调用前NotFound；改为C既有facts.photoId后exit0，原失败保留。没有因此修改产品或重复图片/模型请求。
+
+截图：[已确认且事实修正](../acceptance/screenshots/b-report-confirmed.png)、[360px停用](../acceptance/screenshots/b-report-mobile-stopped.png)、[授权导出与复制](../acceptance/screenshots/b-report-export.png)。
+
+本阶段工程准入通过；真实GLM、实时地点源、真实ORS浏览器绕行/搜索、校园实测、Zenith及人工界面/原生打印总验收未完成。C15后台权限和实库证据复用既有固定记录，无额外模型或路由请求。

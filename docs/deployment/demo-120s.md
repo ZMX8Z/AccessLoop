@@ -31,3 +31,7 @@ B 需要把讲稿操作映射到正式上报、分析、通道预览、确认、
 3. 无路线或过期：保留固定起终点/限制并明确没有可用路线；或到期后提示信息过时，不声称道路已恢复。
 
 每次彩排记录集成 SHA、实际用时、使用的场景、真实/降级状态和问题。历史录像可作标识清楚的备用介绍，不能替代实时功能验收。
+
+## B 当前正式按钮映射（工程验证后）
+
+公众真实入口为/live内Report an obstacle，或/reports/new的预设通道流程。当前按钮依次为Upload photo、Observed now · use device time、Set report location、Save report and review avoidance、Confirm personal avoidance；详情使用Renew / confirm a new observation、Stop my personal avoidance及Copy / print。D已用隔离合成数据/真OSS验证上述人工流程和复制，未用模型/路由成功替代，也未计120秒真实彩排通过。正式彩排仍按前述真实外部条件准备；原生打印预览由人工确认。
