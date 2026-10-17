@@ -5,7 +5,7 @@
 - baseDevCommit：`d49eef50a59cd3c42b6c6ce3996a075822a68228`。
 - headCommit / 受检产品提交：`4b642c63dc8cdb3918123934673c3d72e242f646`；本记录随后以仅文档提交补充，产品证据可对应该提交。
 - 原交付 `adc42779af23db231b6b3a46d479751dc4e54162` 的 P0/P1“通过”结论撤回；该版本自动 fixture 成功、私人假导出及重复 Schema 已由本轮替换。
-- integratedDevCommit：以本文末尾链接的 PR #8 最终合并元数据为准。作者修复阶段当时尚未 push/合并；后续由 D 完成复验与平台集成。
+- integratedDevCommit：`9cfd186a8d2345af9cd970266e22415a9085d2e2`（PR #8）。作者修复阶段当时尚未 push/合并；后续由 D 完成复验与平台集成。
 
 ## 已实现范围
 

@@ -1,16 +1,16 @@
 # 部署与恢复执行入口
 
-日期：2026-10-17。本文是执行说明与证据索引；部署原则以 [技术文档第 11 节](../authority/AccessLoop_技术文档_v1.0.md#11-配置与-zenith-部署) 为准，字段与权限以 [API 契约](../authority/API_CONTRACTS.md) 为准。完整项目状态由 D 的交接/验收记录维护。
+日期：2026-10-18。本文是执行说明与证据索引；部署原则以 [技术文档第 11 节](../authority/AccessLoop_技术文档_v1.0.md#11-配置与-zenith-部署) 为准，字段与权限以 [API 契约](../authority/API_CONTRACTS.md) 为准。完整项目状态由 D 的交接/验收记录维护。
 
 ## 当前状态
 
 - 已准备：不含秘密值的配置、health、PostgreSQL 和 TLS 出网探针；带 SHA-256 的自定义格式备份、独立空库恢复脚本；发布/恢复步骤与演示草案。
-- 持久本机开发库已配置、迁移/重启/密码认证及SELECT1通过；管理员已受控初始化并通过Local API登录/身份验证，见[本机开发库](local-development-db.md)。C0持久仓储/匿名会话/预算已进入dev，见[C0集成验收](../acceptance/c0-integration.md)；C1照片/AI/报告和B后台正式挂载仍待交付。
-- 本地数据库实测：见 [local-recovery-evidence.json](local-recovery-evidence.json)。该记录只证明隔离本地 PostgreSQL 的相应步骤，不能替代 Zenith、照片、真实业务预算、会话或到期行为验收。
-- 本机 TLS 实测：2026-10-17，ORS 与 GLM 的 TLS 握手成功；没有发送供应商 API 请求或验证密钥、模型权限、地理覆盖。此结果不能推导 Zenith 出网情况。
+- 持久本机开发库已配置、迁移/重启/密码认证及SELECT1通过；管理员已受控初始化并通过Local API登录/身份验证，见[本机开发库](local-development-db.md)。C0持久仓储/匿名会话/预算已进入dev，见[C0集成验收](../acceptance/c0-integration.md)；C15照片/报告/分析服务、后台权限及B公众页面已进入dev，最新集成见[四包回执](../acceptance/d-four-package-integration.md)。
+- 早期[本地数据库实测](local-recovery-evidence.json)仅验证隔离PG步骤；后续[业务恢复](business-recovery-evidence.json)和[配套对象恢复](object-recovery-evidence.json)已在本机验证单个合成照片/报告/确认、原Cookie、持久预算与到期重启不复活，仍不代替Zenith或全库生产照片备份。
+- 本机 TLS 实测：2026-10-17，ORS 与 GLM 的 TLS 握手成功；该TLS探针没有发送供应商 API 请求或验证密钥、模型权限、地理覆盖。此结果不能推导 Zenith 出网情况。
 - ORS/Geocoding经C持久预算各一次真实HTTP200，专用PG重启保留预算和事件，见[供应商连接证据](provider-connection-evidence.json)。不代表公众路线/搜索闭环已过。
 - 用户已补齐OSS五项配置并同步D环境；本机S3兼容上传、授权读取、匿名403、签名读取/过期403、删除/404均真实通过，见[OSS连接证据](oss-connection-evidence.json)。两次随机合成探针对象均已删除；没有读取已有对象。
-- Zenith、GLM、C1照片授权/报告、完整业务重启恢复和四包UI闭环仍待验证。没有线上入口，因此尚未生成二维码。
+- Zenith、可用GLM/实时地点源、现场区域与最终真实导航/搜索/公共管理浏览器闭环仍待验证。C15照片授权/报告、本机业务恢复和B隔离人工报告流程已通过。没有线上入口，因此尚未生成二维码。
 
 ## 脱敏探针
 
@@ -30,10 +30,12 @@ pnpm exec tsx scripts/deployment-probe.ts --http --database --egress
 ## 最小缺项
 
 1. 比赛提供的 Zenith 模板/项目入口及部署权限：确认 Node/容器方式、构建命令、PORT、资源、持久化、出网、密钥注入、健康检查与发布审核。公开页面没有给出比赛模板的 manifest Schema，本仓库未据此编造配置。
-2. 真实部署地址；PostgreSQL 连接与持久化资源；稳定且分别配置的 PAYLOAD_SECRET、SESSION_SECRET。
-3. OSS本机配置和基础读写已验证；C仍需接入实际照片上传、授权代理与备份目标，Zenith环境须重新验证。秘密不进入提交或浏览器。
-4. ORS/Geocoding密钥与权限已实测；VISION_API_KEY已配置。D 最新单次GLM探针仍为429/1305，见[真实脱敏证据](vision-connection-evidence.json)。探针仅在该进程设日上限1，未修改环境策略；正式Vision日预算仍需显式配置，解析规则见技术文档11.1。调用必须经持久化预算预留。
-5. D 的现场通道测量记录；已有带官方 GIS/OSM 来源的[校园候选](campus-survey.md)，仍需现场与真实 ORS 核验。另需 A/B/C 最新阶段集成代码，未取得实测证据不能称已验证可通行。
+2. Zenith真实部署地址、平台PostgreSQL连接与持久化资源、稳定且分别配置的PAYLOAD_SECRET/SESSION_SECRET注入；本机对应资源已配好。
+3. OSS本机配置、C15真实照片上传/授权代理与单样本配套备份回填已验证；Zenith仍需验证连接和权限、配套生产备份目标及完整照片覆盖。秘密不进入提交或浏览器。
+4. ORS/Geocoding密钥与权限已实测；VISION_API_KEY已配置。早期[GLM探针](vision-connection-evidence.json)返回429/1305，仅在该进程设日上限1、未修改环境。后续本地Vision日预算显式设为10次/日并重启；集成9cfd186的一次有界重查仍429/1305，见[新证据](vision-recheck-evidence.json)。解析规则见技术文档11.1，调用须经持久化预算。
+5. D 的现场通道测量记录；已有带官方 GIS/OSM 来源的[校园候选](campus-survey.md)，仍需现场与真实 ORS 核验。四包当前阶段代码已集成，仍需最终真实闭环及人工验收；未取得实测证据不能称已验证可通行。
+
+6. 可用实时地点源；当前HeiGIT非法NaN JSON、Overpass406均未通过，见[连接记录](poi-connection-evidence.json)。
 
 以上是所需资源类别，不要求将任何秘密填入提交或聊天。探针的存在性结果应在目标部署里重新生成。
 
