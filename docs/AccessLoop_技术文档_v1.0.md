@@ -1,59 +1,95 @@
 # AccessLoop 技术文档
 
-基于 ORS 的障碍核实与动态绕行实现方案
+基于 Next.js、Payload、多模态模型与 ORS 的个人临时绕行实现方案
 
-版本 v1.0 评审版    日期 2026年10月17日
+版本 v1.2 Payload 与阿里云 OSS 选型确认版    日期 2026年10月17日
 
-采用一个部署于 Zenith 的 Next.js 全栈应用，以外部 ORS 服务计算 wheelchair 路线，以本地业务逻辑管理障碍、权限、几何范围、配额和结果版本。实现重点是让已核实障碍可靠进入路线请求，并保证旧缓存和并发请求不会把已经过时的结果当成当前结果。本文供开发、集成、测试和部署人员使用。
+采用一个部署于 Zenith 的 Next.js + Payload 全栈应用，由 Payload 提供数据管理、管理员认证、上传适配和管理后台，以原生支持图片输入和 JSON Schema 输出的多模态模型分析障碍，以外部 ORS 服务计算 wheelchair 路线。用户确认位置与通道后，后端按规则启用个人临时避让，不经过管理员逐条审批。实现重点是区分个人与公共生效范围，并保证缓存、权限和并发结果不会跨会话混用。本文供开发、集成、测试和部署人员使用。
 
 ## 1 技术基线与设计决定
 
-本方案对应《AccessLoop 需求文档》v1.0 的 FR01–FR14 与 AC01–AC10。分享对话是业务背景来源；外部 API 能力按官方资料核对。仓库当前只有项目 README，以下属于待实现设计，不表示已有代码、接口实测结果或部署成果。
+本方案对应[《AccessLoop 需求文档》v1.2](AccessLoop_需求文档_v1.0.md)的 FR01–FR14 与 AC01–AC10。用户已确认使用 Payload 与阿里云 OSS；取消管理员必审，将实时 AI 图片识别及结构化输出列为 P0，人工负责异常处理与公共报告的额外核实。以下为待实现设计，尚未完成框架安装或 Zenith 部署验证，外部 API 能力与目标区域仍需实测。
 
 | 决定 | 采用方案 | 原因与约束 |
 | --- | --- | --- |
 | 路线计算 | 后端请求 ORS wheelchair；不自建 Dijkstra | 复用已取得的接口，符合对话后段修正 |
-| 应用结构 | Next.js App Router 与 Route Handlers，TypeScript | 前后端一个项目，便于 3–4 人快速集成 |
-| 数据与照片 | PostgreSQL 与持久化对象存储；建议 Supabase 托管 | 减少比赛运维；Zenith 外网和服务配置必须先验证 |
+| 应用结构 | Next.js App Router + Payload，TypeScript；保留业务 Route Handlers | 页面、数据层和管理后台在同一个应用中运行 |
+| 后端与管理后台 | 已确定 Payload 与 Payload Admin；管理员使用 Payload 认证 | 复用数据管理和后台；公共核实与纠错界面保持 P1 |
+| 数据与照片 | Payload PostgreSQL 适配器 + 阿里云 OSS 私有 Bucket | 照片由阿里云托管，通过 Payload 存储适配层接入；Zenith 出网、OSS 兼容性及连接配置必须先验证 |
 | 地点数据 | 先测试 HeiGIT POI；缺少字段时补其他来源 | POI 与路线是不同服务，分别处理能力与预算 |
-| 障碍生效 | 管理员核实多边形与有效期后参与避让 | 照片和 AI 结果不直接封路 |
+| 障碍生效 | AI 分析后由用户确认通道，后端生成个人避让；公共生效另行核实 | 个人流程无需管理员；AI 状态不直接升级为公共已核实 |
 | 容量策略 | 单应用进程起步，共享数据库限流与版本 | 不用微服务或 Redis；扩容前补共享去重能力 |
-| AI 与报表 | AI 可选，手工输入兜底；报告页支持打印 | 没有模型密钥也能完成核心闭环 |
+| AI 与报表 | P0 图片输入与 JSON Schema 输出，手工填报为备用路径；报告页支持打印 | AI 未接入时可启动并降级，但不计全部 P0 完成 |
 
 Next.js 支持 Node.js 自托管与容器部署。[S8] Zenith 开发者页面列出公开仓库、zenith-compose.yml、介绍与截图及发布审核要求；比赛专用 manifest 字段、资源、端口和数据服务配置仍须以现场模板或实际开发者后台为准。[S6]
 
+### 1.1 Payload 选型与版本基线
+
+确定组合为 **Next.js + Payload + PostgreSQL + 阿里云 OSS 私有对象存储**。管理后台直接采用 Payload Admin；Refine、AdminJS、独立 NestJS 服务和完整 Supabase 自托管栈不纳入本版依赖。Payload 的通用能力用于数据及后台，AI、地理计算、匿名归属、业务状态、配额和缓存规则仍由 AccessLoop 服务实现。[S13]
+
+选型调研核对的稳定版本为 Payload 3.91.0，作为接入基线；正式安装需同时核对 `payload`、`@payloadcms/next`、`@payloadcms/db-postgres`、`@payloadcms/storage-s3` 与 Next.js、React、Node.js 的兼容范围，并提交 lockfile。运行时不能仅按 Next.js 的最低要求选择，也不能把预发布版本当作稳定基线。具体版本证据见[选型调研第 6 节](AccessLoop_开源后端与后台选型调研.md#6-稳定版本与部署验证)及固定发行元数据。[S18]
+
+OSS 使用阿里云托管的私有 Bucket，无需在 Zenith 部署对象存储服务。接入方案优先复用 `@payloadcms/storage-s3`，通过 OSS 的 S3 兼容接口访问；这是待实测的适配方案，不代表官方已保证该插件与 OSS 的全部行为兼容。OSS 要求 virtual-hosted 寻址，S3 客户端固定 `forcePathStyle: false`；endpoint、签名地域及 SDK 请求选项须按实际 Bucket 验证。[S17][S20] 若兼容测试失败，则由封装官方 `ali-oss` SDK 的 Payload 自定义存储适配器承接文件操作，继续由 `photos` Collection 管理元数据和访问控制。[S21]
+
 ## 2 系统架构与模块边界
 
-![AccessLoop 系统架构图](assets/accessloop-architecture.png)
+```mermaid
+flowchart TD
+  Browser["浏览器 地图与列表 照片上报 位置及通道确认"] --> App["Zenith 上的 Next.js 业务页面与 API"]
+  App --> Vision["VisionService 图片输入与 JSON Schema 输出"]
+  App --> Hazard["HazardService 归属校验 用户确认 个人与公共状态"]
+  Vision --> Model["外部多模态大模型"]
+  Vision --> Hazard
+  Hazard --> Route["RoutingService 公共障碍加本会话个人避让"]
+  Route --> ORS["HeiGIT ORS wheelchair 路线"]
+  App --> POI["地点服务"]
+  App --> Data["Payload Local API 与业务仓储"]
+  Hazard --> Data
+  Route --> Data
+  Vision --> Data
+  Data --> DB["PostgreSQL"]
+  Data --> Files["阿里云 OSS 私有对象存储"]
+  Review["Payload Admin 纠错与公共核实 P1"] --> Commands["受保护的业务命令接口"]
+  Commands --> Hazard
+  Review --> Data
+```
 
-图 1 逻辑架构。数据库与对象存储是持久化依赖，不要求位于应用容器内。若比赛要求每个实例完全独立，应为每个实例配置独立数据资源并确认平台支持方式。
+图 1 逻辑架构。Next.js 与 Payload 集成在同一应用，管理后台直接读取仅限授权的数据视图，状态修改通过业务命令接口。个人绕行不依赖纠错后台；模型只提供图片证据分析，程序决定状态、范围与权限。数据库与对象存储是持久化依赖，不要求位于应用容器内；独立实例需配置独立数据资源并确认平台支持方式。
 
 | 模块 | 职责 | 主要输入与输出 |
 | --- | --- | --- |
 | MapView | 地图渲染、选点、列表和图例 | 统一 GeoJSON，转换 Leaflet 坐标 |
-| RoutingService | 参数校验、障碍快照、配额、缓存、路线后验检查 | RouteInput → RouteResult 或业务错误 |
-| HazardService | 提交、核实、解除、并发版本和审计 | ReportInput / ReviewInput → ReportDTO |
+| RoutingService | 合并公共与本会话个人避让、配额、隔离缓存、路线后验检查 | RouteInput 与服务器会话 → RouteResult 或错误 |
+| HazardService | 提交、用户确认、个人启停、公共核实、并发版本和审计 | ReportInput / AvoidanceInput / ReviewInput → ReportDTO |
 | PlaceService | 地点查询、原标签保存和状态规范化 | 区域与分类 → PlaceDTO[] |
-| UploadService | 文件验证、去除元数据、对象存储和访问控制 | 二进制文件 → photoId |
-| VisionService | 可选照片分析与结构验证 | photoId → 建议或不可用状态 |
+| UploadService | 文件验证、去除元数据，通过 Payload Upload 与 OSS 存储适配层保存，控制读取 | 二进制文件 → photoId |
+| VisionService | 图片输入、Schema 约束输出、语义校验与降级 | photoId → analysisId、结构化结果与 aiStatus |
 | ProviderAdapter | 封装 ORS、POI 和可选搜索的认证、超时与错误 | 外部请求 → 内部统一结构 |
-| AccessService | 匿名会话、管理员验证和防滥用 | Cookie 与权限 → 服务端身份 |
+| AccessService | 匿名会话、Payload 管理员身份验证和防滥用 | Cookie 与权限 → 服务端身份 |
+| Payload Collections / Admin | 数据模型、列表、管理员账号、上传元数据与 P1 管理界面 | 受控数据访问；敏感修改转交业务命令 |
+| BusinessRepository | 封装 Payload Local API、内部表、事务和并发约束 | 服务端身份与命令 → 持久化结果 |
 
-页面和接口不直接拼接 ORS 请求。所有路由请求经过 RoutingService；所有状态变更经过 HazardService。浏览器无法提供 trusted、verifiedBy 或管理员身份。地图组件仅在客户端初始化，接口与数据库模块仅在服务端引用。
+页面和接口不直接拼接 ORS 请求。路由请求经过 RoutingService；状态变更经过 HazardService。后端不信任浏览器提交的 AI 结果、trusted、verifiedBy 或公共核实状态，只接受归属匹配的 analysisId 和用户确认输入。地图组件仅在客户端初始化，接口与数据库模块仅在服务端引用。
 
 ```text
-src/app/                 页面与 api 路由
+src/app/(frontend)/      公众页面与 api 业务路由
+src/app/(payload)/       Payload 布局、admin、cms-api 及生成的后台文件
+src/payload.config.ts   Payload、数据库、存储、路由与管理员 Collection 配置
+src/collections/        Collection 定义、字段权限和共享校验 hooks
+src/components/admin/   P1 地图、证据详情与纠错命令组件
 src/components/map/      地图和列表
 src/features/routing/    路由业务规则
 src/features/hazards/    报告与核实规则
 src/features/places/     地点规范化
 src/server/providers/    ORS POI Vision 适配器
 src/server/auth/         会话与权限
-src/server/storage/      数据库与对象存储
+src/server/storage/      业务仓储、Payload 事务与私有上传封装
 src/shared/contracts/    请求响应类型与校验
-db/migrations/           表结构 约束和事务函数
+src/migrations/          Payload 管理的迁移及业务表、约束和事务函数
 tests/integration/       核心验收场景
 ```
+
+路由组名不进入 URL。业务 API 保留 `/api/*`；Payload 的 `routes.admin` 设为 `/admin`、`routes.api` 设为 `/cms-api`，并同步 REST catch-all 目录到 `src/app/(payload)/cms-api/[...slug]/route.ts`。Payload 生成的其他 API 路由如保留，也统一放在 `/cms-api` 下，避免与现有业务契约冲突。[S14]
 
 ## 3 数据模型与一致性
 
@@ -63,29 +99,59 @@ MVP 可将有限区域的几何保存为受约束的 GeoJSON JSONB，并在应�
 
 | 实体 | 关键字段 | 约束 |
 | --- | --- | --- |
-| regions | id，name，bbox，hazard_version，timezone，is_demo | 一个实例默认一个区域；版本为单调递增整数 |
-| hazard_reports | id，region_id，owner_session_hash，photo_id，location，category，description，observed_at，status | location 为 Point；status 仅允许四种业务值 |
-| 核实字段 | avoid_geometry，verified_at，verified_by，valid_until，review_reason，resolved_at，row_version | verified 必须有合法几何、核实人、时间和有效期 |
-| photos | id，object_key，mime，bytes，width，height，created_at | 不存外部任意 URL；上传对象归属服务器会话 |
+| regions | id，name，bbox，hazard_version，timezone，is_demo，avoidance_buffer_m | hazard_version 只标记公共数据变更；缓冲宽度需按区域通道实测配置 |
+| hazard_reports | id，region_id，owner_session_hash，photo_id，analysis_id，location，category，description，observed_at，status，row_version | status 为 pending、ai_assessed、verified、resolved 或 rejected；保留用户修正 |
+| ai_analyses | id，photo_id，owner_session_hash，image_hash，model，prompt_version，schema_version，ai_status，result，created_at | 原始模型结果不可由客户端覆写；与照片及分析配置绑定 |
+| personal_avoidances | report_id，owner_session_hash，confirmed_path，avoid_geometry，decision_source，confirmed_at，valid_until，active，confirmation_report_version | 记录 ai_user_confirmed 或 user_manual；确认匹配报告版本，仅影响本会话 |
+| public 核实字段 | public_avoid_geometry，verification_source，verified_at，verified_by，valid_until，review_reason，resolved_at | verified 需独立证据、合法公共几何和有效期；建议 24h |
+| session_contexts | region_id，owner_session_hash，personal_version | 区域与会话联合唯一；个人变更只增加本会话版本 |
+| route_snapshots | route_ref，owner_session_hash，region_id，geometry，created_at，expires_at | 路线片段选择的短期凭据，建议保留 15 分钟，不作长期行程历史 |
+| photos | id，region_id，owner_session_hash，object_key，mime，bytes，width，height，created_at | 不存外部任意 URL；上传对象归属服务器会话 |
 | report_events | id，report_id，actor_id，action，before_hash，after_hash，reason，created_at | 追加写入；记录状态或几何变更 |
 | places_cache | source，source_id，region_id，location，raw_tags，accessibility，fetched_at，expires_at | 来源与原始标识联合唯一；未知不可转为 yes |
-| route_cache | request_hash，hazard_version，active_digest，payload，expires_at | 缓存短期保存；不作为用户出行历史 |
+| route_cache | request_hash，scope_key，hazard_version，personal_version，active_digest，payload，expires_at | 公共几何可共享；含个人避让的结果按会话隔离；不缓存会话凭据 |
 | provider_usage | key_fingerprint，service，reserved_at，outcome，reset_at | 按密钥和服务共享预算；不得保存原始密钥 |
 
-建议索引：hazard_reports(region_id,status,valid_until)、report_events(report_id,created_at)、route_cache(request_hash,expires_at)、provider_usage(key_fingerprint,service,reserved_at)。数据库外键限制跨区域照片和报告关联；必要时在事务函数中再次校验。
+建议索引：hazard_reports(region_id,owner_session_hash,status)、personal_avoidances(owner_session_hash,active,valid_until)、report_events(report_id,created_at)、route_cache(scope_key,request_hash,expires_at)、provider_usage(key_fingerprint,service,reserved_at)。事务内校验报告、照片、分析与路线片段的会话及区域归属；公共几何和个人几何分别保存。
+
+Payload 数据映射如下；上表为业务逻辑名称，实际 SQL 表名、字段名和索引以版本化迁移为准，不假定与 Collection slug 相同。
+
+| Payload Collection / 持久化位置 | 对应实体与用途 | 后台及默认接口边界 |
+| --- | --- | --- |
+| `admins`，启用 auth | 管理账号、角色与启用状态 | 无公众注册；账号及角色管理仅限部署运营者 |
+| `regions` | regions | 授权运营配置；涉及几何或生效集的变更经业务服务增版 |
+| `hazard-reports` | hazard_reports 及 public 核实字段 | 报告列表与详情；状态、归属、版本和公共几何不能通用编辑 |
+| `ai-analyses` | ai_analyses | 授权只读；仅 VisionService 写入 |
+| `personal-avoidances` | personal_avoidances | 授权只读排障；确认、启停和续期走 HazardService |
+| `photos`，启用 upload | photos 及文件元数据 | 私有读取；写入须执行统一上传验证，不开放替代上传路径 |
+| `report-events` | report_events | 授权只读；业务事务追加，不允许通用修改或删除 |
+| `places-cache` | places_cache | PlaceService 管理，不作为公众自由编辑数据 |
+| 内部业务表 | session_contexts、route_snapshots、route_cache、provider_usage 及幂等记录 | 通过业务仓储访问，不生成公开 CRUD |
+
+由 `@payloadcms/db-postgres` 管理 PostgreSQL 连接，Collection 结构和内部业务表统一纳入 Payload 迁移，不再维护第二套 ORM 自动建表流程。私有关系字段的展开与文件缩略图同样执行访问控制，公开报告使用明确的 DTO 字段白名单。[S15]
 
 ### 3.2 状态机与事务
 
 ```text
-pending  → verified | rejected
-verified → resolved | verified（重新核实）
-resolved | rejected → pending（重新打开）
-verified + valid_until 已到期 → 展示为核实过期
+pending → ai_assessed（后端接受可用的 AI 障碍分析）
+pending | ai_assessed → verified（P1 独立证据与公共核实）
+pending | ai_assessed | verified → rejected（P1 纠错）
+verified → resolved | verified（P1 解除或重新核实）
+resolved | rejected → pending（重新打开并重新确认）
+
+个人避让独立开关：inactive → active → inactive
+active 需用户明确确认、合法几何、报告版本匹配和未过期
+AI 不确定或不可用时可人工填报并明确确认个人避让
+个人停用不改变公共报告状态，公共 verified 不由模型写入
 ```
 
-审核请求携带 expectedVersion。事务内读取并锁定报告，校验管理员权限与状态转换，比较 row_version，写入新状态和 report_events，再增加 row_version 与 regions.hazard_version 后提交。不匹配返回 409 VERSION_CONFLICT；不得静默覆盖其他管理员的修改。重复的 Idempotency-Key 返回原结果，不重复核实或增版。
+已有报告的变更携带 expectedVersion 与 Idempotency-Key，创建请求只需幂等键。事务内锁定报告，校验归属或管理权限，比较 row_version，写入确认、状态及 report_events 后增版；confirmation_report_version 绑定本次事务提交后的报告版本，避免确认写入后立即失效。个人创建、确认、停用与修正增加本会话 personal_version；公共发布、纠错、几何或有效期修正增加 hazard_version。公共纠错若同时使个人避让失效，也更新受影响的个人版本。不匹配返回 409 VERSION_CONFLICT；重复幂等键返回原结果。
 
-创建报告以及修正位置、类别、状态、影响范围或有效期均更新区域版本，以便客户端及时刷新提醒。当前有效避让集定义为：status=verified，valid_until 大于当前服务器时间，avoid_geometry 合法。过期作为查询时推导条件处理，无须依赖后台任务准时运行。
+自定义业务入口由 BusinessRepository 显式管理 Payload 事务；使用 `beginTransaction`、`commitTransaction`、`rollbackTransaction`，将同一 `req.transactionID` 传递给参与操作的 Local API 和 hooks，并等待所有写入完成。报告锁定或原子比较更新、内部表、审计、双范围版本与幂等结果必须加入同一数据库事务；直接 SQL 也须使用适配器对应的同一事务连接，不能另开连接后宣称整体原子。上线前用失败回滚及并发测试验证该接入点。Payload 的草稿、历史版本、编辑锁和单次操作事务不替代上述业务事务与 `row_version`。[S16]
+
+当前请求的有效避让集为两部分的并集：公共 status=verified、未过期且公共几何合法的障碍；以及属于本会话、active=true、未过期、报告未被驳回或解决、确认版本匹配且个人几何合法的避让。pending 或 ai_assessed 均可通过明确人工确认启用个人避让，不要求管理员。不能加载其他会话的个人避让。
+
+过期作为查询时推导条件处理，无须依赖后台任务准时运行。照片、位置或受影响通道改变后清除原确认并停用个人避让；续期必须重新确认观察时间与通道。AI 结果只关联对应照片与分析配置；过时分析不得覆盖新照片、用户编辑或个人确认。
 
 ### 3.3 地点状态规范化
 
@@ -93,23 +159,27 @@ accessibility 只允许 yes、limited、no、unknown。优先保留来源中的�
 
 ## 4 应用接口契约
 
-路径为建议内部契约，与供应商 URL 分离。请求使用 JSON；照片上传为 multipart。响应统一携带 requestId；时间为 ISO 8601；GeoJSON 坐标统一为 [经度, 纬度]。成功数据位于 data，错误位于 error。
+以下 `/api/*` 路径为保留的 AccessLoop 业务契约，与供应商 URL 及 Payload 自动生成的 `/cms-api/*` 分离。公众页面只调用业务接口；后台业务按钮也调用下表受保护的命令，不直接将 Collection CRUD 用作状态转换。请求使用 JSON；照片上传为 multipart。响应统一携带 requestId；时间为 ISO 8601；GeoJSON 坐标统一为 [经度, 纬度]。成功数据位于 data，错误位于 error。
 
 | 方法 | 路径 | 身份与结果 |
 | --- | --- | --- |
 | GET | /api/region | 公开；区域、演示标识和当前障碍版本 |
+| GET | /api/routing-context | 当前会话；公共版本、个人版本、有效集摘要和最近过期时间；no-store |
 | GET | /api/places?bbox=… | 公开；限制 bbox 大小与返回数量 |
-| GET | /api/reports?bbox=… | 公开脱敏列表；不返回会话身份、管理日志或未审核照片 |
+| GET | /api/reports?bbox=…&scope=public | 仅已发布公共脱敏信息；scope=mine 时按当前会话读取本人报告 |
 | POST | /api/uploads | 匿名会话；验证文件并返回 photoId |
-| POST | /api/analyze | 会话与照片归属检查；可选 AI 结果 |
+| POST | /api/analyze | 会话与照片归属检查；返回 analysisId、aiStatus 和经校验的模型输出 |
 | POST | /api/reports | 会话；新建 pending 报告，支持幂等键 |
 | GET | /api/reports/{id} | 作者或管理员可看完整内容；公众仅看已发布脱敏字段 |
-| PATCH | /api/reports/{id}/review | 管理员；expectedVersion、动作、几何、有效期和理由 |
-| POST | /api/routes | 公开受限流；起终点与参数，后台合成避让集 |
+| PATCH | /api/reports/{id} | 本人修正未公共发布的报告；版本校验，相关修改清除旧确认 |
+| POST | /api/reports/{id}/avoidance | 本人确认或续期；位置、通道引用、观察时间、个人避让同意与 expectedVersion |
+| DELETE | /api/reports/{id}/avoidance | 本人停用个人避让；不解除仍有效的公共障碍 |
+| PATCH | /api/reports/{id}/review | P1 管理员纠错或公共核实；验证额外证据、动作、几何与理由 |
+| POST | /api/routes | 受限流；后台从会话读取个人避让并合并公共障碍，返回路线与 routeRef |
 | GET | /api/reports/{id}/export | 同报告读取权限；HTML 打印页与文字内容 |
 | GET | /api/health | 公开最小存活状态；不返回密钥或内部配置 |
 
-不接受客户端提交已核实状态、供应商地址或全局避让多边形。审核接口只接受管理员调整的几何，并在服务器重新验证。地点搜索 P1 如接入，可增加 /api/search；P0 使用预设地点和地图选点。
+不接受客户端提交的 AI 原始结果、verified、供应商地址或全局避让多边形。提交报告时 analysisId 必须从后端数据库读取并核对归属；个人确认接口只接受已返回路线的片段引用或预设通道 ID，再由后端生成几何。公共核实接口 P1 才开放；未实现时关闭该写入口，不影响 P0 个人绕行。地点搜索为 P1，P0 使用预设地点和地图选点。
 
 ### 4.1 路线请求与响应示例
 
@@ -134,11 +204,13 @@ POST /api/routes
   "data": {
     "route": {"type": "FeatureCollection", "features": []},
     "distanceM": 680, "durationS": 620,
-    "hazardVersion": 12, "activeDigest": "sha256:...",
+    "hazardVersion": 12, "personalVersion": 3,
+    "activeDigest": "sha256:...", "routeRef": "route-uuid",
+    "routingScope": "personal", "personalValidUntil": "2026-10-17T04:00:00Z",
     "avoidedReportIds": ["report-uuid"],
     "computedAt": "2026-10-17T03:00:00Z",
     "source": "ors", "cacheHit": false,
-    "warnings": ["部分路段信息可能不完整"]
+    "warnings": ["采用了你确认的个人临时避让，尚未公共核实", "部分路段信息可能不完整"]
   },
   "requestId": "request-uuid"
 }
@@ -146,15 +218,33 @@ POST /api/routes
 
 响应为字段示意，features 留空以省略实际坐标；实现中成功结果必须包含校验通过的 LineString。距离与时长为示例值。无路线使用 error.code=NO_ROUTE，不能返回空 features 的成功结果。
 
+用户确认个人避让的请求示例：
+
+```http
+POST /api/reports/{id}/avoidance
+Idempotency-Key: <client-generated-key>
+Content-Type: application/json
+
+{
+  "expectedVersion": 2,
+  "observedAt": "2026-10-17T03:00:00Z",
+  "passage": {"routeRef": "route-uuid", "startIndex": 4, "endIndex": 7},
+  "consent": true
+}
+```
+
+坐标取报告当前已确认的位置，通道引用必须属于本会话。后端从数据库读取关联分析与原始路线片段；不同会话、索引越界、位置不匹配或引用过期均拒绝。confirmed_at 与 decision_source 由后端确定，客户端不能附 verified 或公共生效范围。人工填报的确认使用相同接口，并在界面明确显示 AI 不确定或不可用。
+
 ### 4.2 统一错误语义
 
 | HTTP | 业务错误 | 前端处理 |
 | --- | --- | --- |
 | 400 | INVALID_INPUT / INVALID_GEOMETRY | 定位到错误字段；保留输入 |
 | 401 / 403 | UNAUTHENTICATED / FORBIDDEN | 提示登录或权限不足；不进行自动重试 |
-| 409 | VERSION_CONFLICT / ROUTE_STALE | 刷新状态；路线仍需重新规划 |
+| 409 | VERSION_CONFLICT / ROUTE_STALE / ANALYSIS_STALE | 刷新当前数据；重新确认或分析，保留用户编辑 |
 | 413 / 415 | FILE_TOO_LARGE / INVALID_MEDIA | 解释大小或格式要求 |
 | 422 | NO_ROUTE / ENDPOINT_BLOCKED / SNAP_TOO_FAR / OUT_OF_COVERAGE | 调整起终点或条件；不自动放宽限制 |
+| 422 | CONFIRMATION_REQUIRED / INVALID_PASSAGE | 补充位置与通道确认；不启用避让 |
 | 429 | RATE_LIMITED | 显示 retryAfterSec 和等待倒计时 |
 | 503 | QUOTA_EXHAUSTED / PROVIDER_UNAVAILABLE | 显示稍后重试或配额重置时间 |
 | 502 / 504 | INVALID_PROVIDER_RESULT / PROVIDER_TIMEOUT | 显示外部响应失败；保留表单和位置 |
@@ -191,13 +281,15 @@ Content-Type: application/json
 }
 ```
 
-avoid_polygons 支持 Polygon 或 MultiPolygon。[S2] 示例几何仅用于说明结构，不能作为已核实障碍使用。没有有效障碍时省略该字段，不能传空 Polygon。多个障碍按相交关系规范化合并后构造 MultiPolygon，保留原报告 ID 供解释。
+avoid_polygons 支持 Polygon 或 MultiPolygon。[S2] 示例几何仅说明结构。实际几何来自有效公共障碍和本会话已确认的个人避让，与 AI 图片中的像素框分离。没有有效障碍时省略该字段，不能传空 Polygon；多个障碍按相交关系规范化合并，保留报告 ID 及个人或公共来源供解释。
 
 ### 5.2 从上报点到有效避让区域
 
-- 上报者仅确认发现位置和事实；管理员在地图上确认受影响的具体通道，绘制最小合理范围。
+- 上报者确认发现位置、观察时间及当前路线片段或预设通道，选择“为我临时避让”。个人生效不等待管理员。
 
-- 可用 Turf.js 等地理工具按米生成初始缓冲，但缓冲只是编辑辅助，必须核实是否覆盖实际道路，避免误封平行通道。
+- 路线片段通过本会话 routeRef 与首尾顶点索引引用，后端验证其属于 15 分钟内返回的路线快照；预设通道使用服务端 ID。引用过期则重新选点或规划，不接受未经核对的任意长折线。
+
+- 后端基于用户确认的通道，以区域配置的米制宽度生成最小合理缓冲，并向用户预览确认。Turf.js 等工具负责地理计算；宽度不由照片模型猜测，也不无限扩大到邻近道路。
 
 - 服务端检查经纬度顺序、闭合环、自相交、面积、顶点数和区域边界；异常几何拒绝保存，不通过无限扩大范围修复。
 
@@ -209,7 +301,7 @@ avoid_polygons 支持 Polygon 或 MultiPolygon。[S2] 示例几何仅用于说�
 
 1. 校验区域、坐标、profile 和参数，拒绝区域外输入和未知字段。
 
-2. 在一致性快照中读取区域 hazard_version 和当前有效障碍；以报告 ID、row_version、几何及有效期计算 activeDigest。
+2. 从服务器会话读取身份，在一致性快照中读取 hazard_version、该会话 personal_version 及两类有效避让。以范围、报告 ID、版本、几何和有效期计算 activeDigest，绝不纳入他人个人报告。
 
 3. 生成缓存键并查询未过期结果。命中后仍确认当前版本与有效集一致；读取失败时停止规划，不把未知障碍集当空集。
 
@@ -217,9 +309,9 @@ avoid_polygons 支持 Polygon 或 MultiPolygon。[S2] 示例几何仅用于说�
 
 5. 校验返回 FeatureCollection、LineString、数值字段和起终点吸附偏差；检查路线是否穿越避让区域。路线越出配置区域时返回 OUT_OF_COVERAGE，不将外部未知路段作为本区域成功结果。异常结果不发布。
 
-6. 调用结束后重读区域版本与有效集摘要。发生变化则丢弃结果；在预算允许时最多重算一次，否则返回 ROUTE_STALE。
+6. 调用结束后重读公共版本、个人版本与有效集摘要。发生变化则丢弃结果；在预算允许时最多重算一次，否则返回 ROUTE_STALE。
 
-7. 只有验证通过的结果才缓存并返回。响应包含版本、摘要、时间、来源与采用的障碍 ID，便于客户端展示。
+7. 只有验证通过的结果才缓存。为当前会话建立短期 routeRef，响应附公共及个人版本、摘要、时间与个人或公共来源；routeRef 和个人上下文不得进入公共共享缓存。
 
 吸附检查建议先设为 50 米的应用保护值，经区域实测后调整；超限必须让用户确认或重新选点。地图上的输入点与路由图上的吸附点分别展示，避免隐藏路径起点已经变化。绕行检查只能验证当前几何和数据，不能证明真实路况安全。
 
@@ -228,14 +320,16 @@ avoid_polygons 支持 Polygon 或 MultiPolygon。[S2] 示例几何仅用于说�
 ```javascript
 cacheKey = SHA256(canonicalJSON({
   providerBase, adapterVersion, regionId,
-  start, end, profile, restrictions,
-  hazardVersion, activeDigest
+  start, end, profile, restrictions, scopeKey,
+  hazardVersion, personalVersion, activeDigest
 }))
 ```
 
-canonicalJSON 对键排序、参数默认值和多边形顺序做确定化。坐标保留提交精度，MVP 不用粗粒度四舍五入共享相邻起点。建议路线 TTL 为 60 秒，并取有效集最早到期时间的更早者；不能跨越障碍有效期复用。路线 POST 与区域版本响应设置 Cache-Control: no-store，业务缓存显式管理，避免 CDN 或框架自动缓存绕过版本检查。
+scopeKey 在没有个人避让时为 public，此时缓存键中的 personalVersion 规范化为 0，摘要只包含公共避让；存在个人避让时使用服务器生成的会话命名空间和实际个人版本，不能由请求参数指定。公共缓存只保存可共享路线几何与公共属性，返回时单独附本会话版本及 routeRef；含个人报告的结果及进行中的 Promise 按会话隔离。模型分析缓存也按会话、照片内容哈希、模型、提示词和 Schema 版本区分。
 
-状态更新在数据库事务中增版；客户端在显示路线时每 5 秒读取轻量区域版本，变更即将当前结果标为过时，并提示点击重算。轮询版本不会自动消耗 Directions 预算。客户端为每次路线操作分配递增序号，旧请求返回时只能在序号与当前输入一致时展示。
+canonicalJSON 对键、默认值和多边形顺序做确定化，坐标保留提交精度。建议路线 TTL 为 60 秒，并取个人或公共避让最早到期时间的更早者。路线、个人报告和 routing-context 响应设置 Cache-Control: private, no-store，业务缓存显式管理，避免 CDN 或框架自动缓存绕过版本与归属检查。
+
+状态更新在数据库事务中增加对应公共或个人版本。客户端每 5 秒读取本会话 /api/routing-context，比较两个版本与当前有效集摘要；过期导致摘要变化时也将路线标为过时。轮询不调用 ORS。路线请求与 AI 分析各携带输入版本序号；旧路线不能覆盖较新结果，旧 AI 响应不能覆盖新照片或用户已修正的字段，重新确认必须绑定当前报告版本。
 
 单应用进程以 Map<cacheKey,Promise> 合并同键请求，finally 删除条目；多副本若启用，需在数据库实现共享请求租约或采用共享工作队列。无论是否去重，配额必须以密钥为单位共享。所有应用副本和不同 Zenith 实例若共用同一把 Key，都必须接入同一预算门禁。
 
@@ -285,42 +379,93 @@ HeiGIT POI 是独立的 openpoiservice，不是自托管 ORS 自带模块。[S7]
 
 地图底图、地点数据、路线数据和用户报告各自保留来源。使用 OSM 公共瓦片时显示清晰署名，遵守缓存政策，不做批量下载或预取；瓦片地址使用配置项，便于替换服务。[S10]
 
-## 9 图片上传与可选 AI
+## 9 图片输入与结构化 AI 分析
 
 ### 9.1 上传处理
 
-建议原始文件上限 5 MB，仅接受实际可解码的 JPEG/PNG，并限制原图像素总数防止异常文件占用内存。检查文件头、真实解码结果与 MIME，不能仅检查扩展名。服务器缩放至长边不超过 2048 像素，重新编码去除 EXIF 和定位元数据，再用随机对象键写入存储。
+建议原始文件上限 5 MB，仅接受实际可解码的 JPEG/PNG，并限制原图像素总数防止异常文件占用内存。检查文件头、真实解码结果与 MIME，不能仅检查扩展名。服务器缩放至长边不超过 2048 像素，重新编码去除 EXIF 和定位元数据，再用随机对象键经 Payload `photos` 上传 Collection 与 OSS 存储适配层写入阿里云 OSS 私有桶，优先验证 `@payloadcms/storage-s3` 接入。禁用本地持久化回退，缺少存储配置时明确报错；图片只可进入统一校验流程，Payload 默认上传入口及后台上传也不能绕过处理。[S17][S20]
 
-photoId 与匿名会话或管理员身份绑定；创建报告时校验照片归属并防止跨区域复用。待核实图片仅作者和管理员可读；公开展示经过核实并批准发布的处理后图片。通过短期签名 URL 或应用代理访问私有对象，不能把管理存储凭据返回前端。
+P0 采用浏览器上传到 Next.js、后端处理后写入 OSS 的流程，存储适配器保持 `clientUploads: false`；应用使用仅能访问指定 Bucket 和对象前缀所需权限的服务端身份。Bucket 与对象均不公开，数据库记录对象键，不保存长期公开照片地址。查看时先校验匿名归属或管理员权限，再由应用代理文件，或生成建议 300 秒有效的签名链接；签名链接本身是临时访问凭证，过期后重新授权生成。模型优先使用后端读取的处理后图片字节。[S21]
 
-上报者确认照片不含需要公开的人脸、车牌或私人信息；管理端在发布前检查。建议报告和图片保留 30 天后通过管理员维护命令清理，该期限需按运营需求确认。未绑定报告的上传建议 24 小时后清理；清理方法不依赖未确认可用的 Zenith 定时任务。
+photoId 与匿名会话绑定；创建报告和分析时校验归属，防止跨会话及跨区域复用。个人报告和原图默认仅作者及纠错管理员可读；模型调用使用后端读取的图片字节或受控短期地址。公共发布独立检查图片披露，不因 AI 已分析或个人避让生效就自动公开原图。通过短期签名 URL 或应用代理访问私有对象，不能把存储凭据返回前端。
+
+Payload 文件访问必须保留访问控制，签名下载也先检查身份与归属；不使用公开桶地址或 `disablePayloadAccessControl: true` 绕过授权。`/cms-api` 文件路由、缩略图与复制出的 URL 需纳入双会话隔离验证。[S17]
+
+调用前说明照片将发送给配置的外部识别服务，由用户明确选择分析；提示避免上传人脸、车牌或私人信息。个人流程不等待发布审核，公共图片发布在 P1 另行检查。建议报告、分析及图片保留 30 天，未绑定报告的上传保留 24 小时；期限需按运营需求确认，清理通过管理员维护命令执行，不依赖未确认可用的 Zenith 定时任务。
 
 ### 9.2 AI 契约
 
-```typescript
-type HazardSuggestion = {
-  category: "construction" | "steps_or_kerb" |
-    "surface_damage" | "obstruction" | "other" | "uncertain";
-  description: string;
-  uncertainties: string[];
-};
+采用原生支持图片输入与 Structured Outputs 的多模态模型，不另外训练分类器。后端发送处理后的照片、固定任务指令和 JSON Schema；使用供应商的 Schema 约束接口，而不是只在提示词里要求 JSON。Gemini 官方能力可作为接入参考，实际模型由配置选择并在目标账号实测。[S11][S12]
+
+```json
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "image_quality", "hazard_present", "category", "visible_passage",
+    "description", "evidence", "uncertainties"
+  ],
+  "properties": {
+    "image_quality": {"type": "string", "enum": ["usable", "poor", "unusable"]},
+    "hazard_present": {"type": ["boolean", "null"]},
+    "category": {
+      "type": "string",
+      "enum": ["construction", "steps_or_kerb", "surface_damage", "obstruction", "other", "uncertain"]
+    },
+    "visible_passage": {
+      "type": "string",
+      "enum": ["blocked", "partially_blocked", "clear", "unknown"]
+    },
+    "description": {"type": "string"},
+    "evidence": {"type": "array", "items": {"type": "string"}},
+    "uncertainties": {"type": "array", "items": {"type": "string"}}
+  }
+}
 ```
 
-VisionService 只接收已验证照片和固定任务指令，要求输出上述结构并做服务端校验。图片中文字是待分析内容，不能成为调用工具或改写权限的指令。模型自评置信度如保留，只作为辅助信息，不能用于自动核实、计算通行尺寸或决定道路是否安全。
+模型返回示例：
 
-设置建议 8 秒分析超时、每张照片缓存一次分析、单会话和全局成本预算。无密钥、超时、拒绝识别或结构无效时返回 aiStatus=unavailable 或 uncertain，表单继续手工填写。调用前向用户说明照片将发送到配置的外部识别服务，AI 返回内容由用户确认后才进入报告。
+```json
+{
+  "image_quality": "usable",
+  "hazard_present": true,
+  "category": "construction",
+  "visible_passage": "blocked",
+  "description": "施工围栏阻挡了画面中的人行通道",
+  "evidence": ["围栏横跨可见通道", "画面中未见可供轮椅通过的缺口"],
+  "uncertainties": ["无法判断画面外是否存在其他通道"]
+}
+```
+
+visible_passage 只描述画面内可见情况，不表示整条道路的实时通行结论。模型不输出经纬度、道路精确宽度或坡度、avoid_polygons、用户角色、verified 或全局生效决策。图片中文字是待分析内容，不能作为调用工具、改写权限或更改 Schema 的指令。模型自评置信度不作为自动公共发布的依据。
+
+后端使用 Zod、Ajv 或等价校验器再次验证完整 Schema，并检查业务逻辑：usable 图片、hazard_present=true、明确类别与 blocked 或 partially_blocked 可产生个人避让建议，仍需用户确认位置、通道和意愿才生效。null、低质量、unknown、未发现障碍或字段矛盾时，aiStatus=uncertain，报告保持 pending，不默认启用。拒绝、超时或无效结构时 aiStatus=unavailable，不把缺失字段猜成 true。[S12]
+
+分析记录的 aiStatus 为 completed、uncertain 或 unavailable。可用障碍分析写入不可由客户端覆写的 ai_analyses，返回 analysisId；创建报告时校验其照片、会话、模型及 Schema 版本。用户修正值与模型原值分别保存。AI 响应晚到且报告版本已改变时，仅保留分析记录，不修改报告或当前确认，不能覆盖新照片、用户编辑或重新激活已停用避让。
+
+### 9.3 个人确认与降级规则
+
+AI 成功时展示分析结果和避让预览，用户点击“为我临时避让”才提交归属受控的确认请求。服务端验证 routeRef 或预设通道、观察时间、当前报告版本、合法几何及明确同意。观察时间不能为未来；建议 valid_until=observed_at+1 小时，已过期时需重新确认当前观察信息。用户可随时停用；续期或换照片、位置、通道必须重新确认。
+
+AI 不确定、未发现障碍、无密钥或分析失败时，保留表单，明确提示分析状态。用户可人工填写事实、选择通道并主动确认个人临时避让，标记 decisionSource=user_manual；正常 AI 辅助确认标记 ai_user_confirmed。两条路径都不直接公共发布，也不以等待管理员作为降级出口。缺少确认或几何校验失败时不生效。
+
+设置建议 8 秒分析超时、会话级分析缓存及单会话和全局成本预算；同照片、模型、提示词与 Schema 版本可复用，不因重绘或反复提交重复计费。模型切换、Schema 或提示词变化后重算。生产端不能用预存分析冒充实时调用；AI 未接入时可以启动及人工降级，但不计全部 P0 完成。
 
 ## 10 身份权限与数据保护
 
-P0 不做完整公众账号，但仍需要真实管理员鉴权。建议使用托管身份服务创建少量管理员，后端验证会话并从服务端受控名单读取角色。匿名上报使用服务器生成的不可预测会话标识，以 HttpOnly、Secure、SameSite Cookie 保存；数据库仅保存会话标识哈希。不能把前端 role=admin 参数或公开演示开关当作授权。
+P0 不做完整公众账号，以服务器生成的不可预测匿名会话标识归属报告、分析和个人避让，使用 HttpOnly、Secure、SameSite Cookie，数据库仅保存标识哈希。个人流程不依赖管理员登录。管理账号采用 Payload 的 `admins` auth Collection，并将 `admin.user` 指向该 Collection；P1 纠错后台开放时，AccessService 在服务端验证 Payload 身份、账号启用状态和管理角色。匿名 Cookie 与 Payload 管理登录身份分开处理；可信维护方数据也需受控来源身份，不能信任客户端自报的来源或 role=admin。[S13]
 
-- 数据库和存储凭据仅在服务器使用；若使用 Supabase 高权限密钥，浏览器不得持有，公共表开启访问控制并拒绝匿名直写。
+- 数据库和存储凭据仅在服务器使用，公众不直接连接 PostgreSQL 或持有阿里云 OSS AccessKey；若底层选用 Supabase PostgreSQL，仅作为托管数据库连接使用，其控制台不承担业务后台职责，照片统一存入 OSS。
 
-- 写请求验证 Origin、会话和必要的 CSRF 防护；限制上传、创建报告、分析和规划请求。匿名会话与 IP 限流组合使用，兼顾现场共用网络，避免单 IP 配额误封所有观众。
+- Payload Local API 默认 `overrideAccess: true`。面向公众数据的读取显式使用 `overrideAccess: false`，并注入仅由服务器构造的匿名归属上下文；内部特权写入仅在业务服务完成授权和语义校验后使用，限制字段与调用位置。HTTP 请求不能自报特权上下文或 owner。REST、GraphQL、后台与执行访问控制的 Local API 调用共用 Collection 和字段权限；内部特权访问由业务仓储承担授权责任。[S19]
+
+- `/cms-api` 不向匿名请求开放私人 Collection 的通用读写。状态、AI 原始结果、归属、版本、公共几何与审计字段不能靠后台只读界面保护；受保护命令负责修改，hooks 只承担共享校验和事务内配套写入，避免重复增版。部署运营者通过受控初始化流程建立首个管理员，关闭公众账号创建与角色提升；P1 未交付时关闭公共核实写入口。
+
+- 写请求验证 Origin、会话和必要的 CSRF 防护，逐次核对照片、analysisId、报告及 routeRef 的归属；个人确认与公共核实分别授权。匿名会话与 IP 限流组合使用，兼顾现场共用网络。
 
 - 表单使用长度和枚举校验，描述按纯文本渲染；报告页不能直接插入未经转义的用户或 AI HTML。服务端不访问用户自报的任意文件 URL。
 
-- 日志不记录密钥、完整 Cookie、原图、精确起终点或出行历史。错误日志只保留 requestId、服务、错误码、耗时、版本和配额摘要。
+- 日志不记录密钥、完整 Cookie、原图、精确起终点或出行历史。错误日志只保留 requestId、服务、错误码、耗时、版本和配额摘要。route_snapshots 仅作 15 分钟内片段确认，过期即不可读取并由维护命令清理，不能积累为行程历史。
 
 - 演示实例与真实数据实例分离。每个独立部署默认配置自己的服务凭据与数据资源，凭据不得固化进公开仓库或容器镜像。
 
@@ -333,63 +478,73 @@ P0 不做完整公众账号，但仍需要真实管理员鉴权。建议使用�
 | APP_BASE_URL / APP_MODE | 站点地址与 demo 或 live 模式 | 服务端与有限公开配置 |
 | REGION_ID / REGION_BBOX | 单区域范围和种子数据选择 | 服务端；返回可公开区域字段 |
 | DATABASE_URL | PostgreSQL 连接或等价托管连接配置 | 服务端秘密 |
-| STORAGE_ENDPOINT / STORAGE_BUCKET | 对象存储地址与桶 | 服务端配置 |
-| STORAGE_ACCESS_KEY / STORAGE_SECRET | 对象存储授权；托管 SDK 可用对应凭据替换 | 服务端秘密 |
-| AUTH_PROVIDER_URL / AUTH_SERVER_SECRET | 托管登录验证配置，按实际供应商替换 | 服务端；秘密不公开 |
+| PAYLOAD_SECRET | Payload 认证及加密密钥；与 SESSION_SECRET 分开配置 | 服务端秘密；每实例独立，重启保持一致 |
+| OSS_ENDPOINT / OSS_BUCKET | 阿里云 OSS HTTPS 服务地址与私有 Bucket；Zenith 使用可连通的 endpoint | 服务端配置 |
+| OSS_REGION | Bucket 所在地域；映射为所用 SDK 要求的地域及签名配置，不能照搬 AWS 地域值 | 服务端配置 |
+| OSS_ACCESS_KEY_ID / OSS_ACCESS_KEY_SECRET | 仅授权指定 Bucket 和对象前缀必要操作的阿里云身份凭据 | 服务端秘密 |
+| OSS_SIGNED_URL_TTL_SECONDS | 建议 300；授权后生成的文件临时访问链接有效期 | 服务端配置 |
 | ORS_API_KEY | HeiGIT API Key | 服务端秘密 |
 | ORS_BASE_URL | https://api.heigit.org/openrouteservice | 服务端固定允许列表 |
 | POI_BASE_URL | https://api.heigit.org/openpoiservice/v0 | 服务端固定允许列表 |
 | ORS_RPM / ORS_DAILY_BUDGET | 建议 30 与 1800，共享门禁预算 | 服务端可配置 |
-| VISION_PROVIDER / VISION_API_KEY | 可选图片模型及密钥 | 服务端；缺省仍可启动 |
+| VISION_PROVIDER / VISION_MODEL / VISION_API_KEY | P0 图片模型、支持 Schema 的型号及密钥 | 服务端；缺省可启动和人工降级，不计 AI 验收完成 |
+| VISION_SCHEMA_VERSION / VISION_PROMPT_VERSION | 输出契约与提示词版本，参与分析缓存键和审计 | 服务端固定配置 |
+| VISION_TIMEOUT_MS / VISION_DAILY_BUDGET | 建议 8000 毫秒超时及模型每日调用预算 | 服务端；与 ORS 预算分开 |
+| PERSONAL_AVOIDANCE_TTL_SECONDS / PUBLIC_HAZARD_TTL_SECONDS | 建议个人 3600 秒、公共 86400 秒 | 服务端可配置运营值 |
 | MAP_TILE_URL / MAP_ATTRIBUTION | 底图地址与署名 | 允许公开 |
 | SESSION_SECRET | 匿名会话签名或加密 | 服务端秘密；每实例独立 |
 
-变量名称为应用配置约定，不能直接当作已确认的 Zenith manifest 字段。供应商客户端如不使用通用 S3 接口，应将存储变量换为该 SDK 所需的服务端变量，并在实际 README 中保持唯一说明。秘密不得冠以 NEXT_PUBLIC_；公开构建变量与运行时服务端配置分别管理。[S8]
+变量名称为应用配置约定，不能直接当作已确认的 Zenith manifest 字段。`payload.config.ts` 将 DATABASE_URL 映射到 PostgreSQL 适配器，将 OSS_* 映射到 OSS 存储适配层的 endpoint、bucket、region、credentials 及签名有效期，不能假定插件会自动读取这些应用变量。S3 兼容接入固定 `forcePathStyle: false`，保留 Payload 文件访问控制；配置由统一存储封装读取。生产环境缺少 PAYLOAD_SECRET、数据库或 OSS 必要配置时启动失败，不退回临时文件存储。秘密不得冠以 NEXT_PUBLIC_；公开构建变量与运行时服务端配置分别管理。[S8][S17][S20]
 
 ### 11.2 部署顺序与检查点
 
 1. 取得比赛提供的 Zenith 模板，核对 Node.js 或容器路径、构建方式、监听地址、PORT、资源、出网、密钥注入及健康检查。
 
-2. 先上线最小页面和 /api/health，使用平台实际端口监听 0.0.0.0；不在未知规范下编造 zenith-compose.yml 内容。
+2. 按锁定的兼容版本构建 Next.js + Payload，先上线最小页面和 /api/health；检查 `/admin` 与 `/cms-api` 挂载且业务 `/api` 不冲突，使用平台实际端口监听 0.0.0.0；不在未知规范下编造 zenith-compose.yml 内容。
 
-3. 配置持久化 PostgreSQL 和对象存储，运行版本化迁移并写入明确标识的演示区域；不在每次应用启动时重置数据库。
+3. 配置持久化 PostgreSQL、阿里云 OSS 私有 Bucket、服务端 OSS 凭据和 PAYLOAD_SECRET；从 Zenith 验证上传、读取、删除与签名下载的实际兼容性。执行已提交的 Payload 版本化迁移，包括内部业务表与并发约束，再写入明确标识的演示区域。迁移作为受控发布步骤单次执行，生产不使用开发期自动 push 改表；不在每次应用启动时重置数据库。首个管理员由受控部署流程创建。[S15][S20][S21]
 
-4. 在 Zenith 环境调用一条真实 wheelchair 路线，再用合理多边形测试绕行与无路线分支，保留脱敏响应和时间。
+4. 在 Zenith 环境实测图片输入与 Schema 输出，再完成无管理员参与的“上报 → 用户确认 → 个人避让 → ORS 绕行”；测试无路线、AI 降级与两会话隔离，保留脱敏结果。
 
-5. 创建照片报告，重启容器并验证记录、图片、状态及配额记录仍在；执行一次备份和恢复验证。
+5. 创建照片报告并启用个人避让，重启容器后验证图片、分析、用户确认和配额记录仍在；已过期避让不能恢复生效。执行一次备份和恢复验证。
 
-6. 核对 HTTPS、公开二维码、管理员会话、移动端页面和密钥泄露检查；准备介绍、截图及发布审核材料。
+6. 核对 HTTPS、公开二维码、匿名会话归属、移动端页面和密钥泄露；验证 Payload 默认 CRUD、关系展开、上传、文件地址不能绕过授权和业务命令。若开放 P1 公共纠错接口，另测 Payload 管理鉴权、版本冲突、原子审计与公共发布证据。准备介绍、截图及发布审核材料。
 
 7. 冻结功能，保留上一可用镜像或提交版本；数据库迁移尽量向前兼容，回滚不通过删除真实数据实现。
 
-若使用 Supabase 等外部托管数据服务，必须在首轮部署验证 Zenith 出网和连接方式。若外部数据服务不符合比赛要求，只有在确认 Zenith 支持数据库容器及持久化卷后才切换到随实例数据库；两条路径都不能依赖容器临时目录持久化照片。
+照片存储供应商已确定为阿里云 OSS，实际账号、地域、Bucket、权限及 Zenith 连通性尚待部署验证。PostgreSQL 托管供应商仍按部署条件确定；如使用 Supabase，仅连接其 PostgreSQL，不额外引入 Auth、Storage 与 Studio 作为本版默认架构。外部数据服务的使用条件须按比赛规则确认；若需将 PostgreSQL 改为 Zenith 内的数据库，先核实数据库容器及持久化卷支持。OSS 或网络不可用时上传明确失败，不能回退到容器临时目录持久化照片。
 
 ## 12 验证方案与需求追踪
 
 | 需求与验收 | 关键验证 | 保留证据 |
 | --- | --- | --- |
 | FR01–04 / AC01 | 拒绝定位选点、坐标转换、未知地点标签和正常路线 | 手机截图、脱敏请求与结果 |
-| FR05–06 / AC02 AC07 | 待核实提醒、不自动封路、接口越权与并发审核冲突 | 集成测试结果与审计事件 |
-| FR07 / AC03 AC05 | 固定两点有无障碍对照；几何交叉检查；无路线 | 参数、障碍几何、两次路线和版本 |
-| FR08 / AC04 AC08 | 解除、过期、请求期间增版、客户端旧请求晚到 | 版本日志、缓存键、界面过时提示 |
-| FR09–10 / AC10 | 无模型密钥、识别超时、手动提交和打印页 | 表单与打印样例 |
+| FR05–06 / AC02 AC07 | AI 状态由后端产生；用户确认后个人生效；越权、伪造公共状态和版本冲突 | 分析记录、用户确认与审计事件 |
+| FR07 / AC03 AC05 | 无管理员完成个人绕行；第二会话不受影响；几何交叉及无路线 | 相同参数的双会话结果、障碍范围与版本 |
+| FR08 / AC04 AC08 | 个人停用与过期、公共解除、请求期间增版、旧 AI 与路线结果晚到 | 双版本、隔离缓存键与过时提示 |
+| FR09–10 / AC02 AC10 | Schema、语义矛盾、拒绝、超时、无密钥、人工确认备用路径与打印范围标识 | 模型样例、校验结果、表单与打印页 |
 | FR11 FR14 / AC06 | 429、配额 403、鉴权 403、超时、重启预算保留 | 上游调用计数与错误映射 |
-| FR12–13 / AC09 | 公开演示隔离、匿名不能审核、重启与恢复 | 角色测试、部署和恢复记录 |
+| FR12–13 / AC07 AC09 | 演示隔离、Payload 管理身份与 CRUD/文件权限、个人与公共权限、重启保留确认且过期不复活 | 归属测试、部署与恢复记录 |
 
-建议分层测试：用纯函数验证标签规范化、状态转换、缓存键和几何；用数据库集成测试验证事务、版本冲突和限流；用端到端测试验证上报到核实再到路线变化。日常测试用受控供应商桩覆盖错误分支，少量真实调用用于验证目标区域与真实供应商契约，避免压测外部免费 API。
+建议分层测试：纯函数验证 Schema、业务逻辑、双范围有效集、缓存键和几何；数据库集成测试验证归属、事务、版本冲突与限流；端到端测试在无管理员会话下完成 AI 分析、用户确认和路线变化，并以另一会话验证隔离。日常测试用供应商桩覆盖错误分支，少量真实图片用于实测识别与契约，避免压测外部 API。
 
-发布前测量需求文档中的性能目标：低负载路线请求 30 次统计 P95、20 个浏览会话的交互、版本变化 10 秒内提示、缓存命中延迟和服务重启恢复。结果按实际测量填写，不把设计目标写为已达到。
+发布前测量需求文档中的性能目标：路线请求 P95、20 个浏览会话、公共或个人变更及过期后 10 秒内提示、8 秒 AI 超时降级、缓存命中和重启恢复。识别样例包含清晰障碍、无障碍、模糊照片及场景外通道不可见，记录误报与漏报，不把 JSON 格式正确当作识别准确。结果按实测填写。
 
 ## 13 待完成的技术验证
 
 | 验证项 | 通过条件 | 失败后的处理 |
 | --- | --- | --- |
+| Payload 版本及部署集成 | 固定依赖可构建启动，`/admin`、`/cms-api` 与业务 `/api` 不冲突 | 调整兼容版本或平台配置，保持 Payload 已选方案 |
+| Payload 权限与事务接入 | 默认 CRUD 不绕过规则，文件不越权，多实体失败全回滚，并发修改返回 409 | 关闭受影响入口，修复权限、事务连接与并发约束后再开放 |
+| 阿里云 OSS 适配与私有访问 | Zenith 上传、读取、删除及签名下载成功；私有对象不能匿名直读，A/B 会话与缩略图隔离，签名过期失效，重启后仍可授权读取 | 修复 endpoint、签名、权限或 SDK 兼容选项；必要时改用 ali-oss 自定义适配器，继续使用 OSS |
 | 目标区域路线 | wheelchair 可路由，避让覆盖原路径后有合理替代或无路线 | 更换区域或调整展示范围，保留失败证据 |
-| 照片位置与避让范围 | 报告点与真实通道对应；无误封邻近道路 | 管理员重新确认，未核实前不生效 |
+| 照片位置与避让范围 | 用户确认的点与通道一致；后端生成范围不误封邻近道路 | 让用户重新选择或缩小范围；不启用无效个人避让 |
+| AI 图片与 JSON Schema | 真实图片返回有效结构；语义异常、拒绝与超时被正确降级 | 保留人工填报及明确确认路径，修正接入后重新验收 |
+| 双会话隔离 | A 的个人报告不影响 B，也不被公共缓存或分析缓存泄露 | 暂停受影响接口并修复归属及缓存键 |
 | POI 字段覆盖 | 目标类别和 wheelchair 标签实际可读取 | unknown 展示；再评估补充来源 |
 | 持久化和出网 | Zenith 可访问数据服务，重启记录与图片不丢 | 先解决平台约束，再增加依赖 |
 | 账号额度与授权 | 后台额度、服务权限及数据使用条件已确认 | 收紧预算或替换来源，不绕过限额 |
-| 实际用户体验 | 试用者理解未知、待核实与路线限制，并能完成核心操作 | 修正界面与交互后再公开体验 |
+| 实际用户体验 | 试用者理解 AI 已分析、个人避让与公共已核实，能独立确认通道 | 修正界面与交互后再公开体验 |
 
 ## 14 参考资料
 
@@ -414,3 +569,25 @@ P0 不做完整公众账号，但仍需要真实管理员鉴权。建议使用�
 - [S9 accessibility.cloud JSON API](https://github.com/sozialhelden/accessibility-cloud/blob/main/app/docs/json-api.md)
 
 - [S10 OpenStreetMap 瓦片使用政策](https://operations.osmfoundation.org/policies/tiles/)
+
+- [S11 Gemini 图片理解 官方能力示例](https://ai.google.dev/gemini-api/docs/image-understanding)
+
+- [S12 Gemini Structured Outputs 与应用校验](https://ai.google.dev/gemini-api/docs/structured-output)
+
+- [S13 Payload 产品能力与集成方式](https://payloadcms.com/docs/getting-started/what-is-payload)
+
+- [S14 Payload 后台及 API 路由配置](https://payloadcms.com/docs/admin/overview#customizing-routes)
+
+- [S15 Payload PostgreSQL 适配器与迁移](https://payloadcms.com/docs/database/postgres)
+
+- [S16 Payload 数据库事务](https://payloadcms.com/docs/database/transactions)
+
+- [S17 Payload 上传与存储适配器](https://payloadcms.com/docs/upload/storage-adapters)
+
+- [S18 Payload 3.91.0 的 Next.js 依赖元数据](https://github.com/payloadcms/payload/blob/v3.91.0/packages/next/package.json)
+
+- [S19 Payload Local API 与访问控制默认值](https://payloadcms.com/docs/local-api/overview)
+
+- [S20 阿里云 OSS 的 S3 API 兼容范围与寻址差异](https://www.alibabacloud.com/help/en/oss/developer-reference/compatibility-with-amazon-s3)
+
+- [S21 阿里云 OSS Node.js SDK 与私有对象签名下载](https://www.alibabacloud.com/help/en/oss/developer-reference/download-objects-using-a-presigned-url-generated-with-oss-sdk-for-node-js)
