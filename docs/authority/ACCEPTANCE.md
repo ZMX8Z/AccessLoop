@@ -42,11 +42,11 @@
 | P1纠错/驳回/解除/重开与审计 | B/C/D | C15命令、审计、版本/幂等/事务实库及生产Admin HTTP通过 | 待执行 | C15集成 |
 | P1区域/预设通道配置与持久化 | C/D，B界面 | C15事务命令/权限/全部会话影响及D校验通过；实测区域未导入 | 界面部分待执行 | C15、D地理回归 |
 | P1调用/等待/错误/缓存摘要 | D/C，B界面 | 真实24h脱敏事件核对及重启/恢复保留通过；C15鉴权接口与后台挂载通过 | 界面部分待执行 | Vision/业务恢复证据、C15 |
-| Zenith、重启持久化及最小备份恢复 | D/C | 本机生产照片/报告/确认/预算重启与空库恢复通过；Zenith及OSS对象独立备份恢复待验 | 在线功能待执行 | business-recovery-evidence.json、恢复说明 |
+| Zenith、重启持久化及最小备份恢复 | D/C | 本机生产照片/报告/确认/预算重启、配套空库及对象副本删除后回填通过；Zenith待验 | 在线功能待执行 | business-recovery-evidence.json、object-recovery-evidence.json、恢复说明 |
 
 **最终完成定义：**四包 P0/P1 必要功能均完成，AI 技术验收通过，人工功能与界面验收通过，Zenith 上真实核心闭环、搜索和公共管理流程可复现。单独 P0 通过、静态页面完成或预存演示可用均不代表整项目完成。
 
 
 D 服务阶段的固定提交/PR/命令证据由 [D 技术验收](../acceptance/wp-d.md)与 [D 交接](../handoffs/wp-d.md)维护。C0 PR #7 已进入 dev `5e4867d8b6141aacbc8fc4988f4aa41287bd370a`，见 [C0 集成验收](../acceptance/c0-integration.md)；真实持久预算/快照/会话/事务已过，ORS/Geocoding连接各一次HTTP200，仍未完成同一集成提交上的真实 P0/P1 总验收。A0 PR #11的手机提交/通道索引及上下文问题已修复并经独立复审合入dev `1b17f3cfb6c787fb96d0dc01f098d3f3ea9f7b14`，见[A验收](../acceptance/wp-a.md)及[D集成记录](../acceptance/d-integration-2026-10-17.md)；B固定head审查未过，公众流程正在修复；校园候选保持未实测；OSS本机配置与C15照片API已真实验证，Zenith仍待验收。
 
-最新阶段：C15已合入dev 6dfd3c559842b462d3139b89628e033995110bde，见[C15集成验收](../acceptance/c15-integration.md)。D新增地点与业务恢复证据见[后续阶段](../acceptance/d-post-c15-integration.md)。B PR #8已改base=dev，旧head仍未通过；历史记录中的“无PR/尚待C1”不再代表当前交付状态。全项目仍未完成；缺真实GLM、可用实时地点源、B公众闭环、校园现场、Zenith及完整对象恢复。
+最新阶段：C15已合入dev 6dfd3c559842b462d3139b89628e033995110bde，见[C15集成验收](../acceptance/c15-integration.md)。D新增地点与业务恢复证据见[后续阶段](../acceptance/d-post-c15-integration.md)。B PR #8已改base=dev，旧head仍未通过；历史记录中的“无PR/尚待C1”不再代表当前交付状态。全项目仍未完成；缺真实GLM、可用实时地点源、B公众闭环、校园现场及Zenith。配套对象恢复后续已在本机通过，见[对象恢复证据](../deployment/object-recovery-evidence.json)，未代替平台恢复。
