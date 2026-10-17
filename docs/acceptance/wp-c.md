@@ -105,3 +105,5 @@ node --env-file=.env.local --import tsx --test --test-force-exit tests/c0-http.i
 - 本阶段没有安装照片 Collection、修改 Payload 配置或新增业务 HTTP 接口，没有迁移、生产构建或 Zenith 验证。C1/P0 业务和 C2/C3/P1 仍待交付，不宣布整包通过。
 
 详细命令和恢复条件见 [C1 交接](../handoffs/c1-provider-checks.md)，原始安全标量见 [验证证据](c1-provider-evidence.json)。
+
+交付同步基线更新为 `7d57441d624f8630be68d623463a7c4766bb62ed`。与代码检查提交相比，`src`、`scripts` 和 `tests` 无差异；新增团队提交为文档及审查证据，未改变本次探针与静态检查对应源码。

@@ -3,6 +3,8 @@
   "timezone": "Australia/Sydney",
   "branch": "codex/c-backend-data-ai",
   "baseDevCommit": "d3e06bded36f2ca4cef98cd2a802dc633acf8a01",
+  "deliveryBaseDevCommit": "7d57441d624f8630be68d623463a7c4766bb62ed",
+  "deliveryBaseAssessment": "New dev commits changed documentation and review evidence only; src, scripts and tests remain identical to codeEvidenceCommit. No extra model requests were made.",
   "codeEvidenceCommit": "0a971d4fda31bf00a39695fbd97a69001037dc90",
   "scope": "Local provider connectivity and integration preparation only. C1 business endpoints and Zenith have not been verified.",
   "configuration": {
