@@ -293,7 +293,7 @@ type AnalysisDTO = {
 
 ### 5.4 原生 GLM 工具参数与服务端 Schema
 
-默认 `VISION_PROVIDER=glm`、`VISION_MODEL=glm-4.6v-flash`，密钥只在服务端。供应商请求使用原生图片输入和唯一结果函数 `record_hazard_analysis` 的工具参数 Schema；不是只要求模型在普通文本里输出 JSON，也不把供应商原生严格 Schema 保证作为前提。实际账号/模型的图片、工具参数与延迟能力仍须真实探针验证。
+默认 `VISION_PROVIDER=glm`、`VISION_MODEL=glm-4.6v`，密钥只在服务端。供应商请求使用原生图片输入和唯一结果函数 `record_hazard_analysis` 的工具参数 Schema；不是只要求模型在普通文本里输出 JSON，也不把供应商原生严格 Schema 保证作为前提。实际账号/模型的图片、工具参数与延迟能力仍须真实探针验证。
 
 下面 `parameters` 同时是后端完整结构校验 Schema；后端再执行后述语义校验。`tool_choice` 等供应商选项由适配器依锁定 SDK 的真实能力配置，本文不宣称某个 strict 标记已受支持。
 

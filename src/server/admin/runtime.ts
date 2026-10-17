@@ -3,6 +3,7 @@ import { getPayload } from 'payload'
 import config, { assertPayloadEnvironment } from '@/payload.config'
 import { createReviewService } from '@/features/hazards/server/review'
 import { AppError } from '@/server/http/errors'
+import { DEFAULT_VISION_MODEL } from '@/server/providers/glm'
 import { createRoutingRepository } from '@/server/storage/routing-repository'
 import { readUsageSummary } from '@/server/providers/usage'
 import { createAdminRegionService } from './region-service'
@@ -21,7 +22,7 @@ export async function adminServices() {
     reviews: createReviewService(payload, {
       regionId, sessionSecret,
       visionConfig: {
-        model: process.env.VISION_MODEL?.trim() || 'glm-4.6v-flash',
+        model: process.env.VISION_MODEL?.trim() || DEFAULT_VISION_MODEL,
         promptVersion: process.env.VISION_PROMPT_VERSION?.trim() || '1',
         schemaVersion: process.env.VISION_SCHEMA_VERSION?.trim() || '1',
       },

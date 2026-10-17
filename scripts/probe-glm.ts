@@ -4,7 +4,7 @@ import sharp from 'sharp'
 
 import { AppError } from '../src/server/http/errors'
 import { ProviderGate } from '../src/server/providers/gate'
-import { createGlmAdapter, GlmProviderError, parseVisionPolicy } from '../src/server/providers/glm'
+import { createGlmAdapter, DEFAULT_VISION_MODEL, GlmProviderError, parseVisionPolicy } from '../src/server/providers/glm'
 import { ProviderError } from '../src/server/providers/provider-error'
 import { createRoutingRepository } from '../src/server/storage/routing-repository'
 
@@ -29,7 +29,7 @@ async function main(): Promise<void> {
   const policy = parseVisionPolicy(process.env)
   let requestCount = 0
   const adapter = createGlmAdapter({
-    apiKey: process.env.VISION_API_KEY ?? '', model: process.env.VISION_MODEL?.trim() || 'glm-4.6v-flash',
+    apiKey: process.env.VISION_API_KEY ?? '', model: process.env.VISION_MODEL?.trim() || DEFAULT_VISION_MODEL,
     timeoutMs: Number(process.env.VISION_TIMEOUT_MS?.trim() || '8000'),
     fetch: async (url, options) => {
       if (requestCount >= attemptLimit) throw new Error('PROBE_REQUEST_LIMIT')

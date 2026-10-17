@@ -323,7 +323,7 @@ Payload 文件访问必须保留访问控制，签名下载也先检查身份与
 
 ### 9.2 AI 契约
 
-默认使用 glm-4.6v-flash，后端发送处理后的照片、固定任务指令和指定结果函数的参数 Schema，提取工具参数后再做完整结构与语义校验，不执行模型要求的任意工具。无有效工具结果、非法结构、拒绝或超时明确降级；不要求视觉供应商原生严格 Schema 保证。具体字段与模型结果 Schema 统一见[API 契约](API_CONTRACTS.md)，能力背景见[项目决定](PROJECT.md)。
+默认使用 glm-4.6v，后端发送处理后的照片、固定任务指令和指定结果函数的参数 Schema，提取工具参数后再做完整结构与语义校验，不执行模型要求的任意工具。无有效工具结果、非法结构、拒绝或超时明确降级；不要求视觉供应商原生严格 Schema 保证。具体字段与模型结果 Schema 统一见[API 契约](API_CONTRACTS.md)，能力背景见[项目决定](PROJECT.md)。
 
 Schema 和结果示例在 API 文档维护，本节仅保留识别结果如何进入业务决策的规则。
 
@@ -380,7 +380,7 @@ P0 不做完整公众账号，以服务器生成的不可预测匿名会话标�
 | POI_BASE_URL | https://api.heigit.org/openpoiservice/v0；仅 heigit 使用 | 服务端固定允许列表 |
 | POI_RPM / POI_DAILY_BUDGET | 默认10与450，独立 poi 服务持久门禁 | 服务端可配置 |
 | ORS_RPM / ORS_DAILY_BUDGET | 建议 30 与 1800，共享门禁预算 | 服务端可配置 |
-| VISION_PROVIDER / VISION_MODEL / VISION_API_KEY | 默认 glm / glm-4.6v-flash，原生图片和工具参数提取，后端严格校验；密钥 | 服务端；缺省可启动和人工降级，不计 AI 验收完成 |
+| VISION_PROVIDER / VISION_MODEL / VISION_API_KEY | 默认 glm / glm-4.6v，原生图片和工具参数提取，后端严格校验；密钥 | 服务端；缺省可启动和人工降级，不计 AI 验收完成 |
 | VISION_SCHEMA_VERSION / VISION_PROMPT_VERSION | 输出契约与提示词版本，参与分析缓存键和审计 | 服务端固定配置 |
 | VISION_TIMEOUT_MS / VISION_RPM / VISION_DAILY_BUDGET | 建议 8000 毫秒超时、默认 10 次/分钟；日预算须显式正整数，或显式 unlimited 仅关闭应用日上限 | 服务端；与 ORS 预算分开，unlimited 不绕过分钟门禁或上游配额 |
 | PERSONAL_AVOIDANCE_TTL_SECONDS / PUBLIC_HAZARD_TTL_SECONDS | 建议个人 3600 秒、公共 86400 秒 | 服务端可配置运营值 |

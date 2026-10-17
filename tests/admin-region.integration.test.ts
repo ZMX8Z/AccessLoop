@@ -139,7 +139,7 @@ test('C3 region configuration uses operator authorization, complete active-data 
       const current = await get()
       const primary = current.presetPassages.find((passage) => passage.id === seed.presetPassages[0].id)
       assert.ok(primary)
-      const hazards = createHazardService(payload, { regionId, sessionSecret: 'synthetic-region-secret-at-least-32-bytes', visionConfig: { model: 'glm-4.6v-flash', promptVersion: '1', schemaVersion: '1' }, now: () => clock })
+      const hazards = createHazardService(payload, { regionId, sessionSecret: 'synthetic-region-secret-at-least-32-bytes', visionConfig: { model: 'glm-4.6v', promptVersion: '1', schemaVersion: '1' }, now: () => clock })
       const created = await hazards.create({ ownerSessionHash: ownerB, idempotencyKey: `${runId}-private-report`, input: {
         photoId, location: primary.geometry.coordinates[0], category: 'construction', description: 'Other-owner active fixture.', observedAt: new Date(clock).toISOString(),
       } })

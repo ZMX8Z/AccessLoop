@@ -5,7 +5,7 @@ import { z } from 'zod'
 import type { Photo } from '../../payload-types'
 import { AppError } from '../http/errors'
 import { ProviderGate } from '../providers/gate'
-import { createGlmAdapter, parseVisionPolicy } from '../providers/glm'
+import { createGlmAdapter, DEFAULT_VISION_MODEL, parseVisionPolicy } from '../providers/glm'
 import { ProviderError } from '../providers/provider-error'
 import { createRoutingRepository } from '../storage/routing-repository'
 import { requireRegion } from '../storage/regions'
@@ -51,7 +51,7 @@ export function createAnalysisService(payload: Payload, options: {
   const sleep = options.sleep ?? ((ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms)))
   const regionId = IdSchema.parse(options.regionId)
   const parsedConfig = ConfigSchema.safeParse(options.visionConfig ?? {
-    model: process.env.VISION_MODEL?.trim() || 'glm-4.6v-flash',
+    model: process.env.VISION_MODEL?.trim() || DEFAULT_VISION_MODEL,
     promptVersion: process.env.VISION_PROMPT_VERSION?.trim() || '1', schemaVersion: process.env.VISION_SCHEMA_VERSION?.trim() || '1',
   })
   if (!parsedConfig.success) throw new AppError(503, 'PROVIDER_UNAVAILABLE', 'The image analysis configuration is invalid.')

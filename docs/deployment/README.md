@@ -10,7 +10,7 @@
 - 本机 TLS 实测：2026-10-17，ORS 与 GLM 的 TLS 握手成功；该TLS探针没有发送供应商 API 请求或验证密钥、模型权限、地理覆盖。此结果不能推导 Zenith 出网情况。
 - ORS/Geocoding经C持久预算各一次真实HTTP200，专用PG重启保留预算和事件，见[供应商连接证据](provider-connection-evidence.json)。不代表公众路线/搜索闭环已过。
 - 用户已补齐OSS五项配置并同步D环境；本机S3兼容上传、授权读取、匿名403、签名读取/过期403、删除/404均真实通过，见[OSS连接证据](oss-connection-evidence.json)。两次随机合成探针对象均已删除；没有读取已有对象。
-- Zenith、可用GLM/实时地点源、现场区域与最终真实导航/搜索/公共管理浏览器闭环仍待验证。C15照片授权/报告、本机业务恢复和B隔离人工报告流程已通过。没有线上入口，因此尚未生成二维码。
+- Zenith、可用实时地点源、现场区域与最终真实导航/搜索/公共管理浏览器闭环仍待验证。C15照片授权/报告、本机业务恢复、B隔离人工报告流程及付费GLM照片分析已通过。没有线上入口，因此尚未生成二维码。
 
 ## 脱敏探针
 
@@ -32,7 +32,7 @@ pnpm exec tsx scripts/deployment-probe.ts --http --database --egress
 1. 比赛提供的 Zenith 模板/项目入口及部署权限：确认 Node/容器方式、构建命令、PORT、资源、持久化、出网、密钥注入、健康检查与发布审核。公开页面没有给出比赛模板的 manifest Schema，本仓库未据此编造配置。
 2. Zenith真实部署地址、平台PostgreSQL连接与持久化资源、稳定且分别配置的PAYLOAD_SECRET/SESSION_SECRET注入；本机对应资源已配好。
 3. OSS本机配置、C15真实照片上传/授权代理与单样本配套备份回填已验证；Zenith仍需验证连接和权限、配套生产备份目标及完整照片覆盖。秘密不进入提交或浏览器。
-4. ORS/Geocoding密钥与权限已实测；VISION_API_KEY已配置。早期[GLM探针](vision-connection-evidence.json)返回429/1305，仅在该进程设日上限1、未修改环境。后续本地Vision日预算显式设为10次/日并重启；集成9cfd186的一次有界重查仍429/1305，见[新证据](vision-recheck-evidence.json)。解析规则见技术文档11.1，调用须经持久化预算。
+4. ORS/Geocoding密钥与权限已实测；VISION_API_KEY已配置。早期[GLM探针](vision-connection-evidence.json)返回429/1305，仅在该进程设日上限1、未修改环境。后续本地Vision日预算显式设为10次/日并重启；集成9cfd186的一次有界重查仍429/1305，见[新证据](vision-recheck-evidence.json)。用户后续指定付费glm-4.6v并确认充值，真实连通与私有照片HTTP分析/重放/缓存已通过，见[付费证据](paid-vision-evidence.json)；旧1305与充值前1113均保留。解析规则见技术文档11.1，调用须经持久化预算。
 5. D 的现场通道测量记录；已有带官方 GIS/OSM 来源的[校园候选](campus-survey.md)，仍需现场与真实 ORS 核验。四包当前阶段代码已集成，仍需最终真实闭环及人工验收；未取得实测证据不能称已验证可通行。
 
 6. 可用实时地点源；当前HeiGIT非法NaN JSON、Overpass406均未通过，见[连接记录](poi-connection-evidence.json)。

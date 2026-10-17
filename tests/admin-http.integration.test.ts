@@ -125,7 +125,7 @@ test('production admin HTTP enforces role boundaries and completes C2 review and
           VALUES (${fixturePhoto},${id},${owner},'report','ready',${`sha256:${'d'.repeat(64)}`},${`${fixturePhoto}.png`},'image/png')`)
       }
     })
-    const visionConfig = { model: process.env.VISION_MODEL?.trim() || 'glm-4.6v-flash', promptVersion: process.env.VISION_PROMPT_VERSION?.trim() || '1', schemaVersion: process.env.VISION_SCHEMA_VERSION?.trim() || '1' }
+    const visionConfig = { model: process.env.VISION_MODEL?.trim() || 'glm-4.6v', promptVersion: process.env.VISION_PROMPT_VERSION?.trim() || '1', schemaVersion: process.env.VISION_SCHEMA_VERSION?.trim() || '1' }
     await payload.create({ collection: 'ai-analyses', data: {
       id: analysisId, regionId, ownerSessionHash: owner, photoId, imageHash: `sha256:${'d'.repeat(64)}`, cacheKey: `${run}-analysis-cache`,
       analysis: AnalysisDTOSchema.parse({ analysisId, photoId, ...visionConfig, createdAt, cacheHit: false, aiStatus: 'unavailable', result: null, unavailableReason: 'provider_unavailable' }),

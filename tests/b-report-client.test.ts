@@ -186,7 +186,7 @@ const uploadedPhoto = { photoId: 'photo-1', purpose: 'report' as const, mime: 'i
 const completedAnalysis = {
   analysisId: 'analysis-1', photoId: 'photo-1', aiStatus: 'completed' as const,
   result: { image_quality: 'usable' as const, hazard_present: true, category: 'construction' as const, visible_passage: 'blocked' as const, description: 'A barrier crosses the path.', evidence: ['A barrier spans the path.'], uncertainties: [] },
-  unavailableReason: null, model: 'glm-4.6v-flash', promptVersion: '1', schemaVersion: '1', createdAt: '2030-01-01T00:00:00.000Z', cacheHit: false,
+  unavailableReason: null, model: 'glm-4.6v', promptVersion: '1', schemaVersion: '1', createdAt: '2030-01-01T00:00:00.000Z', cacheHit: false,
 };
 async function draftModule() {
   const stateModule = await import('../src/features/hazards/client/report-state');

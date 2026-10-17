@@ -36,7 +36,7 @@ test('C2 review commands enforce independent evidence, publication history and a
   const evidencePhoto = `${run}-review-photo`
   const foreignEvidencePhoto = `${run}-foreign-review-photo`
   const stagingEvidence = `${run}-staging-review-photo`
-  const visionConfig = { model: 'glm-4.6v-flash', promptVersion: '1', schemaVersion: '1' }
+  const visionConfig = { model: 'glm-4.6v', promptVersion: '1', schemaVersion: '1' }
   let clock = Date.parse('2033-01-01T00:00:00.000Z')
   const serviceOptions = { regionId: run, sessionSecret: 'review-fixture-secret-at-least-32-bytes', visionConfig, now: () => clock }
   const hazards = createHazardService(payload, serviceOptions)

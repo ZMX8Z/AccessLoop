@@ -30,7 +30,7 @@
 | --- | --- | --- | --- | --- |
 | 地图/列表、拒绝定位选点、未知标签 | A/D | A0已合入；C正式报告Schema已同步，地点适配/截断/unknown检查通过，真实地点源受阻 | 待执行 | A验收、D最新阶段、POI连接证据 |
 | 普通轮椅路线、参数与显式调用 | A/D | ORS连接真实通过；跨C/D/A持久化回归通过（ORS为桩）；实测校园闭环待验 | 待执行 | D最新阶段 |
-| 私有上传、真实GLM与用户修正 | B/C | C15真实OSS/生产上传及双会话权限通过；正式分析已接入，显式日预算已配；最新真实GLM重查仍429/1305 | 待执行 | C15集成、Vision连接证据 |
+| 私有上传、真实GLM与用户修正 | B/C | C15真实OSS/生产上传及双会话权限通过；付费glm-4.6v本机私有照片分析/重放/缓存通过，使用生成图片；现场及UI总闭环待验 | 待执行 | C15集成、Vision连接证据 |
 | 双通道选择、自动预览与明确确认 | A/B/C/D | C15真实命令、版本/预览/确认实库通过；B预设通道人工流程隔离浏览器通过；真实路线片段/外部总闭环待验 | 待执行 | C15与D最新阶段 |
 | 无管理员个人绕行、第二会话隔离 | C/D，A/B联调 | C命令→D真实PG双会话/缓存/routeRef隔离通过；ORS确定性桩，公众闭环未验 | 待执行 | D public-routing.integration回归 |
 | 人工降级、无路线及常见上游失败 | A/B/C/D | C服务降级/D无路线与上游错误回归通过；B假成功回退已移除并经独立复验；真实上游故障UI总验待验 | 待执行 | B审查、C15/D测试 |
@@ -49,8 +49,8 @@
 
 D 服务阶段的固定提交/PR/命令证据由 [D 技术验收](../acceptance/wp-d.md)与 [D 交接](../handoffs/wp-d.md)维护。C0 PR #7 已进入 dev `5e4867d8b6141aacbc8fc4988f4aa41287bd370a`，见 [C0 集成验收](../acceptance/c0-integration.md)；真实持久预算/快照/会话/事务已过，ORS/Geocoding连接各一次HTTP200，仍未完成同一集成提交上的真实 P0/P1 总验收。A0 PR #11的手机提交/通道索引及上下文问题已修复并经独立复审合入dev `1b17f3cfb6c787fb96d0dc01f098d3f3ea9f7b14`，见[A验收](../acceptance/wp-a.md)及[D集成记录](../acceptance/d-integration-2026-10-17.md)；B修复头已通过独立工程复审和隔离浏览器验证；校园候选保持未实测；OSS本机配置与C15照片API已真实验证，Zenith仍待验收。
 
-最新阶段：C15已合入dev 6dfd3c559842b462d3139b89628e033995110bde，见[C15集成验收](../acceptance/c15-integration.md)。D新增地点与业务恢复证据见[后续阶段](../acceptance/d-post-c15-integration.md)。B PR #8已改base=dev，新修复产品4b642c63已通过工程准入（实际集成见PR元数据）；历史记录中的“无PR/尚待C1”不再代表当前交付状态。全项目仍未完成；缺真实GLM、可用实时地点源、公众真实ORS/搜索浏览器总闭环、校园现场及Zenith。配套对象恢复后续已在本机通过，见[对象恢复证据](../deployment/object-recovery-evidence.json)，未代替平台恢复。
+最新阶段：C15已合入dev 6dfd3c559842b462d3139b89628e033995110bde，见[C15集成验收](../acceptance/c15-integration.md)。D新增地点与业务恢复证据见[后续阶段](../acceptance/d-post-c15-integration.md)。B PR #8已改base=dev，新修复产品4b642c63已通过工程准入（实际集成见PR元数据）；历史记录中的“无PR/尚待C1”不再代表当前交付状态。全项目仍未完成；缺可用实时地点源、公众真实ORS/搜索浏览器总闭环、校园现场及Zenith。配套对象恢复后续已在本机通过，见[对象恢复证据](../deployment/object-recovery-evidence.json)，未代替平台恢复。
 
 B最新独立两轴31/31（重叠）及真实C/OSS隔离浏览器、第二会话权限证据见[B技术验收](../acceptance/wp-b.md)。该B浏览器验证没有调用模型/路线/搜索/地点供应商；不能把人工模式或合成区域计为实时核心总验收。
 
-当前四包工程阶段已共享dev `9cfd186a8d2345af9cd970266e22415a9085d2e2`（B #8）。同树构建、31项合后回归和入口/匿名保护通过；完整P0/P1未通过。新增模型重查与显式本地日预算见[四包集成回执](../acceptance/d-four-package-integration.md)。
+当前四包工程阶段已共享dev `9cfd186a8d2345af9cd970266e22415a9085d2e2`（B #8）。同树构建、31项合后回归和入口/匿名保护通过；完整P0/P1未通过。早期模型重查见[四包集成回执](../acceptance/d-four-package-integration.md)；后续付费模型真实照片分析已通过，见[付费模型验收](../acceptance/d-paid-vision.md)。

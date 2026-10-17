@@ -2,6 +2,7 @@ import { getPayload } from 'payload'
 
 import config, { assertPayloadEnvironment } from '@/payload.config'
 import { AppError } from '@/server/http/errors'
+import { DEFAULT_VISION_MODEL } from '@/server/providers/glm'
 import { createHazardService } from '@/features/hazards/server/service'
 import { createPhotoService } from './service'
 import { createAnalysisService } from './analysis'
@@ -15,7 +16,7 @@ export async function c1Services() {
   }
   const payload = await getPayload({ config })
   const visionConfig = {
-    model: process.env.VISION_MODEL?.trim() || 'glm-4.6v-flash',
+    model: process.env.VISION_MODEL?.trim() || DEFAULT_VISION_MODEL,
     promptVersion: process.env.VISION_PROMPT_VERSION?.trim() || '1',
     schemaVersion: process.env.VISION_SCHEMA_VERSION?.trim() || '1',
   }
