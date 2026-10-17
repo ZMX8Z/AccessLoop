@@ -1,4 +1,5 @@
 import type {
+  AdminRegionConfigResponse,
   AnalysisDTO,
   AvoidanceConfirmInput,
   AvoidancePreviewDTO,
@@ -7,6 +8,7 @@ import type {
   PatchReportInput,
   PrivateReportDTO,
   PublicReportDTO,
+  RegionPatchInput,
   ReportsQuery,
   ReviewInput,
   UploadPurpose,
@@ -14,6 +16,7 @@ import type {
   UsageSummaryData,
 } from '../../../shared/contracts';
 import {
+  fixtureAdminRegionConfig,
   fixtureAvoidancePreview,
   fixtureCompletedAnalysis,
   fixturePrivateReport,
@@ -305,8 +308,45 @@ export async function fetchUsageSummary(useMock = false): Promise<UsageSummaryDa
   if (useMock) {
     return fixtureUsageSummary;
   }
-  const res = await fetch('/api/admin/usage', {
+  const res = await fetch('/api/admin/usage-summary', {
     headers: getBaseHeaders(false),
   });
   return handleResponse<UsageSummaryData>(res);
 }
+
+export async function fetchAdminRegionConfig(useMock = false): Promise<AdminRegionConfigResponse> {
+  if (useMock) {
+    return fixtureAdminRegionConfig;
+  }
+  const res = await fetch('/api/admin/region', {
+    headers: getBaseHeaders(false),
+  });
+  return handleResponse<AdminRegionConfigResponse>(res);
+}
+
+export async function patchAdminRegionConfig(
+  input: RegionPatchInput,
+  useMock = false,
+): Promise<AdminRegionConfigResponse> {
+  if (useMock) {
+    return {
+      ...fixtureAdminRegionConfig,
+      region: {
+        ...fixtureAdminRegionConfig.region,
+        configVersion: input.expectedVersion + 1,
+        avoidanceBufferM: input.changes.avoidanceBufferM ?? fixtureAdminRegionConfig.region.avoidanceBufferM,
+        isDemo: input.changes.isDemo ?? fixtureAdminRegionConfig.region.isDemo,
+      },
+    };
+  }
+  const res = await fetch('/api/admin/region', {
+    method: 'PATCH',
+    headers: {
+      ...getBaseHeaders(true),
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(input),
+  });
+  return handleResponse<AdminRegionConfigResponse>(res);
+}
+

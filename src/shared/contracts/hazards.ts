@@ -317,6 +317,58 @@ export const UsageSummaryDataSchema = z.strictObject({
   }),
 });
 
+// 8. Admin Region Configuration
+export const LineStringGeometrySchema = z.strictObject({
+  type: z.literal('LineString'),
+  coordinates: z.array(PositionSchema).min(2),
+});
+
+export const PresetPassageItemSchema = z.strictObject({
+  id: IdSchema.optional(),
+  name: z.string().trim().min(1).max(120),
+  geometry: LineStringGeometrySchema,
+});
+
+export const RegionChangesSchema = z.strictObject({
+  name: z.string().trim().min(1).max(120).optional(),
+  timezone: z.string().min(1).optional(),
+  bbox: BBoxSchema.optional(),
+  isDemo: z.boolean().optional(),
+  avoidanceBufferM: z.number().min(0.5).max(5.0).optional(),
+  presetPassages: z.array(PresetPassageItemSchema).optional(),
+});
+
+export const RegionPatchInputSchema = z.strictObject({
+  expectedVersion: VersionSchema,
+  reason: z.string().trim().min(1).max(1000),
+  changes: RegionChangesSchema,
+});
+
+export const RegionDTOSchema = z.strictObject({
+  id: IdSchema,
+  name: z.string(),
+  bbox: BBoxSchema,
+  timezone: z.string(),
+  isDemo: z.boolean(),
+  hazardVersion: z.number().int().nonnegative(),
+  configVersion: VersionSchema,
+  personalValiditySec: z.number().int().positive(),
+  publicValiditySec: z.number().int().positive(),
+  avoidanceBufferM: z.number().min(0.5).max(5.0),
+});
+
+export const PresetPassageDTOSchema = z.strictObject({
+  id: IdSchema,
+  name: z.string(),
+  passageVersion: VersionSchema,
+  geometry: LineStringGeometrySchema,
+});
+
+export const AdminRegionConfigResponseSchema = z.strictObject({
+  region: RegionDTOSchema,
+  presetPassages: z.array(PresetPassageDTOSchema),
+});
+
 // Infer TypeScript types
 export type Instant = z.infer<typeof InstantSchema>;
 export type PolygonGeometry = z.infer<typeof PolygonGeometrySchema>;
@@ -350,3 +402,11 @@ export type CorrectedFields = z.infer<typeof CorrectedFieldsSchema>;
 export type ReviewInput = z.infer<typeof ReviewInputSchema>;
 export type ServiceUsageMetrics = z.infer<typeof ServiceUsageMetricsSchema>;
 export type UsageSummaryData = z.infer<typeof UsageSummaryDataSchema>;
+export type LineStringGeometry = z.infer<typeof LineStringGeometrySchema>;
+export type PresetPassageItem = z.infer<typeof PresetPassageItemSchema>;
+export type RegionChanges = z.infer<typeof RegionChangesSchema>;
+export type RegionPatchInput = z.infer<typeof RegionPatchInputSchema>;
+export type RegionDTO = z.infer<typeof RegionDTOSchema>;
+export type PresetPassageDTO = z.infer<typeof PresetPassageDTOSchema>;
+export type AdminRegionConfigResponse = z.infer<typeof AdminRegionConfigResponseSchema>;
+

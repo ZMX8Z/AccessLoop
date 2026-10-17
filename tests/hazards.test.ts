@@ -2,23 +2,27 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import {
+  AdminRegionConfigResponseSchema,
   AnalysisDTOSchema,
   AvoidanceConfirmInputSchema,
   AvoidancePreviewDTOSchema,
   CreateReportInputSchema,
   PrivateReportDTOSchema,
   PublicReportDTOSchema,
+  RegionPatchInputSchema,
   ReviewInputSchema,
   UploadResponseDataSchema,
   UsageSummaryDataSchema,
   VisionResultSchema,
 } from '../src/shared/contracts';
 import {
+  fixtureAdminRegionConfig,
   fixtureAvoidancePreview,
   fixtureCompletedAnalysis,
   fixtureCreateReportInput,
   fixturePrivateReport,
   fixturePublicReport,
+  fixtureRegionPatchInput,
   fixtureReviewVerifyInput,
   fixtureUnavailableAnalysis,
   fixtureUncertainAnalysis,
@@ -209,3 +213,39 @@ test('usage summary metrics validate non-negative integers', () => {
     false,
   );
 });
+
+test('admin region configuration validates bbox, buffer range and operator reason', () => {
+  assert.deepEqual(AdminRegionConfigResponseSchema.parse(fixtureAdminRegionConfig), fixtureAdminRegionConfig);
+  assert.deepEqual(RegionPatchInputSchema.parse(fixtureRegionPatchInput), fixtureRegionPatchInput);
+
+  // Buffer out of range (must be 0.5 to 5.0)
+  assert.equal(
+    RegionPatchInputSchema.safeParse({
+      ...fixtureRegionPatchInput,
+      changes: {
+        avoidanceBufferM: 0.2, // Below 0.5m
+      },
+    }).success,
+    false,
+  );
+
+  assert.equal(
+    RegionPatchInputSchema.safeParse({
+      ...fixtureRegionPatchInput,
+      changes: {
+        avoidanceBufferM: 6.0, // Above 5.0m
+      },
+    }).success,
+    false,
+  );
+
+  // Reason must be nonempty
+  assert.equal(
+    RegionPatchInputSchema.safeParse({
+      ...fixtureRegionPatchInput,
+      reason: '',
+    }).success,
+    false,
+  );
+});
+

@@ -201,3 +201,54 @@ export const fixtureUsageSummary: UsageSummaryData = {
     },
   },
 };
+
+export const fixtureAdminRegionConfig = {
+  region: {
+    id: 'region-unsw-kensington',
+    name: 'UNSW Kensington Campus',
+    bbox: [151.225, -33.922, 151.238, -33.913] as [number, number, number, number],
+    timezone: 'Australia/Sydney',
+    isDemo: true,
+    hazardVersion: 12,
+    configVersion: 2,
+    personalValiditySec: 3600,
+    publicValiditySec: 86400,
+    avoidanceBufferM: 2.0,
+  },
+  presetPassages: [
+    {
+      id: 'passage-library-walk',
+      name: 'Library Walk Accessible Ramp',
+      passageVersion: 1,
+      geometry: {
+        type: 'LineString' as const,
+        coordinates: [
+          [151.2310, -33.9172] as [number, number],
+          [151.2314, -33.9174] as [number, number],
+        ],
+      },
+    },
+    {
+      id: 'passage-anzac-gate',
+      name: 'Anzac Parade Access Gate',
+      passageVersion: 1,
+      geometry: {
+        type: 'LineString' as const,
+        coordinates: [
+          [151.2260, -33.9180] as [number, number],
+          [151.2265, -33.9182] as [number, number],
+        ],
+      },
+    },
+  ],
+};
+
+export const fixtureRegionPatchInput = {
+  expectedVersion: 2,
+  reason: 'Increase avoidance buffer to 2.5m for wider wheelchair clearance.',
+  changes: {
+    avoidanceBufferM: 2.5,
+    isDemo: true,
+  },
+};
+

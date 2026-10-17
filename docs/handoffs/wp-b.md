@@ -34,6 +34,7 @@ baseDevCommit：`1ad24d707370a80fb0dc11da20b7e55be6d310c7`。
 
 ### 4. P1 后台管理自定义组件 (`src/components/admin/`)
 - [`AdminHazardReview.tsx`](../../src/components/admin/AdminHazardReview.tsx)：原始 AI vs 用户修改对比、5 种受保护管理动作表单，409 版本冲突保留输入。
+- [`AdminRegionConfig.tsx`](../../src/components/admin/AdminRegionConfig.tsx)：区域参数、预设通道清单、避让缓冲距离（0.5m-5.0m）与演示标识配置表单。
 - [`AdminUsageSummary.tsx`](../../src/components/admin/AdminUsageSummary.tsx)：24 小时 ORS 与 Vision 调用数、等待数、错误数、缓存命中聚合卡片。
 - [`index.ts`](../../src/components/admin/index.ts)：统一导出供 C 在 `/admin` 挂载。
 
@@ -41,17 +42,19 @@ baseDevCommit：`1ad24d707370a80fb0dc11da20b7e55be6d310c7`。
 - `/reports/new`：上报障碍物向导页面。
 - `/reports`：报告列表（本人 vs 公共展示）。
 - `/reports/[id]/export`：服务端渲染的授权打印凭证页面。
+- `/admin-preview`：管理端自定义组件本地预览与交互测试页面。
 - `/`：首页更新快速导航入口。
 
 ---
 
 ## 二、实际质量检查记录
 
-1. `pnpm check`（ESLint + TypeCheck + 30 单元测试）：**全部通过 (0 errors, 0 warnings)**。
-2. `pnpm build`（Next.js Webpack 生产构建）：**构建成功，6/6 页面生成完成**：
+1. `pnpm check`（ESLint + TypeCheck + 31 单元测试）：**全部通过 (0 errors, 0 warnings)**。
+2. `pnpm build`（Next.js Webpack 生产构建）：**构建成功，所有页面生成完成**：
    - `○ /` (Static)
    - `○ /reports` (Static)
    - `○ /reports/new` (Static)
+   - `○ /admin-preview` (Static)
    - `ƒ /reports/[id]/export` (Dynamic)
 
 ---
