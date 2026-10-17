@@ -23,10 +23,10 @@
 - [x] package.json check及生产build；必要失败回归。
 - [x] 独立端口APP_BASE_URL一致，实际浏览器选点/搜索/路线/行程/报告/列表详情；供应商最少调用，区分真实与fixture。
 - [x] 原稿与实际360px及桌面并排视觉证据；核对44px、焦点、滚动、安全区。
-- [ ] 更新A交接/验收/MANUAL、B跨包交接；固定base/codeEvidence/deliveryHead，独立技术复核后base=dev PR并附加，不合并。
+- [x] 更新A交接/验收/MANUAL、B跨包交接；固定base/codeEvidence/deliveryHead，独立技术复核后base=dev PR并附加，不合并。
 
 ## Review focus
 新配置设施刷新失败不能恢复旧区；迟到路线/搜索不能覆盖新输入；隐藏Tab保持地图焦点/视口；更换照片/预览需撤销旧同意；本人/公共DTO及照片权限保持服务端约束。
 
 ## Execution evidence
-Final product b288bd90902ca33d5a1720d413b3029551d9d4b9; full check 283 passed/11 default integration skips, production build exit0. Six original/implementation comparisons and independent review recorded in docs/acceptance/wp-a.md. External latest ORS/GLM timeouts and field/deployment gaps are explicitly unverified; PR creation completes the final delivery checkbox.
+Final product b288bd90902ca33d5a1720d413b3029551d9d4b9; full check 283 passed/11 default integration skips, production build exit0. Six original/implementation comparisons and independent review recorded in docs/acceptance/wp-a.md. External latest ORS/GLM timeouts and field/deployment gaps are explicitly unverified; PR #21 created against dev and attached; D integration remains separate.

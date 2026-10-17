@@ -11,3 +11,5 @@
 - 部分full截图中的固定Tab位于第一屏底部，这是浏览器全页拼接效果；主视口360×800和提交按钮另有截图，不能用拼接图判断实际裁切。
 
 check-final.txt、build-final.txt是实际命令输出；api-audit-final.json为同一数据库联调窗口的脱敏汇总，包含其他保留服务及长时间暂停期间的事件，不能全部归因于本轮A显式操作。no-extra-directions.json为固定短窗口内实际交互后的0供应商事件证据。没有保存Cookie、ownerSessionHash、密钥或原始环境。
+
+交付PR：[#21](https://github.com/ZMX8Z/AccessLoop/pull/21)；最终deliveryHead见PR正文。构建日志只规范终端回车与行尾空格，OFL许可仅去行尾空格，命令结果和许可文字不变。

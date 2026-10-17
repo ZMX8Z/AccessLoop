@@ -4,6 +4,7 @@
 
 - baseDevCommit：`526b2f4265391ea5f433f7a70efccd34eae30ffd`（含 #20）。
 - codeEvidenceCommit：`b288bd90902ca33d5a1720d413b3029551d9d4b9`。初始独立受检 `3b128b5`，三项 P2 修复受检 `7d19b6e`，字体/恢复受检 `e7ff5e9`，最终M1收紧受检 `b288bd9`；完整证据见验收。
+- 阶段PR：[全六屏真实页面整合 #21](https://github.com/ZMX8Z/AccessLoop/pull/21)，已推送并附加，base=`dev`，由D统一集成，尚未合并。
 - deliveryHead：由本阶段 PR 正文的最终 head SHA 固定；后续仅文档/截图提交不冒充产品证据提交。PR base=`dev`，D 统一集成，本会话不合并。
 - 实际生产入口：[localhost:3121/route](http://localhost:3121/route)，APP_BASE_URL 与 origin 一致。仅替换本会话的 3121 进程，原 3000 服务未停止。
 

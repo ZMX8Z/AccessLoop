@@ -8,7 +8,8 @@
 - 成功 fetch 后合入最新 dev：`526b2f4265391ea5f433f7a70efccd34eae30ffd`（含#20）；交付前再次 fetch/merge，返回 Already up to date。没有 reset/stash/rebase/强推。
 - baseDevCommit：`526b2f4265391ea5f433f7a70efccd34eae30ffd`。
 - 初始功能证据：`3b128b5f0b24c606277dd45448b9b728dae4338b`；首轮复核修复：`7d19b6e1709e2bc09a8c52c5c79553b8d5fc1193`；字体、恢复守卫与隐藏设施刷新：`e7ff5e9a3225162a025bb047813886ab2a3ce5fe`。
-- 最终 codeEvidenceCommit：`b288bd90902ca33d5a1720d413b3029551d9d4b9`。deliveryHead 由阶段 PR 正文及平台 head SHA 固定，避免将包含自身 SHA 的文档作为自引用证据。最终文档/截图提交不改变产品代码。
+- 阶段PR：[#21](https://github.com/ZMX8Z/AccessLoop/pull/21)，base=`dev`，已创建并附加；D统一集成，尚未合并。
+- 最终 codeEvidenceCommit：`b288bd90902ca33d5a1720d413b3029551d9d4b9`。deliveryHead 由阶段 PR 正文及平台 head SHA 固定，避免将包含自身 SHA 的文档作为自引用证据。后续只增加交接/截图、日志和OFL许可行尾空白，不改变运行时代码或字体二进制。
 - Node22.14.0、pnpm10.20.0；按现有lockfile安装，无依赖/lockfile/构建配置变更。生产服务3121，APP_BASE_URL=`http://localhost:3121`，使用已有应用和数据/供应商配置，未新建DB/ORM。
 
 实际入口：[R1](http://localhost:3121/route)、[Report](http://localhost:3121/report)、[My Reports](http://localhost:3121/my-reports)。完整原稿→组件→真实接口→URL映射见[A交接](../handoffs/wp-a.md)。`/`、`/live`、旧`/reports`均兼容重定向；`/preview`是独立fixture回归入口，`/stitch`只作原稿参考。
