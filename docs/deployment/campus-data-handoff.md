@@ -61,3 +61,5 @@ JSON 顶层明确 `fieldValidated:false`、`orsValidated:false`、`productionRea
 后续连接探针已返回ORS HTTP200并通过候选几何检查，但不包含真实个人避让/双会话闭环；JSON的orsValidated=false指完整验证尚未通过。得到现场批准的小区域、固定起终点、通道和缓冲后，由 D/C 走受控区域命令持久化，服务器分配正式稳定 ID/版本，再通过 C 持久预算接入 AccessLoop 后端做真实 ORS 相同起终点/相同限制的基线与避让重算、吸附/边界/无相交检查及双会话隔离。若无法形成合法备选，保留无路线结果，不扩大 bbox 或放宽限制伪造绕行。
 
 当前现场、真实 ORS、C 区域持久化和真实 POI 完整覆盖均未通过，不因本候选和离线测试而解除这些阻塞。
+
+本次候选交付 codeEvidenceCommit：`08f160dad39777e26841c69339114811bd9cda67`；后续记录提交可复用此数据与测试证据。

@@ -92,3 +92,5 @@
 - B固定head双轴审查及5条TypeScript导出冲突已记录；未修改或合并B源代码。A/B与C1及P1后续仍待交付。
 - 最新D工作树 `pnpm check` exit0，108通过/0失败/3默认跳过。新交付仅候选JSON、语义测试和执行记录；运行时与已构建C0集成树一致，可复用同树构建/真实DB/HTTP证据。
 - 本阶段head/PR以交付PR元数据及后续执行记录为准。完整P0/P1、现场核验、OSS、Zenith、图片/确认恢复和120秒在线演示仍未完成。
+
+本次准备阶段 codeEvidenceCommit/headCommit：`08f160dad39777e26841c69339114811bd9cda67`；baseDevCommit：`5e4867d8b6141aacbc8fc4988f4aa41287bd370a`。后续仅执行记录提交不改变运行代码，最终deliveryHead与集成提交见本阶段PR元数据。

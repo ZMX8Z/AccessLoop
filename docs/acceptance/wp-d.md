@@ -67,3 +67,5 @@ D同步该base并加入离线校园交接后，`pnpm check` exit0：108通过、
 [真实连接记录](../deployment/provider-connection-evidence.json)：ORS一次HTTP200、Geocoding一次HTTP200，均先由C持久原子仓储预留。专用PG重启保留管理员、迁移、预算和脱敏事件。之前本地探针的零HTTP输入错误已明确披露；不以其call事件证明上游调用。Vision/OSS/Zenith、现场和四包UI总闭环仍未通过。
 
 [B阶段审查](../handoffs/b-integration-review.md)未通过准入：正常业务路径桩回退掩盖真实失败等问题待B修复。D P0/P1整体判定保持未完成。
+
+本次准备阶段 codeEvidenceCommit/headCommit：`08f160dad39777e26841c69339114811bd9cda67`；baseDevCommit：`5e4867d8b6141aacbc8fc4988f4aa41287bd370a`。后续仅执行记录提交不改变运行代码，最终deliveryHead与集成提交见本阶段PR元数据。
