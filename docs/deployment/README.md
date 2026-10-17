@@ -10,7 +10,7 @@
 - 本机 TLS 实测：2026-10-17，ORS 与 GLM 的 TLS 握手成功；该TLS探针没有发送供应商 API 请求或验证密钥、模型权限、地理覆盖。此结果不能推导 Zenith 出网情况。
 - ORS/Geocoding经C持久预算各一次真实HTTP200，专用PG重启保留预算和事件，见[供应商连接证据](provider-connection-evidence.json)。不代表公众路线/搜索闭环已过。
 - 用户已补齐OSS五项配置并同步D环境；本机S3兼容上传、授权读取、匿名403、签名读取/过期403、删除/404均真实通过，见[OSS连接证据](oss-connection-evidence.json)。两次随机合成探针对象均已删除；没有读取已有对象。
-- Zenith、可用实时地点源、现场区域与最终真实导航/搜索/公共管理浏览器闭环仍待验证。C15照片授权/报告、本机业务恢复、B隔离人工报告流程及付费GLM照片分析已通过。没有线上入口，因此尚未生成二维码。
+- Zenith、现场区域与最终真实导航/搜索/公共管理浏览器闭环仍待验证；cloud实时设施补充及真实底图已有本机验证，见[地图/设施部署](maps-and-facilities.md)。C15照片授权/报告、本机业务恢复、B隔离人工报告流程及付费GLM照片分析已通过。没有线上入口，因此尚未生成二维码。
 
 ## 脱敏探针
 
@@ -35,7 +35,7 @@ pnpm exec tsx scripts/deployment-probe.ts --http --database --egress
 4. ORS/Geocoding密钥与权限已实测；VISION_API_KEY已配置。早期[GLM探针](vision-connection-evidence.json)返回429/1305，仅在该进程设日上限1、未修改环境。后续本地Vision日预算显式设为10次/日并重启；集成9cfd186的一次有界重查仍429/1305，见[新证据](vision-recheck-evidence.json)。用户后续指定付费glm-4.6v并确认充值，真实连通与私有照片HTTP分析/重放/缓存已通过，见[付费证据](paid-vision-evidence.json)；旧1305与充值前1113均保留。解析规则见技术文档11.1，调用须经持久化预算。
 5. D 的现场通道测量记录；已有带官方 GIS/OSM 来源的[校园候选](campus-survey.md)，仍需现场与真实 ORS 核验。四包当前阶段代码已集成，仍需最终真实闭环及人工验收；未取得实测证据不能称已验证可通行。
 
-6. 可用实时地点源；当前HeiGIT非法NaN JSON、Overpass406均未通过，见[连接记录](poi-connection-evidence.json)。
+6. 主地点源HeiGIT/Overpass的旧失败保留在[连接记录](poi-connection-evidence.json)；后续accessibility.cloud已提供实时补充设施，配置与覆盖限制见[接线说明](maps-and-facilities.md)。不再将所有实时设施来源列作缺失。
 
 以上是所需资源类别，不要求将任何秘密填入提交或聊天。探针的存在性结果应在目标部署里重新生成。
 

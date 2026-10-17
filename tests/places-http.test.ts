@@ -37,3 +37,13 @@ test('default place source sends a bounded public OSM query without transmitting
  assert.equal(calls,1);
  assert.throws(()=>createPlacesAdapter({POI_PROVIDER:'client-controlled-proxy'}),{code:'PROVIDER_UNAVAILABLE'});
 });
+
+test('cloud facility facts and source status survive the HTTP boundary without OSM normalization',async()=>{
+ const f=fakeRepository(),now=()=>Date.parse(instant);
+ const item={id:'ac-fixture',name:'Public toilet',category:'toilet' as const,location:[151.23,-33.92] as [number,number],accessibility:'yes' as const,accessibilityNote:null,source:'accessibility.cloud',sourceId:'place-1',fetchedAt:instant,isDemo:true,rawAccessibility:{wheelchair:null,toiletWheelchair:null},sourceMetadata:{provider:'accessibility.cloud' as const,datasetId:'source-1',datasetName:'Public dataset',originalId:null,licenseId:'license-1',licenseName:'ODbL',licenseUrl:'https://opendatacommons.org/licenses/odbl/',attribution:'Public dataset',rawWheelchair:{accessible:true,partiallyAccessible:null}}};
+ const handlers=createRoutingHandlers({repository:f.repo,routes:new RoutingService(f.repo,{identity:'test',keyFingerprint:'test',directions:async()=>result},{now}),search:new SearchService(f.repo,{identity:'test-search',keyFingerprint:'test',search:async()=>[]},{now}),places:{getPlaces:async()=>({items:[item],truncated:true,sources:[{provider:'overpass',status:'unavailable'},{provider:'accessibility.cloud',status:'available'}]})},applicationOrigin:'https://example.test',now});
+ const response=await handlers.places(new Request(`https://example.test/api/places?bbox=${region.bbox.join(',')}`));
+ assert.equal(response.status,200);const body=await response.json();
+ assert.equal(body.data.items[0].accessibility,'yes');assert.equal(body.data.items[0].sourceMetadata.licenseId,'license-1');
+ assert.equal(body.data.sources[0].status,'unavailable');assert.equal(body.data.truncated,true);
+});

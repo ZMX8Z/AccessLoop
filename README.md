@@ -4,7 +4,7 @@
 
 已确定技术栈：**Next.js + Payload + PostgreSQL + 阿里云 OSS 私有对象存储**。照片由阿里云托管，应用通过服务端存储适配器访问 OSS。Payload 提供数据管理、管理员认证及 Payload Admin；AI 识别、用户确认、个人避让与 ORS 路线由 AccessLoop 业务服务实现。
 
-本轮交付完整 P0 与 P1。四包共用一个 Next.js + Payload 应用，固定分支的阶段 PR 串行合入 dev。C0–C3 的真实仓储、照片/报告/确认、公共管理、区域命令和后台已集成；A0 公共客户端及手机修复已集成。ORS/Geocoding、本机 OSS/双会话照片权限、业务重启/空库恢复及配套对象删除后回填已验证；D 新增地点来源、持久缓存和跨包公共路由回归。付费GLM-4.6V已通过本机真实私有照片分析、幂等和缓存验证，地点源实测分别遇到 HeiGIT 非法 JSON 与 Overpass 406；B 报告前端已完成真实接口修复及隔离浏览器人工报告流程验证，校园现场与 Zenith 尚未完成。阶段通过不表示完整 P0/P1 已通过。[当前四包集成回执](docs/acceptance/d-four-package-integration.md)记录B合并与统一构建；[付费模型验收](docs/acceptance/d-paid-vision.md)记录后续模型阻塞解除。
+本轮范围包含完整 P0 与 P1。四包共用一个 Next.js + Payload 应用，固定分支的阶段 PR 串行合入 dev。C0–C3 的真实仓储、照片/报告/确认、公共管理、区域命令和后台已集成；A0 公共客户端及手机修复已集成。ORS/Geocoding、本机 OSS/双会话照片权限、业务重启/空库恢复及配套对象删除后回填已验证；D 新增地点来源、持久缓存和跨包公共路由回归。付费GLM-4.6V已通过本机真实私有照片分析、幂等和缓存验证，Leaflet真实OSM底图与accessibility.cloud补充设施已接入；cloud在Kensington bbox返回15条带来源/许可设施，原HeiGIT/Overpass失败记录保留；B 报告前端已完成真实接口修复及隔离浏览器人工报告流程验证，校园现场与 Zenith 尚未完成。阶段通过不表示完整 P0/P1 已通过。[当前四包集成回执](docs/acceptance/d-four-package-integration.md)记录B合并与统一构建；[付费模型验收](docs/acceptance/d-paid-vision.md)记录后续模型阻塞解除。
 
 先阅读 [AI 协作入口](AGENTS.md)，再进入 [四人工作包目录](docs/work-packages/README.md)，选择自己的 START.md 执行。
 
@@ -28,3 +28,5 @@
 D 服务接线见 [仓储与前端交接](docs/handoffs/d-service-integration.md)。部署探针执行 `pnpm deploy:probe`，仅打印配置存在性；额外探测和恢复步骤见 [部署说明](docs/deployment/README.md)。秘密放独立工作目录的 `.env.local`，该文件不提交。
 
 本机联调库已按用户授权独立配置，路径、端口和安全复用方式见 [本机 PostgreSQL](docs/deployment/local-development-db.md)；数据库与秘密留在本地忽略文件中。
+
+底图与设施配置见[部署接线](docs/deployment/maps-and-facilities.md)，本次真实覆盖、浏览器和失败回归见[地图/cloud验收](docs/acceptance/d-map-cloud.md)。cloud作为设施补充，不替代校园现场核验。

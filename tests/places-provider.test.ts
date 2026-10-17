@@ -263,3 +263,11 @@ test('places does not reserve or start an eight-second retry beyond its overall 
   assert.equal(calls, 1);
   assert.equal(reservations, 1);
 });
+
+test('facility caches never cross provider credential scopes even when endpoint identity is shared',async()=>{
+ const f=fakeRepository();let calls=0;
+ const provider=(keyFingerprint:string)=>({identity:'same-endpoint',keyFingerprint,fetchPlaces:async()=>{calls++;return {items:[place()],truncated:false}}});
+ await new PlacesService(f.repo,provider('scope-one'),{now}).getPlaces(bbox);
+ await new PlacesService(f.repo,provider('scope-two'),{now}).getPlaces(bbox);
+ assert.equal(calls,2);
+});

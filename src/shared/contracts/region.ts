@@ -40,6 +40,17 @@ export const PresetPassageSchema = z.strictObject({
   geometry: LineStringSchema,
   isDemo: z.boolean(),
 });
+export const FacilitySourceMetadataSchema = z.strictObject({
+  provider: z.literal('accessibility.cloud'),
+  datasetId: z.string().trim().min(1).max(200),
+  datasetName: z.string().trim().min(1).max(300),
+  originalId: z.string().trim().min(1).max(500).nullable(),
+  licenseId: z.string().trim().min(1).max(200),
+  licenseName: z.string().trim().min(1).max(300),
+  licenseUrl: z.url().max(2048).refine((value) => { const url = new URL(value); return ['http:', 'https:'].includes(url.protocol) && !url.username && !url.password; }).nullable(),
+  attribution: z.string().trim().min(1).max(1000).nullable(),
+  rawWheelchair: z.strictObject({ accessible: z.boolean().nullable(), partiallyAccessible: z.boolean().nullable() }),
+});
 export const PlaceSchema = z.strictObject({
   id: IdSchema,
   name: z.string().trim().min(1).max(120),
@@ -55,7 +66,22 @@ export const PlaceSchema = z.strictObject({
     wheelchair: z.string().nullable(),
     toiletWheelchair: z.string().nullable(),
   }),
+  sourceMetadata: FacilitySourceMetadataSchema.optional(),
+}).superRefine((place, ctx) => {
+  if (place.source === 'accessibility.cloud') {
+    if (!place.sourceMetadata) ctx.addIssue({ code: 'custom', path: ['sourceMetadata'], message: 'Cloud facilities require dataset and license metadata.' });
+    if (place.rawAccessibility.wheelchair !== null || place.rawAccessibility.toiletWheelchair !== null) ctx.addIssue({ code: 'custom', path: ['rawAccessibility'], message: 'Cloud facts are not OpenStreetMap tags.' });
+  } else if (place.sourceMetadata) ctx.addIssue({ code: 'custom', path: ['sourceMetadata'], message: 'Cloud metadata must retain its actual provider.' });
 });
+export const FacilitySourceStatusSchema = z.strictObject({
+  provider: z.enum(['overpass', 'heigit', 'accessibility.cloud']),
+  status: z.enum(['available', 'unavailable', 'not_configured']),
+});
+export const PlacesResultSchema = z.strictObject({
+  items: z.array(PlaceSchema).max(100), truncated: z.boolean(),
+  sources: z.array(FacilitySourceStatusSchema).max(2).optional(),
+});
+export type PlacesResultDTO = z.infer<typeof PlacesResultSchema>;
 export const SearchResultSchema = z.strictObject({
   id: IdSchema,
   name: z.string().min(1),

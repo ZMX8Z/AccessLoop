@@ -1,6 +1,9 @@
 import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
+import 'leaflet/dist/leaflet.css'
 import './styles.css'
+import { MapSettingsProvider } from '@/components/map/MapSettings'
+import { publicMapSettings } from '@/server/map-settings'
 
 export const metadata: Metadata = {
   title: 'AccessLoop',
@@ -8,5 +11,5 @@ export const metadata: Metadata = {
 }
 
 export default function FrontendLayout({ children }: { children: ReactNode }) {
-  return <html lang="en"><body>{children}</body></html>
+  return <html lang="en"><body><MapSettingsProvider value={publicMapSettings(process.env)}>{children}</MapSettingsProvider></body></html>
 }

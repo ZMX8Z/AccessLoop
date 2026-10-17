@@ -127,3 +127,27 @@ test('a delayed pre-save poll cannot replace the freshly published personal repo
  releaseOldMine({items:[],truncated:false});await oldPoll;
  assert.match(text(app.render()[0]),/Freshly saved personal observation/,'A prior poll may not erase the acknowledged report.');
 });
+
+test('public condition polling does not repeatedly request unchanged facility sources',async()=>{
+ const service=createFixtureService(),original=service.places;let facilityReads=0;
+ service.places=async(...args)=>{facilityReads++;return original(...args)};
+ const app=host(service);app.render();app.effects.forEach(effect=>effect());await flush();
+ assert.equal(facilityReads,1);
+ await app.intervals.find(timer=>timer.ms===5000)!.run();
+ await app.intervals.find(timer=>timer.ms===5000)!.run();
+ assert.equal(facilityReads,1,'Facilities must not hammer a failed optional provider every five seconds.');
+});
+
+test('a failed facility refresh for new region config clears old data and retries before restoring layers',async()=>{
+ const service=createFixtureService(),initial=await service.context(),region=await service.region(),original=service.places;let contexts=0,regions=0,reads=0;
+ service.context=async()=>++contexts===1?initial:{...initial,configVersion:2,evaluatedAt:new Date(Date.parse(initial.evaluatedAt)+1000).toISOString()};
+ service.region=async()=>++regions===1?region:{...region,configVersion:2,bbox:[151.229,-33.921,151.231,-33.919]};
+ service.places=async(...args)=>{if(++reads===2)throw new Error('temporary refresh failure');return reads===1?original(...args):{items:[],truncated:false}};
+ const app=host(service);app.render();app.effects.forEach(effect=>effect());await flush();
+ const poll=app.intervals.find(timer=>timer.ms===5000)!;
+ await poll.run();
+ let nodes=app.render();assert.equal((nodes.find(node=>'onPlaceSelect' in node.props)!.props.places as unknown[]).length,0);
+ await poll.run();nodes=app.render();
+ assert.equal(reads,3,'New config facilities must retry instead of marking an old snapshot current.');
+ assert.equal((nodes.find(node=>'onPlaceSelect' in node.props)!.props.places as unknown[]).length,0);
+});

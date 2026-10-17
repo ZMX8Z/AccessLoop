@@ -5,13 +5,14 @@ import { successResponse } from '../../../server/http/responses';
 import {
   BBoxSchema,
   PlaceSchema,
+  PlacesResultSchema,
+  type PlacesResultDTO,
   PresetPassageSchema,
   RegionSchema,
 } from '../../../shared/contracts';
 import type { RoutingRepository } from './repository';
 import type { RoutingService } from './service';
 import type { SearchService } from '../../places/server/search';
-import type { PlacesService } from '../../places/server/places';
 import { pointInBbox, bufferPassage } from './geometry';
 import { normalizeAccessibility } from '../../places/server/accessibility';
 
@@ -19,7 +20,7 @@ type Dependencies = {
   repository: RoutingRepository;
   routes: RoutingService;
   search: SearchService;
-  places?: Pick<PlacesService, 'getPlaces'>;
+  places?: { getPlaces(bbox: import('../../../shared/contracts').BBox): Promise<PlacesResultDTO> };
   applicationOrigin: string;
   now?: () => number;
   requireProvider?: (name: 'ors' | 'geocoding') => void;
@@ -156,12 +157,13 @@ export function createRoutingHandlers(deps: Dependencies) {
           .slice(0, 100)
           .map((item) => ({
             ...item,
-            accessibility: normalizeAccessibility(
+            accessibility: item.source === 'accessibility.cloud' ? item.accessibility : normalizeAccessibility(
               item.category,
               item.rawAccessibility,
             ),
           })),
         truncated: source.truncated || items.length > 100,
+        ...('sources' in source ? { sources: PlacesResultSchema.parse({ ...source, items: source.items.slice(0, 100) }).sources } : {}),
       };
     }),
     context: protect(async (request) => {

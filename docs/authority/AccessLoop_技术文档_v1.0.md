@@ -301,7 +301,9 @@ HeiGIT POI 是独立的 openpoiservice，不是自托管 ORS 自带模块。[S7]
 
 先用目标区域测试厕所、入口及休息点等所需类别，核对是否真的有 wheelchair 相关字段。地点按区域、configVersion 和适配器来源隔离，成功结果缓存 24 小时并记录 fetched_at，不对用户承诺实时状态。少量预设演示地点应标明数据来源与演示属性；不能把人工种子数据写成刚从 API 获得的完整覆盖。
 
-若 POI 字段不足或目标服务不可用，可接入 Overpass 查询 OSM 标签，或评估 accessibility.cloud。后者官方文档描述非商业免费访问、Token 可见范围和数据源许可约束；取得 Token 不代表获得所有合作方数据。[S9]这些接入属于后续选择，不作为 P0 同时接三家服务的前提。
+公众底图按用户确认接入Leaflet 1.9.4与默认OpenStreetMap HTTPS瓦片，公开配置在前端layout仅传tile URL/纯文本署名/署名链接；不传其他环境值。保留WGS84业务几何，展示边界转换Leaflet纬经顺序；动态导入避免SSR访问window，数据刷新不重置视口，瓦片失败明确提示且保留业务图层。默认瓦片只请求当前视口，不预取或离线抓取，遵守OSM署名、浏览器缓存和Referer要求。[S24]
+
+Overpass/HeiGIT提供主要OSM设施，accessibility.cloud按用户确认作为补充，分别通过C原子预算/持久缓存。使用固定官方v2缓存端点，Token只在服务端；经Token可见性、数据源ID和许可ID白名单过滤，保留实际来源及许可，未知或冲突事实为unknown。[S9] cloud整区域查询为一次包含bbox的XYZ瓦片请求，再按区域过滤；最多101条lookahead且响应1MiB/8秒限制。源错误与无结果区分；一个源失败可显式部分返回，全部源失败报错。缓存身份包含凭据可见范围及源/许可配置，换Token不复用旧权限缓存。不是ORS路线或公共障碍数据源，不能据设施标签直接生成避让。
 
 当前适配器由部署配置选择：默认 Overpass，或显式 HeiGIT。Overpass 仅允许固定 HTTPS interpreter，读取 node 坐标及 way/relation 的 bbox 中心；中心是地图选点，并不证明其为真实可通行入口。查询仅取区域内厕所、休息点、入口及含 wheelchair 标签的对象，源返回最多102项，公开最多100项；源截断标记必须穿过区域过滤、去重及缓存保留。原始 wheelchair/toilets:wheelchair 缺失或冲突仍为 unknown。HTTP200 的 remark、坏坐标、非法 JSON 均按失败处理，不缓存为无结果。读取上限1 MiB、总超时8秒，门禁按该单次上限判断剩余15秒预算；公共端点不发送 ORS 密钥。源身份指纹独立计入 C 持久 poi 预算，默认10次/分钟、450次/24小时；固定全区域成功缓存避免拖图逐次请求，失败不自动切换来源。[S22][S23]
 
@@ -384,7 +386,9 @@ P0 不做完整公众账号，以服务器生成的不可预测匿名会话标�
 | VISION_SCHEMA_VERSION / VISION_PROMPT_VERSION | 输出契约与提示词版本，参与分析缓存键和审计 | 服务端固定配置 |
 | VISION_TIMEOUT_MS / VISION_RPM / VISION_DAILY_BUDGET | 建议 8000 毫秒超时、默认 10 次/分钟；日预算须显式正整数，或显式 unlimited 仅关闭应用日上限 | 服务端；与 ORS 预算分开，unlimited 不绕过分钟门禁或上游配额 |
 | PERSONAL_AVOIDANCE_TTL_SECONDS / PUBLIC_HAZARD_TTL_SECONDS | 建议个人 3600 秒、公共 86400 秒 | 服务端可配置运营值 |
-| MAP_TILE_URL / MAP_ATTRIBUTION | 底图地址与署名 | 允许公开 |
+| ACCESSIBILITY_CLOUD_APP_TOKEN | cloud应用Token，仅服务端固定官方HTTPS请求使用 | 服务端秘密；不得入日志、前端或地图URL |
+| ACCESSIBILITY_CLOUD_SOURCE_IDS / ACCESSIBILITY_CLOUD_LICENSE_IDS | JSON字符串数组，明确数据集与许可白名单；未知许可不展示 | 服务端配置，变更隔离缓存 |
+| MAP_TILE_URL / MAP_ATTRIBUTION / MAP_ATTRIBUTION_URL | 默认OSM HTTPS XYZ瓦片、纯文本署名及版权链接；自定义三项配套 | 允许公开；静态页面变更后重建 |
 | SESSION_SECRET | 匿名会话签名或加密 | 服务端秘密；每实例独立 |
 | TRUSTED_MAINTAINER_REFERENCES | JSON字符串数组，默认空数组，最多100个受控来源引用 | 服务端维护方名单；客户端自报不能建立可信身份 |
 
@@ -494,3 +498,5 @@ P0 不做完整公众账号，以服务器生成的不可预测匿名会话标�
 ## 15 D 服务实现接线记录（2026-10-17）
 
 实现沿用本文单应用/单仓储架构：地理函数与路线服务位于 `src/features/routing/server`，ORS/Pelias/预算门禁及脱敏摘要位于 `src/server/providers`，真实搜索位于 `src/features/places/server`。`RoutingRepository` 由 C 实现并在 Node 初始化中安装；D 不新建数据库连接，不以进程内 Map 保存生产预算。Map 只用于同键进行中请求去重。详细接线见 [D 服务交接](../handoffs/d-service-integration.md)，实际验证结果见 [D 技术验收](../acceptance/wp-d.md)。未配置仓储或密钥时不把未知有效集当空集；不会提供合成校园成功数据。
+
+- [S24 OpenStreetMap瓦片使用政策](https://operations.osmfoundation.org/policies/tiles/)
