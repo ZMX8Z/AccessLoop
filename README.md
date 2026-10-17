@@ -4,7 +4,7 @@
 
 已确定技术栈：**Next.js + Payload + PostgreSQL + 阿里云 OSS 私有对象存储**。照片由阿里云托管，应用通过服务端存储适配器访问 OSS。Payload 提供数据管理、管理员认证及 Payload Admin；AI 识别、用户确认、个人避让与 ORS 路线由 AccessLoop 业务服务实现。
 
-本轮交付完整 P0 与 P1：个人绕行闭环、地点搜索和 Payload Admin 公共核实/纠错。四人共用同一仓库，分别使用固定开发分支及独立工作目录，所有阶段成果合入 dev。统一 Next.js + Payload 骨架已初始化；D 的地理、路由、预算门禁、搜索与调用摘要服务已实现并进入阶段验证。C 的真实仓储接入、A/B 页面联调及 Zenith 部署尚未完成，不代表完整 P0/P1 已通过。
+本轮交付完整 P0 与 P1：个人绕行闭环、地点搜索和 Payload Admin 公共核实/纠错。四人共用同一仓库，分别使用固定开发分支及独立工作目录，所有阶段成果合入 dev。统一 Next.js + Payload 骨架已初始化；D 的地理、路由、预算门禁、搜索与调用摘要服务已实现并进入阶段验证。C0真实仓储/匿名会话/持久预算已合入，ORS/Geocoding和本机OSS连接已验证；C1照片/AI/报告、A/B页面联调及Zenith部署尚未完成，不代表完整 P0/P1 已通过。
 
 先阅读 [AI 协作入口](AGENTS.md)，再进入 [四人工作包目录](docs/work-packages/README.md)，选择自己的 START.md 执行。
 

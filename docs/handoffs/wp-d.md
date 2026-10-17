@@ -58,7 +58,7 @@
 
 1. C0 [PR #7](https://github.com/ZMX8Z/AccessLoop/pull/7) 已合入 `5e4867d8b6141aacbc8fc4988f4aa41287bd370a`，真实仓储/会话/持久预算及D接线阻塞已解除；C1照片/AI/报告/确认和后续管理仍待交付。见[C0集成验收](../acceptance/c0-integration.md)。
 2. A尚未发现远端阶段分支/PR；B已推送`adc4277`但尚无阶段PR，审查存在真实失败回退为桩成功、共享Schema重名和导出未接权限等阻塞，见[B审查](b-integration-review.md)。修复后再集成，不以单模块测试替代联调。
-3. 用户已提供ORS/Vision及应用秘密；ORS与Geocoding已通过持久预算真实连接，Vision尚待C1与独立预算配置。主目录 `.env` 已安全同步到忽略的D `.env.local`；独立本机PG已配置、迁移及重启验证，见[本机开发库](../deployment/local-development-db.md)。OSS 尚缺 endpoint/bucket/region/凭据；用户更新管理员密码后已受控初始化，真实Payload Local API密码登录、签名令牌认证及enabled operator身份校验通过。秘密不提交、不写入此记录。
+3. 用户已提供ORS/Vision及应用秘密；ORS与Geocoding已通过持久预算真实连接，Vision尚待C1与独立预算配置。主目录 `.env` 已安全同步到忽略的D `.env.local`；独立本机PG已配置、迁移及重启验证，见[本机开发库](../deployment/local-development-db.md)。OSS五项已由用户补齐，已同步D并通过本机基础读写/私有/签名过期/删除检查；用户更新管理员密码后已受控初始化，真实Payload Local API密码登录、签名令牌认证及enabled operator身份校验通过。秘密不提交、不写入此记录。
 4. Zenith实际项目/模板、部署连接与端口/出网/秘密注入规范；当前插件搜索未返回Zenith集成，不编造manifest，也不改变私有仓库可见性。
 5. 校园候选的现场/真实ORS核验。线上二维码及演示入口待真实部署后生成。
 
@@ -94,3 +94,18 @@
 - 本阶段head/PR以交付PR元数据及后续执行记录为准。完整P0/P1、现场核验、OSS、Zenith、图片/确认恢复和120秒在线演示仍未完成。
 
 本次准备阶段 codeEvidenceCommit/headCommit：`08f160dad39777e26841c69339114811bd9cda67`；baseDevCommit：`5e4867d8b6141aacbc8fc4988f4aa41287bd370a`。后续仅执行记录提交不改变运行代码，最终deliveryHead与集成提交见本阶段PR元数据。
+
+
+## OSS 配置与连接解除阻塞
+
+- baseDevCommit/codeEvidenceCommit：`d3e06bded36f2ca4cef98cd2a802dc633acf8a01`。运行代码、依赖、Schema及迁移未改，本阶段只同步忽略环境和交付执行记录。
+- 主目录.env五项OSS非空，已仅同步这些值到D的.env.local；两文件均0600，秘密未打印/提交。
+- `pnpm deploy:probe --http --database --egress`通过本地health、PG和ORS/OSS/GLM TLS；`pnpm exec tsx scripts/check-environment.ts`独立exit0，原先OSS缺失的启动配置门禁已解除。
+- [OSS真实连接证据](../deployment/oss-connection-evidence.json)：随机合成对象上传200、授权读取200、匿名403、签名200、同一短期链接先200后过期403、删除204及删除后404。两次探针对象均已删除；首次过短签名时序的失败明确保留，没有计作通过。
+- C接线参数见[部署交接](../deployment/README.md#oss-接入实测参数交接给-c)。C0当前没有photos Collection或照片API，D没有越权修改C配置/集合。
+- 剩余：C1照片/GLM/报告/确认与Vision预算、A/B真实UI、C后续管理、现场通道、Zenith及业务恢复。OSS不再列为“配置缺失”，仍待照片/Zenith端到端验收。
+
+
+## A0 PR #11 独立审查
+
+PR head=`3b5e8db54b1098dbd61c22acb12aca09a8b0edbd`，target dev=`2f38fcdc449c400dfcfbb916e2c64730a2bfcdbb`。阶段未通过，未合入：360px报告确认页根画布锁定且无法滚至提交；共享PassagePicker换路线后可沿用越界旧索引。隔离合并树check113通过/3跳过、build exit0，不能替代功能验收。完整双轴报告、复现和截图见[A审查](a-pr-11-review.md)。Schema归并与后续A1迟到context风险分别列明，未把明确Design Demo或未交付后续功能本身算作A0失败。
