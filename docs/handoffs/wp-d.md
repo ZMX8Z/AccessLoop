@@ -117,3 +117,6 @@ PR head=`3b5e8db54b1098dbd61c22acb12aca09a8b0edbd`，target dev=`2f38fcdc449c400
 - 用户授权D帮助A后，在A固定分支修复手机确认页、通道索引、重复响应Schema和迟到context/配置并发发布；A PR #11 deliveryHead=`4678661d826b7077a292953cae06703eb52ab489`，integratedDevCommit=`1b17f3cfb6c787fb96d0dc01f098d3f3ea9f7b14`。独立复审及完整check/build通过，360px演示实际保存成功；仅为A0阶段。
 - D `7a5697f` 补齐明确403配额识别、无效模型输出错误统计；真实GLM单次探针仍返回429/1305。已通过C仓储核对持久预留、脱敏事件与24h摘要，见[集成记录](../acceptance/d-integration-2026-10-17.md)和[Vision证据](../deployment/vision-connection-evidence.json)。正式C分析服务需接入分类器；未把错误结果或人工降级计作模型通过。
 - P0/P1和四包总验收保持未完成：B修复交付、C1报告/照片/确认与管理、真实A/B联调、现场通道与Zenith仍待完成；OSS本机连接已过，GLM实时能力仍受上游限制。
+
+
+本次统一运行证据提交为 `09946eb9f4ceaaa34e141a5554286484b1f01fe6`，同步base为 `1b17f3cfb6c787fb96d0dc01f098d3f3ea9f7b14`；`pnpm check`149通过/3跳过、生产构建exit0。阶段PR记录deliveryHead与最终集成SHA；完整命令、独立审查和限制见本次集成记录。
