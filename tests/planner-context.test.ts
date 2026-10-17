@@ -167,3 +167,24 @@ test('journey action requires a current route and tabs preserve inputs without d
  nodes=app.render();(nodes.find(node=>'onPlaceSelect' in node.props)!.props.onPlaceSelect as (place:unknown)=>void)(fixturePlaces[2]);
  assert.doesNotMatch(text(app.render()[0]),/Start Journey/);
 });
+
+test('ordinary detail links capture My Reports as report source and dismiss old layers after navigation',async()=>{
+ const app=host(createFixtureService());app.render({pathname:'/my-reports/report-1'});app.effects.forEach(effect=>effect());await flush();
+ app.render({pathname:'/report'});let nodes=app.render({pathname:'/report'});
+ assert.equal(nodes.find(node=>'returnTo' in node.props&&'onChanged' in node.props)!.props.returnTo,'/my-reports');
+ app.render({pathname:'/route'});nodes=app.render({pathname:'/route'});
+ (nodes.find(node=>node.props['aria-label']==='Map layers and place list')!.props.onClick as ()=>void)();
+ assert.equal(app.render({pathname:'/route'}).find(node=>node.props.className==='route-panel-backdrop')!.props.hidden,false);
+ app.render({pathname:'/route/barriers/report-1'});nodes=app.render({pathname:'/route/barriers/report-1'});
+ assert.equal(nodes.find(node=>node.props.className==='route-panel-backdrop')!.props.hidden,true);
+});
+
+test('successful explicit planning closes its input panel so the route result is visible',async()=>{
+ const app=host(createFixtureService());app.render();app.effects.forEach(effect=>effect());await flush();
+ let nodes=app.render();(nodes.find(node=>'onPlaceSelect' in node.props)!.props.onPlaceSelect as (place:unknown)=>void)(fixturePlaces[0]);
+ nodes=app.render();(nodes.find(node=>'onPlaceSelect' in node.props)!.props.onPlaceSelect as (place:unknown)=>void)(fixturePlaces[1]);
+ nodes=app.render();(nodes.find(node=>node.props['aria-label']==='Wheelchair parameters')!.props.onClick as ()=>void)();
+ assert.equal(app.render().find(node=>node.props.className==='route-panel-backdrop')!.props.hidden,false);
+ nodes=app.render();await (nodes.find(node=>node.type==='button'&&text(node)==='Plan route →')!.props.onClick as ()=>Promise<void>)();await flush();
+ assert.equal(app.render().find(node=>node.props.className==='route-panel-backdrop')!.props.hidden,true);
+});

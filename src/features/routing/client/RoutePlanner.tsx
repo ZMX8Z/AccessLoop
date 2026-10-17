@@ -32,6 +32,12 @@ export function RoutePlanner({fixture=false,pathname='/route',onNavigate,childre
   const [panel,setPanel]=useState<'journey'|'parameters'|'layers'|null>(null);
   const [reportSource,setReportSource]=useState('/route');
   const panelRef=useRef<HTMLDivElement>(null);
+  const [previousPath,setPreviousPath]=useState(pathname);
+  // Adjust navigation state before committing the new page, including ordinary Next Links/back.
+  if(previousPath!==pathname){
+    setPreviousPath(pathname);setPanel(null);
+    if(pathname.startsWith('/report')&&!previousPath.startsWith('/report'))setReportSource(previousPath.startsWith('/my-reports')?'/my-reports':previousPath==='/route/journey'?'/route/journey':'/route');
+  }
   const routePage=pathname==='/route'||pathname==='/route/journey'||fixture;
   const journey=pathname==='/route/journey';
   const reportPage=pathname==='/report'||pathname.startsWith('/report/');
@@ -164,7 +170,7 @@ export function RoutePlanner({fixture=false,pathname='/route',onNavigate,childre
       const latest=await service.context(task.signal);
       if(!task.current()||epoch!==inputEpoch.current)return;
       if(latest.configVersion!==region.configVersion||!contextCanReplace(contextRef.current,latest)||contextKey(result)!==contextKey(latest))throw new ApiError('ROUTE_STALE','Conditions changed during planning. Please recalculate.');
-      setRoute(result);setRouteNames({start:start.name,end:end.name});setContext(latest);contextRef.current=latest;setContextUnavailable(false);setInputChanged(false);setNotice('Candidate route ready. Review the sources and current conditions before travelling.');
+      setRoute(result);setRouteNames({start:start.name,end:end.name});setContext(latest);contextRef.current=latest;setContextUnavailable(false);setInputChanged(false);setPanel(null);setNotice('Candidate route ready. Review the sources and current conditions before travelling.');
     }catch(cause){if(task.current()){setInputChanged(true);showError(cause)}}
     finally{if(task.current())setPlanning(false)}
   }

@@ -12,7 +12,7 @@ import { PhotoUpload } from './PhotoUpload'
 import { AIAnalysisFeedback } from './AIAnalysisFeedback'
 import { AvoidanceDrawer } from './AvoidanceDrawer'
 import { ReportSummary } from './ReportsList'
-import type { ReportCategory } from './report-state'
+import {isPersonalEffective, type ReportCategory} from './report-state'
 import './report.css'
 
 export function ReportDetail({ id, returnTo = '/my-reports', onNavigate, onChanged }: {
@@ -58,7 +58,7 @@ export function ReportDetail({ id, returnTo = '/my-reports', onNavigate, onChang
     if (!report || report.id !== id) return
     const text = [`AccessLoop report #${report.id}`, report.description, `Category: ${report.category}`, `Observed: ${report.observedAt}`,
       `Location: ${report.location[1]}, ${report.location[0]}`, `Lifecycle: ${report.status}`, `Public activity: ${report.publicActivity}`,
-      ...(privateReport ? [`AI: ${privateReport.analysis?.aiStatus ?? 'manual report'}`, `Personal avoidance: ${privateReport.personalAvoidance?.effective ? 'effective for this session' : 'not effective'}`] : []),
+      ...(privateReport ? [`AI: ${privateReport.analysis?.aiStatus ?? 'manual report'}`, `Personal avoidance: ${isPersonalEffective(privateReport,Date.now()) ? "effective for the report author's session" : 'not effective'}${privateReport.personalAvoidance ? ` · valid until ${privateReport.personalAvoidance.validUntil}` : ''}`] : []),
       'Expiry does not confirm clear passage. No facilities dispatch is claimed.'].join('\n')
     try { await navigator.clipboard.writeText(text); setCopyState('Report text copied.') }
     catch { setCopyState('Copy is unavailable. Open the authorized printable report to select and copy the text.') }
