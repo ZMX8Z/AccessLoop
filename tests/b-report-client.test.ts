@@ -287,3 +287,11 @@ test('personal effectiveness needs the server flag, active state, lifecycle, ver
     { ...active, personalAvoidance: { ...active.personalAvoidance, validUntil: '2030-01-01T00:21:00.000Z' } },
   ]) assert.equal(isPersonalEffective(invalid, now), false);
 });
+
+test('starting a separate report clears the previous person-edited facts and photo', async () => {
+  const { draftReducer, initialDraft } = await draftModule();
+  const previous = draftReducer(initialDraft, { type: 'facts', category: 'construction', description: 'The previous obstacle.' })
+  assert.deepEqual(draftReducer(previous, { type: 'reset' }), {
+    photo: null, analysis: null, analysisId: undefined, category: 'obstruction', description: '', edited: false,
+  })
+})

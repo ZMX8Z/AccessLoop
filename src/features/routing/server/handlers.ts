@@ -11,6 +11,7 @@ import {
 import type { RoutingRepository } from './repository';
 import type { RoutingService } from './service';
 import type { SearchService } from '../../places/server/search';
+import type { PlacesService } from '../../places/server/places';
 import { pointInBbox, bufferPassage } from './geometry';
 import { normalizeAccessibility } from '../../places/server/accessibility';
 
@@ -18,6 +19,7 @@ type Dependencies = {
   repository: RoutingRepository;
   routes: RoutingService;
   search: SearchService;
+  places?: Pick<PlacesService, 'getPlaces'>;
   applicationOrigin: string;
   now?: () => number;
   requireProvider?: (name: 'ors' | 'geocoding') => void;
@@ -137,9 +139,10 @@ export function createRoutingHandlers(deps: Dependencies) {
           'OUT_OF_COVERAGE',
           'Choose an area inside the supported region.',
         );
-      const places = z
-        .array(PlaceSchema)
-        .parse(await repository.getPlaces(bbox));
+      const source = deps.places
+        ? await deps.places.getPlaces(bbox)
+        : { items: await repository.getPlaces(bbox), truncated: false };
+      const places = z.array(PlaceSchema).parse(source.items);
       const items = places.filter((item) => pointInBbox(item.location, bbox));
       const latest = await repository.getRegion();
       if (latest.configVersion !== region.configVersion)
@@ -158,7 +161,7 @@ export function createRoutingHandlers(deps: Dependencies) {
               item.rawAccessibility,
             ),
           })),
-        truncated: items.length > 100,
+        truncated: source.truncated || items.length > 100,
       };
     }),
     context: protect(async (request) => {

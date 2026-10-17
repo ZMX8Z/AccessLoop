@@ -64,8 +64,8 @@ export function ReportForm({ photoId, analysisId, category = 'obstruction', desc
         now={now} onLocationChange={(value) => { if (!busy) setLocation(value) }} onChange={(value) => { if (!busy) setPassage(value) }} />}
       {!region && <p>Waiting for the configured region and passages.</p>}
       <button type="button" disabled={!location || !passage || !observedAt || !description.trim() || !region} onClick={() => void save()}>{busy ? 'Saving…' : initialReport ? 'Save corrections' : 'Save report and review avoidance'}</button>
-      {onCancel && <button className="report-secondary" type="button" onClick={onCancel}>Cancel editing</button>}
     </fieldset>
+    {onCancel && <button className="report-secondary" type="button" disabled={busy} onClick={onCancel}>Cancel editing</button>}
     {error && <p role="alert" className="report-error">{error} Your inputs are retained. On a version conflict, reload the report and review your changes before saving again.</p>}
   </section>
 }

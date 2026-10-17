@@ -21,6 +21,7 @@ export const initialDraft: DraftState = {
   category: 'obstruction', description: '', edited: false,
 };
 export type DraftAction =
+  | { type: 'reset' }
   | { type: 'photo'; photo: UploadDTO | null }
   | { type: 'analysis'; analysis: AnalysisDTO }
   | { type: 'facts'; category: ReportCategory; description: string }
@@ -29,6 +30,8 @@ export type DraftAction =
 
 export function draftReducer(state: DraftState, action: DraftAction): DraftState {
   switch (action.type) {
+    case 'reset':
+      return initialDraft;
     case 'photo':
       return {
         ...state, photo: action.photo, analysis: null, analysisId: undefined,

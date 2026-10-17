@@ -86,7 +86,7 @@ export function ReportWizard({ region: suppliedRegion, passages: suppliedPassage
         <a className="report-link" href={`/api/reports/${encodeURIComponent(report.id)}/export`} target="_blank" rel="noreferrer">Copy / print report</a>
       </section>
       {region && <AvoidanceDrawer report={report} region={region} passages={passages} route={route} onUpdated={changed} />}
-      <button type="button" onClick={() => { analysisRequest.current.cancel(); currentPhoto.current = null; dispatch({ type: 'photo', photo: null }); setReport(null); setError('') }}>Report another obstacle</button>
+      <button type="button" onClick={() => { analysisRequest.current.cancel(); currentPhoto.current = null; dispatch({ type: 'reset' }); setReport(null); setError('') }}>Report another obstacle</button>
     </>}
     {error && <p className="report-error" role="alert">{error} <button type="button" onClick={() => { setError(''); setReload((value) => value + 1) }}>Reload configuration</button></p>}
   </div>

@@ -33,3 +33,5 @@
 ## Spec
 
 A手机确认流程与组件并发回归通过，D明确配额与无效模型结果统计符合既有契约；合法uncertain、自然到期摘要推进保持正常。阶段交付边界准确：真实GLM失败、C/B后续业务、双会话与Zenith未通过。未将演示、桩或预算余额替代真实P0/P1总验收。
+
+本阶段PR #14实际deliveryHead=e2b17d77a6fc2931b7f07d0216f965a34e45af91，integratedDevCommit=1d2cd2b9b3420a9b0c072a3b54ec258839a95b19。C15及后续统一代码验证见[d-post-c15-integration.md](d-post-c15-integration.md)。

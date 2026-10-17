@@ -67,3 +67,18 @@ test('context publication is monotonic but accepts a naturally expired effective
  assert.equal(contextCanReplace(current,{...current,activeDigest:'expired-set',evaluatedAt:'2030-01-01T00:00:02Z'}),true);
  assert.equal(contextCanReplace(current,{...current,activeDigest:'ambiguous-set'}),false);
 });
+
+test('public report layers reject identifiers invalid under the published C contract',async()=>{
+ const report=(await createFixtureService().publicReports()).items[0];
+ assert.equal(publicReportSchema.safeParse({...report,id:''}).success,false);
+});
+test('author layers validate the complete C response before retaining only map fields',async()=>{
+ const {mineSchema}=await import('../src/features/routing/client/models');
+ const at=new Date().toISOString();
+ const report={id:'author-report',regionId:'fixture-only',rowVersion:1,status:'pending',publicRevision:null,photoId:'author-photo',analysis:null,location:[.002,.002],category:'construction',description:'Synthetic map projection.',observedAt:at,passage:null,personalAvoidance:null,publicAvoidGeometry:null,publicVerification:null,publicActivity:'inactive',createdAt:at,updatedAt:at,isDemo:true};
+ assert.equal(mineSchema.safeParse({...report,rowVersion:0}).success,false);
+ const layer=mineSchema.parse(report);
+ assert.equal('photoId' in layer,false);
+ assert.equal('analysis' in layer,false);
+ assert.equal(layer.id,'author-report');
+});

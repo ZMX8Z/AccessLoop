@@ -63,7 +63,7 @@ export function ReportDetail({ id }: { id: string }) {
         }} />
         <ReportForm photoId={photoId ?? ''} analysisId={analysisId} category={category} description={description} disabled={!photoId || analyzing}
           region={config.region} passages={config.passages} initialReport={privateReport} onFactsChange={(value, text) => { setCategory(value); setDescription(text) }}
-          onReportCreated={(updated) => { analysisRequests.current.cancel(); setReport(updated); setEditing(false) }} onCancel={() => { analysisRequests.current.cancel(); setEditing(false) }} />
+          onReportCreated={(updated) => { analysisRequests.current.cancel(); setReport(updated); setEditing(false) }} onCancel={() => { analysisRequests.current.cancel(); setAnalyzing(false); setEditing(false) }} />
         <button type="button" className="report-secondary" onClick={async () => {
           try { const result = await fetchReport(id); if ('rowVersion' in result) { setReport(result); setError('Latest version loaded. Your edited description, category and selected photo are retained. Review the new version before saving.') } }
           catch (failure) { setError(errorMessage(failure)) }
