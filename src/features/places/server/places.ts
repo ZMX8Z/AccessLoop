@@ -10,6 +10,7 @@ import type { RoutingRepository } from '../../routing/server/repository';
 
 export type PoiPlaces = { items: PlaceDTO[]; truncated: boolean };
 export type PoiAdapter = {
+  source?: 'openstreetmap' | 'accessibility.cloud';
   identity: string;
   keyFingerprint: string;
   timeoutMs?: number;
@@ -53,7 +54,7 @@ export class PlacesService {
       throw new AppError(422, 'OUT_OF_COVERAGE', 'Choose a place search area within the supported region.');
     }
     const key = digest({
-      service: 'places-v2', adapter: this.adapter.identity, regionId: region.id,
+      service: 'places-v3', adapter: this.adapter.identity, keyScope: this.adapter.keyFingerprint, regionId: region.id,
       bbox: region.bbox, configVersion: region.configVersion,
     });
     const cached = CacheSchema.safeParse(await this.repository.getCache(key));
@@ -72,7 +73,7 @@ export class PlacesService {
             maxAttemptMs: this.adapter.timeoutMs ?? 6000,
             operation: async () => {
               const places = SourceSchema.safeParse(await this.adapter.fetchPlaces(region.bbox, region.isDemo));
-              if (!places.success || places.data.items.some((item) => item.source !== 'openstreetmap' || item.isDemo !== region.isDemo)) {
+              if (!places.success || places.data.items.some((item) => item.source !== (this.adapter.source ?? 'openstreetmap') || item.isDemo !== region.isDemo)) {
                 throw invalidProviderResult();
               }
               return { ...places.data, items: places.data.items.filter((item) => pointInBbox(item.location, region.bbox)) };

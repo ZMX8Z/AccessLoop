@@ -127,3 +127,13 @@ test('a delayed pre-save poll cannot replace the freshly published personal repo
  releaseOldMine({items:[],truncated:false});await oldPoll;
  assert.match(text(app.render()[0]),/Freshly saved personal observation/,'A prior poll may not erase the acknowledged report.');
 });
+
+test('public condition polling does not repeatedly request unchanged facility sources',async()=>{
+ const service=createFixtureService(),original=service.places;let facilityReads=0;
+ service.places=async(...args)=>{facilityReads++;return original(...args)};
+ const app=host(service);app.render();app.effects.forEach(effect=>effect());await flush();
+ assert.equal(facilityReads,1);
+ await app.intervals.find(timer=>timer.ms===5000)!.run();
+ await app.intervals.find(timer=>timer.ms===5000)!.run();
+ assert.equal(facilityReads,1,'Facilities must not hammer a failed optional provider every five seconds.');
+});

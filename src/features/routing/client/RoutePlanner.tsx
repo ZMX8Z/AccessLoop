@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import type { Position, Restrictions, PassageRef } from '@/shared/contracts';
+import type { Position, Restrictions, PassageRef, PlacesResultDTO } from '@/shared/contracts';
 import { ApiError, errorMessage, LatestRequest, resetSession } from '@/shared/client/api';
 import { MapView } from '@/components/map/MapView';
 import { PassagePicker } from '@/components/map/PassagePicker';
@@ -16,6 +16,7 @@ export function RoutePlanner({fixture=false}:{fixture?:boolean}) {
   const service=useMemo(()=>fixture?createFixtureService():liveService,[fixture]);
   const [region,setRegion]=useState<Region|null>(null);
   const [places,setPlaces]=useState<Place[]>([]),[passages,setPassages]=useState<Passage[]>([]);
+  const [facilitySources,setFacilitySources]=useState<NonNullable<PlacesResultDTO['sources']>>([]);
   const [reports,setReports]=useState<PublicReport[]>([]),[mine,setMine]=useState<Mine[]>([]);
   const [context,setContext]=useState<Context|null>(null),[route,setRoute]=useState<Route|null>(null);
   const [start,setStart]=useState<Endpoint|null>(null),[end,setEnd]=useState<Endpoint|null>(null);
@@ -50,10 +51,13 @@ export function RoutePlanner({fixture=false}:{fixture?:boolean}) {
     let polling=false;
     let activeController:AbortController|undefined;
     const initialEpoch=++layerEpoch.current;
-    const layers=async(r:Region,expected:Context,epoch:number,signal:AbortSignal)=>{
-      const [p,ps,pub,own]=await Promise.all([service.places(r.bbox,signal),service.passages(signal),service.publicReports(signal),service.mine(signal)]);
+    let lastFacilitiesReadAt=0;
+    let lastFacilitiesTruncated=false;
+    const layers=async(r:Region,expected:Context,epoch:number,signal:AbortSignal,refreshFacilities=true)=>{
+      if(refreshFacilities)lastFacilitiesReadAt=Date.now();
+      const [p,ps,pub,own]=await Promise.all([refreshFacilities?service.places(r.bbox,signal):null,refreshFacilities?service.passages(signal):null,service.publicReports(signal),service.mine(signal)]);
       if(disposed||signal.aborted||epoch!==layerEpoch.current||!contextRef.current||contextKey(contextRef.current)!==contextKey(expected))return;
-      setPlaces(p.items);setPassages(ps.items);setReports(pub.items);setMine(own.items);setTruncated(p.truncated||pub.truncated||own.truncated);setLayersUnavailable(false);
+      if(p){setPlaces(p.items);setFacilitySources(p.sources??[]);lastFacilitiesTruncated=p.truncated}if(ps)setPassages(ps.items);setReports(pub.items);setMine(own.items);setTruncated(lastFacilitiesTruncated||pub.truncated||own.truncated);setLayersUnavailable(false);
     };
     let currentRegion:Region|null=null;
     const initialize=async()=>{
@@ -104,7 +108,7 @@ export function RoutePlanner({fixture=false}:{fixture?:boolean}) {
         }
         setContext(next);contextRef.current=next;setContextUnavailable(false);
         // Retry failed layer refreshes as well as version-triggered refreshes.
-        await layers(currentRegion,next,epoch,controller.signal);
+        await layers(currentRegion,next,epoch,controller.signal,configChanged||Date.now()-lastFacilitiesReadAt>=60000);
       }catch(cause){if(!disposed&&epoch===layerEpoch.current){setContextUnavailable(true);setLayersUnavailable(true);if(cause instanceof ApiError&&cause.code==='UNAUTHENTICATED'){resetSession();setMine([]);setRoute(null);setNotice('Session expired. Reconnect to initialize a new session.')}}}
       finally{clearTimeout(timeout);polling=false}
     },5000);
@@ -160,6 +164,7 @@ export function RoutePlanner({fixture=false}:{fixture?:boolean}) {
   }
   const stale=!!route&&(inputChanged||contextUnavailable||routeOutdated(route,context,now));
   const wait=Math.max(0,Math.ceil((retryAt-now)/1000));
+  const facilityCredits=Array.from(new Map(places.flatMap(p=>p.sourceMetadata?[p.sourceMetadata]:[]).map(metadata=>[`${metadata.datasetId}/${metadata.licenseId}`,metadata])).values());
   const selectPlace=(p:Place)=>{setSelected(p);choose({name:p.name,location:p.location})};
   return <>
     <header className="site-header"><Link href="/" className="brand"><span className="brand-mark" aria-hidden="true">↗</span>AccessLoop</Link><div className="header-right"><span className="pill">{fixture?'Fixture preview':region?.isDemo?'Demo region':'Campus mobility'}</span><a href="#planner">Plan a journey</a><Link href="/reports">Reports</Link></div></header>
@@ -185,9 +190,11 @@ export function RoutePlanner({fixture=false}:{fixture?:boolean}) {
       </aside>
       <section className="map-panel panel" aria-label="Map and route"><div className="map-toolbar"><div><span className="eyebrow">02 / Explore the area</span><h2>{view==='map'?'A clearer picture':'Places in this region'}</h2></div><div className="segmented"><button aria-pressed={view==='map'} onClick={()=>setView('map')}>Map</button><button aria-pressed={view==='list'} onClick={()=>setView('list')}>List</button></div></div>
         {loading?<div className="empty-state" role="status">Loading region and current conditions…</div>:!region?<div className="empty-state"><span className="empty-symbol">⌖</span><h3>The campus map is getting ready</h3><p>Region and routing services are not available in this skeleton yet.</p><a className="primary button-link" href="/preview">View the Stitch design preview →</a></div>:view==='map'?<MapView bbox={region.bbox} places={places} route={route} start={start?.location} end={end?.location} publicReports={layersUnavailable?[]:reports} mine={layersUnavailable?[]:mine} now={now} onPlaceSelect={selectPlace} onLocationChange={location=>choose({name:'Selected map point',location})}/>:<ul className="place-list">{places.map((p,i)=><li key={p.id}><button onClick={()=>selectPlace(p)}><span className={`place-number ${p.accessibility}`}>{i+1}</span><span><strong>{p.name}</strong><small>{accessibilityLabels[p.accessibility]} · {p.category.replace('_',' ')}</small><small>{p.source}</small></span><span aria-hidden="true">↗</span></button></li>)}</ul>}
+        {facilitySources.filter(source=>source.status!=='available').map(source=><p className="banner warning" role="status" key={source.provider}>{source.provider==='accessibility.cloud'?'Supplementary facility data':'OpenStreetMap facility data'} {source.status==='not_configured'?'is not connected.':'is temporarily unavailable. Other available information is shown.'}</p>)}
+        {facilityCredits.length>0&&<div className="facility-attributions" aria-label="Facility data sources">{facilityCredits.map(metadata=><p key={metadata.datasetId+'/'+metadata.licenseId}>{metadata.datasetName} via accessibility.cloud · {metadata.licenseUrl?<a href={metadata.licenseUrl} target="_blank" rel="noreferrer noopener">{metadata.licenseName}</a>:metadata.licenseName}{metadata.attribution&&metadata.attribution!==metadata.datasetName?` · ${metadata.attribution}`:''}</p>)}</div>}
         <div className="legend">{Object.entries(accessibilityLabels).map(([key,label])=><span key={key}><b className={`legend-symbol ${key}`}>{key==='yes'?'✓':key==='limited'?'△':key==='no'?'×':'?'}</b>{label}</span>)}</div>
         {truncated&&<p className="banner warning">The service returned a limited set of results. This is not a complete inventory.</p>}
-        {selected&&<div className="place-detail"><button className="close" aria-label="Close place details" onClick={()=>setSelected(null)}>×</button><h3>{selected.name}</h3><p>{accessibilityLabels[selected.accessibility]} · {selected.accessibilityNote??'No further access information.'}</p><p className="note">{selected.location.join(', ')} · Source: {selected.source} / {selected.sourceId}<br/>Updated {selected.fetchedAt}. Original wheelchair tag: {selected.rawAccessibility.wheelchair??'missing'}; toilet tag: {selected.rawAccessibility.toiletWheelchair??'missing'}.</p></div>}
+        {selected&&<div className="place-detail"><button className="close" aria-label="Close place details" onClick={()=>setSelected(null)}>×</button><h3>{selected.name}</h3><p>{accessibilityLabels[selected.accessibility]} · {selected.accessibilityNote??'No further access information.'}</p><p className="note">{selected.location.join(', ')} · Source: {selected.source} / {selected.sourceId}<br/>Updated {selected.fetchedAt}. {selected.sourceMetadata?`Provider wheelchair facts: accessible ${String(selected.sourceMetadata.rawWheelchair.accessible??'unknown')}; partially accessible ${String(selected.sourceMetadata.rawWheelchair.partiallyAccessible??'unknown')}.`:`Original wheelchair tag: ${selected.rawAccessibility.wheelchair??'missing'}; toilet tag: ${selected.rawAccessibility.toiletWheelchair??'missing'}.`}</p></div>}
         {route?<div className="route-summary"><div className="section-heading"><span className="eyebrow">Your candidate route</span><span className={stale?'pill caution':'pill'}>{stale?'Recalculation needed':'Current context'}</span></div><h2>{routeNames?.start} → {routeNames?.end}</h2><div className="metrics"><div><small>Distance</small><strong>{Math.round(route.distanceM)} m</strong></div><div><small>Estimated time</small><strong>{Math.ceil(route.durationS/60)} min</strong></div><div><small>Impact</small><strong>{route.routingScope==='personal'?'Personal':'Public'}</strong></div></div>
           {stale&&<p className="banner warning" role="status">Inputs, conditions or data freshness changed. This displayed route is outdated; recalculate before relying on it.</p>}
           {route.routingScope==='personal'&&<p className="banner warning">Includes your temporary avoidance, not publicly verified. Valid until {route.personalValidUntil}.</p>}

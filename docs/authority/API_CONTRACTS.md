@@ -211,7 +211,7 @@ type RegionDTO = {
 
 ### 4.4 `GET /api/places?bbox=…`
 
-`bbox` 为必填逗号分隔的四个数；必须在当前区域内，最大请求范围不超过整个配置区域。固定最多 100 条；不提供分页或更多过滤参数。结果为 `{items:PlaceDTO[],truncated:boolean}`；超过 100 条时 `truncated=true`，不得声称已完整覆盖。
+`bbox` 为必填逗号分隔的四个数；必须在当前区域内，最大请求范围不超过整个配置区域。固定最多 100 条；不提供分页或更多过滤参数。结果为 `{items:PlaceDTO[],truncated:boolean,sources?:FacilitySourceStatus[]}`；超过 100 条时 `truncated=true`，不得声称已完整覆盖。
 
 ```ts
 type PlaceDTO = {
@@ -220,10 +220,24 @@ type PlaceDTO = {
   accessibilityNote: string | null;
   source: string; sourceId: string; fetchedAt: Instant; isDemo: boolean;
   rawAccessibility: { wheelchair: string | null; toiletWheelchair: string | null };
+  sourceMetadata?: {
+    provider: "accessibility.cloud"; datasetId: string; datasetName: string;
+    originalId: string | null; licenseId: string; licenseName: string;
+    licenseUrl: string | null; attribution: string | null;
+    rawWheelchair: { accessible: boolean | null; partiallyAccessible: boolean | null };
+  };
+};
+type FacilitySourceStatus = {
+  provider: "overpass" | "heigit" | "accessibility.cloud";
+  status: "available" | "unavailable" | "not_configured";
 };
 ```
 
 来源标签不足、不可识别或冲突时为 unknown，保留原标签。厕所类别不推导厕所无障碍；地点可进入不推导沿途道路可通行。`source/sourceId` 为经白名单映射的数据来源，不返回任意供应商内部对象。
+
+accessibility.cloud作为设施补充，`source="accessibility.cloud"`、`sourceId`为cloud地点ID；必须返回sourceMetadata中的实际数据集、许可及原始boolean事实，两个OSM rawAccessibility字段均null，不伪装为OSM标签。仅展示Token可见且符合部署数据源/许可ID白名单的数据；许可链接仅HTTP/HTTPS且无userinfo，名称/署名均纯文本。冲突或缺失事实保留unknown，设施可进入不推导沿途可通行。不同来源记录保留独立来源身份，不静默覆盖矛盾事实。
+
+每个来源独立经过C持久预算和缓存，缓存隔离Token可见范围、数据源/许可选择和区域配置；合并后仍最多100条并公平交错两源。单一供应商失败时可返回其他成功来源，同时sources明确unavailable且truncated=true；全部可用来源失败返回真实错误，不返回伪空列表。未配置补充源标记not_configured；配置、区域版本、覆盖和持久化错误不得伪装成部分来源故障。
 
 ### 4.5 `GET /api/passages`
 
