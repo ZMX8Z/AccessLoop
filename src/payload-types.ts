@@ -68,6 +68,20 @@ export interface Config {
   blocks: {};
   collections: {
     admins: Admin;
+    regions: Region;
+    'preset-passages': PresetPassage;
+    'anonymous-sessions': AnonymousSession;
+    'session-contexts': SessionContext;
+    'route-snapshots': RouteSnapshot;
+    'service-cache': ServiceCache;
+    'route-cache': RouteCache;
+    'provider-usage': ProviderUsage;
+    'provider-blocks': ProviderBlock;
+    'provider-events': ProviderEvent;
+    'idempotency-records': IdempotencyRecord;
+    'hazard-reports': HazardReport;
+    'personal-avoidances': PersonalAvoidance;
+    'report-events': ReportEvent;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -76,6 +90,20 @@ export interface Config {
   collectionsJoins: {};
   collectionsSelect: {
     admins: AdminsSelect<false> | AdminsSelect<true>;
+    regions: RegionsSelect<false> | RegionsSelect<true>;
+    'preset-passages': PresetPassagesSelect<false> | PresetPassagesSelect<true>;
+    'anonymous-sessions': AnonymousSessionsSelect<false> | AnonymousSessionsSelect<true>;
+    'session-contexts': SessionContextsSelect<false> | SessionContextsSelect<true>;
+    'route-snapshots': RouteSnapshotsSelect<false> | RouteSnapshotsSelect<true>;
+    'service-cache': ServiceCacheSelect<false> | ServiceCacheSelect<true>;
+    'route-cache': RouteCacheSelect<false> | RouteCacheSelect<true>;
+    'provider-usage': ProviderUsageSelect<false> | ProviderUsageSelect<true>;
+    'provider-blocks': ProviderBlocksSelect<false> | ProviderBlocksSelect<true>;
+    'provider-events': ProviderEventsSelect<false> | ProviderEventsSelect<true>;
+    'idempotency-records': IdempotencyRecordsSelect<false> | IdempotencyRecordsSelect<true>;
+    'hazard-reports': HazardReportsSelect<false> | HazardReportsSelect<true>;
+    'personal-avoidances': PersonalAvoidancesSelect<false> | PersonalAvoidancesSelect<true>;
+    'report-events': ReportEventsSelect<false> | ReportEventsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -145,6 +173,330 @@ export interface Admin {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "regions".
+ */
+export interface Region {
+  id: string;
+  name: string;
+  bbox:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  timezone: string;
+  isDemo: boolean;
+  hazardVersion: number;
+  configVersion: number;
+  personalValiditySec: number;
+  publicValiditySec: number;
+  avoidanceBufferM: number;
+  routing:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  seedSource:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  seedFingerprint: string;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "preset-passages".
+ */
+export interface PresetPassage {
+  id: string;
+  regionId: string;
+  passageVersion: number;
+  name: string;
+  geometry:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "anonymous-sessions".
+ */
+export interface AnonymousSession {
+  id: string;
+  ownerSessionHash: string;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "session-contexts".
+ */
+export interface SessionContext {
+  id: string;
+  regionId: string;
+  ownerSessionHash: string;
+  personalVersion: number;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "route-snapshots".
+ */
+export interface RouteSnapshot {
+  id: string;
+  ownerSessionHash: string;
+  regionId: string;
+  geometry:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  expiresAt: string;
+  context?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "service-cache".
+ */
+export interface ServiceCache {
+  id: string;
+  result:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  expiresAt: string;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "route-cache".
+ */
+export interface RouteCache {
+  id: string;
+  regionId: string;
+  scopeKey: string;
+  requestHash: string;
+  hazardVersion: number;
+  personalVersion: number;
+  activeDigest: string;
+  result:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  expiresAt: string;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "provider-usage".
+ */
+export interface ProviderUsage {
+  id: string;
+  keyFingerprint: string;
+  service: 'ors_directions' | 'vision' | 'geocoding' | 'poi';
+  reservedAt: string;
+  reservationExpiresAt?: string | null;
+  startedAt?: string | null;
+  outcome: 'reserved' | 'started' | 'success' | 'error';
+  finishedAt?: string | null;
+  errorCode?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "provider-blocks".
+ */
+export interface ProviderBlock {
+  id: string;
+  keyFingerprint: string;
+  service: 'ors_directions' | 'vision' | 'geocoding' | 'poi';
+  blockedUntil: string;
+  reason?: ('rate' | 'quota') | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "provider-events".
+ */
+export interface ProviderEvent {
+  id: string;
+  service: 'ors_directions' | 'vision' | 'geocoding' | 'poi';
+  kind: 'wait' | 'cache_hit' | 'call' | 'error';
+  category?: string | null;
+  occurredAt: string;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "idempotency-records".
+ */
+export interface IdempotencyRecord {
+  id: string;
+  requestFingerprint: string;
+  result:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  expiresAt: string;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "hazard-reports".
+ */
+export interface HazardReport {
+  id: string;
+  regionId: string;
+  ownerSessionHash: string;
+  status: 'pending' | 'ai_assessed' | 'verified' | 'resolved' | 'rejected';
+  rowVersion: number;
+  publicSnapshot?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "personal-avoidances".
+ */
+export interface PersonalAvoidance {
+  id: string;
+  reportId: string;
+  regionId: string;
+  ownerSessionHash: string;
+  active: boolean;
+  confirmedPath:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  avoidGeometry:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  decisionSource: 'ai_user_confirmed' | 'user_manual';
+  observedAt: string;
+  confirmedAt: string;
+  validUntil: string;
+  confirmationReportVersion: number;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "report-events".
+ */
+export interface ReportEvent {
+  id: string;
+  reportId: string;
+  actorId: string;
+  actorRole: string;
+  action: string;
+  before:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  after:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  contextVersions:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  reason: string;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
 export interface PayloadKv {
@@ -166,10 +518,67 @@ export interface PayloadKv {
  */
 export interface PayloadLockedDocument {
   id: number;
-  document?: {
-    relationTo: 'admins';
-    value: number | Admin;
-  } | null;
+  document?:
+    | ({
+        relationTo: 'admins';
+        value: number | Admin;
+      } | null)
+    | ({
+        relationTo: 'regions';
+        value: string | Region;
+      } | null)
+    | ({
+        relationTo: 'preset-passages';
+        value: string | PresetPassage;
+      } | null)
+    | ({
+        relationTo: 'anonymous-sessions';
+        value: string | AnonymousSession;
+      } | null)
+    | ({
+        relationTo: 'session-contexts';
+        value: string | SessionContext;
+      } | null)
+    | ({
+        relationTo: 'route-snapshots';
+        value: string | RouteSnapshot;
+      } | null)
+    | ({
+        relationTo: 'service-cache';
+        value: string | ServiceCache;
+      } | null)
+    | ({
+        relationTo: 'route-cache';
+        value: string | RouteCache;
+      } | null)
+    | ({
+        relationTo: 'provider-usage';
+        value: string | ProviderUsage;
+      } | null)
+    | ({
+        relationTo: 'provider-blocks';
+        value: string | ProviderBlock;
+      } | null)
+    | ({
+        relationTo: 'provider-events';
+        value: string | ProviderEvent;
+      } | null)
+    | ({
+        relationTo: 'idempotency-records';
+        value: string | IdempotencyRecord;
+      } | null)
+    | ({
+        relationTo: 'hazard-reports';
+        value: string | HazardReport;
+      } | null)
+    | ({
+        relationTo: 'personal-avoidances';
+        value: string | PersonalAvoidance;
+      } | null)
+    | ({
+        relationTo: 'report-events';
+        value: string | ReportEvent;
+      } | null);
   globalSlug?: string | null;
   user: {
     relationTo: 'admins';
@@ -236,6 +645,210 @@ export interface AdminsSelect<T extends boolean = true> {
         createdAt?: T;
         expiresAt?: T;
       };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "regions_select".
+ */
+export interface RegionsSelect<T extends boolean = true> {
+  id?: T;
+  name?: T;
+  bbox?: T;
+  timezone?: T;
+  isDemo?: T;
+  hazardVersion?: T;
+  configVersion?: T;
+  personalValiditySec?: T;
+  publicValiditySec?: T;
+  avoidanceBufferM?: T;
+  routing?: T;
+  seedSource?: T;
+  seedFingerprint?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "preset-passages_select".
+ */
+export interface PresetPassagesSelect<T extends boolean = true> {
+  id?: T;
+  regionId?: T;
+  passageVersion?: T;
+  name?: T;
+  geometry?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "anonymous-sessions_select".
+ */
+export interface AnonymousSessionsSelect<T extends boolean = true> {
+  id?: T;
+  ownerSessionHash?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "session-contexts_select".
+ */
+export interface SessionContextsSelect<T extends boolean = true> {
+  id?: T;
+  regionId?: T;
+  ownerSessionHash?: T;
+  personalVersion?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "route-snapshots_select".
+ */
+export interface RouteSnapshotsSelect<T extends boolean = true> {
+  id?: T;
+  ownerSessionHash?: T;
+  regionId?: T;
+  geometry?: T;
+  expiresAt?: T;
+  context?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "service-cache_select".
+ */
+export interface ServiceCacheSelect<T extends boolean = true> {
+  id?: T;
+  result?: T;
+  expiresAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "route-cache_select".
+ */
+export interface RouteCacheSelect<T extends boolean = true> {
+  id?: T;
+  regionId?: T;
+  scopeKey?: T;
+  requestHash?: T;
+  hazardVersion?: T;
+  personalVersion?: T;
+  activeDigest?: T;
+  result?: T;
+  expiresAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "provider-usage_select".
+ */
+export interface ProviderUsageSelect<T extends boolean = true> {
+  id?: T;
+  keyFingerprint?: T;
+  service?: T;
+  reservedAt?: T;
+  reservationExpiresAt?: T;
+  startedAt?: T;
+  outcome?: T;
+  finishedAt?: T;
+  errorCode?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "provider-blocks_select".
+ */
+export interface ProviderBlocksSelect<T extends boolean = true> {
+  id?: T;
+  keyFingerprint?: T;
+  service?: T;
+  blockedUntil?: T;
+  reason?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "provider-events_select".
+ */
+export interface ProviderEventsSelect<T extends boolean = true> {
+  id?: T;
+  service?: T;
+  kind?: T;
+  category?: T;
+  occurredAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "idempotency-records_select".
+ */
+export interface IdempotencyRecordsSelect<T extends boolean = true> {
+  id?: T;
+  requestFingerprint?: T;
+  result?: T;
+  expiresAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "hazard-reports_select".
+ */
+export interface HazardReportsSelect<T extends boolean = true> {
+  id?: T;
+  regionId?: T;
+  ownerSessionHash?: T;
+  status?: T;
+  rowVersion?: T;
+  publicSnapshot?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "personal-avoidances_select".
+ */
+export interface PersonalAvoidancesSelect<T extends boolean = true> {
+  id?: T;
+  reportId?: T;
+  regionId?: T;
+  ownerSessionHash?: T;
+  active?: T;
+  confirmedPath?: T;
+  avoidGeometry?: T;
+  decisionSource?: T;
+  observedAt?: T;
+  confirmedAt?: T;
+  validUntil?: T;
+  confirmationReportVersion?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "report-events_select".
+ */
+export interface ReportEventsSelect<T extends boolean = true> {
+  id?: T;
+  reportId?: T;
+  actorId?: T;
+  actorRole?: T;
+  action?: T;
+  before?: T;
+  after?: T;
+  contextVersions?: T;
+  reason?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
