@@ -26,3 +26,14 @@ PR：[#11](https://github.com/ZMX8Z/AccessLoop/pull/11)，已创建且目标为 
 - headCommit（产品代码及最终测试所对应的提交）：`a07cb471c5f69eaef751f344be139786723d207e`。后续提交只更新交接记录，不修改产品代码。
 - 原功能提交：`050e5f14cecb7c301f3858e1f4613ab1cdbbe362`。
 - 最后同步 dev 仅新增 D 的校园资料、文档和 5 项测试，无运行时代码变更；重新执行测试 116 项（113 通过、3 跳过），新测试 ESLint 通过，之前同内容运行时代码的构建证据仍适用。
+
+
+## D 协助修复后的阶段复验（2026-10-17）
+
+- baseDevCommit：`9997880921d65739d9efd3bfc3bd507385e57d58`；codeEvidenceCommit/headCommit：`a83ddf5b2fad948bf1b837666ad2f224e373c6cd`。后续交接提交只改文档，deliveryHead 由 PR #11 固定。
+- `pnpm check` exit0：ESLint、Next 类型生成及 TypeScript 通过；147 项测试中144通过、0失败、3项默认集成跳过。
+- `pnpm build` exit0，静态页6/6、/live和既有动态入口齐全；Webpack显示 compiled with warnings，未声称零警告。
+- 新增10项修复回归：源HTML生成一项、跨路线两项、Schema三项、上下文单调一项、真实规划处理器三项。相关失败均先复现再修复。
+- 独立 Standards 复核最终15/15定向测试通过，并独立复测延迟region与旧plan交错；Spec复核原四项通过，配置竞态追加由Standards复核。没有剩余A0合入阻塞。
+- 360×800实际浏览器：Route → Report → sample → Confirm，宽度360无溢出；可滚动至提交，填写备注/位置后保存成功。截图见[手机修复](screenshots/pr-11-mobile-fixed.png)。仅证明明确标识的本地Design Demo流程。
+- 阶段判定：A0可合入；真实P0、P1与整包仍未通过。后续集成SHA与D统一回归见D集成记录。

@@ -51,7 +51,7 @@
 - 位置支持地图及键盘可用的经纬度表单。收到 preview 只展示范围；明确 consent 由 B 负责。
 - `MapView` 可单独作为位置、路线和预览视图；GeoJSON 统一 `[longitude, latitude]`。
 
-`src/features/routing/client/models.ts` 是当前最小共享骨架缺少响应 Schema 时的客户端运行时校验，字段取自 authority，不修改 HTTP 契约。C/D 发布正式响应 Schema 后应归并到共享入口，避免长期两套执行定义。
+`src/features/routing/client/models.ts` 已直接复用 D 正式发布的共享响应 Schema。C 尚未发布完整报告响应 Schema，仅保留最小报告图层投影；后续随 C 正式实现归并，不修改 HTTP 契约。
 
 ## 验证与人工点击
 
@@ -66,3 +66,16 @@
 - 地图是本地 SVG 示意图，地点、节点、距离及照片样例不代表实测；不能用于真实导航。
 - `/live` 的真实搜索/规划、个人绕行和公共管理双会话同步尚未与当前 C/D 服务验收。最新 dev 已包含会话和路由后端，不再沿用旧 ZIP 的“仅 health 接口”判断。
 - 独立验收、D 合并和部署尚未完成；本次仅上传已完成的阶段成果。
+
+
+## D 协助修复与复验（2026-10-17）
+
+用户授权 D 帮 A 修复，保留原固定分支和 PR #11 历史。同步 baseDevCommit=`9997880921d65739d9efd3bfc3bd507385e57d58`，codeEvidenceCommit=`a83ddf5b2fad948bf1b837666ad2f224e373c6cd`；交付 head 由 PR 元数据固定。
+
+- 生成器移除根元素固定宽高与纵向裁切。360×800 浏览器实际从 Route → Report → 样例图 → Confirm，scrollWidth=360、scrollY=632.5、提交按钮 top=609.8；填写字段并提交后显示 Demo Report Saved。见[修复截图](../acceptance/screenshots/pr-11-mobile-fixed.png)。这是本地 Design Demo 保存。
+- PassagePicker 只复用当前 routeRef 的合法整数索引；换路线重置，发出前检查当前点数。
+- D 响应校验直接引用共享 Schema，修复版本0、空几何、时区偏移时间三项漂移。
+- poll/plan 共用上下文发布屏障；观察到变化立即取消在途规划；区域参数与相同配置版本的上下文一起发布。自然到期产生的新有效集仍可推进。
+- 回归直接执行实际组件处理器；迟到规划、配置参数不匹配和等待区域期间旧规划三种交错均先失败后通过。独立 Standards/Spec 复核通过；固定提交的完整检查见验收记录。
+
+此修复不改变 A0 阶段范围。真实报告、个人绕行、公共管理与双会话、Zenith 和 P0/P1 总验收仍待后续接线。
