@@ -1,44 +1,41 @@
-# D 技术验收：统一初始化骨架
+# D 技术验收：服务基础阶段（P0/P1）
 
-日期：2026-10-17。只验本次初始化阶段；完整 P0/P1 仍待开发。
+日期：2026-10-17。固定分支：`codex/d-backend-routing`。
 
 | 字段 | 值 |
 | --- | --- |
-| branch | `codex/d-backend-routing` |
-| baseDevCommit | `9a514638d74b88e384364c75b0bca87a6e219492` |
-| headCommit / evidenceCommit | `9807ead8f95edfc566673898403d95130915c529` |
-| PR / integratedDevCommit | [#1](https://github.com/ZMX8Z/AccessLoop/pull/1) / `912997dee420e0d2738b56aa0fb58d8965d9f894` |
-| 运行环境 | macOS，Node 22.14.0，pnpm 10.20.0，隔离 PostgreSQL 17.6 |
+| baseDevCommit | `1ad24d707370a80fb0dc11da20b7e55be6d310c7` |
+| headCommit / codeEvidenceCommit | `11b70ec667b09dee261d25f1889a9876ab3395cc` |
+| stage | D地理/路由/预算/搜索/摘要/部署准备基础；非完整P0/P1 |
+| PR / deliveryHead / integratedDevCommit | 待发布后追加 |
+| runtime | Node22.14.0 / pnpm10.20.0 / 本地PG17.6 |
 
-## 实际检查
+## 执行结果
 
-| 命令或场景 | 结果 | 证据与边界 |
+| 命令/场景 | 结果 | 证据范围 |
 | --- | --- | --- |
-| `pnpm install --frozen-lockfile` | 通过 | lockfile 无需更新，依赖已安装 |
-| `pnpm check` | 通过 | ESLint、Next 路由类型生成、TypeScript、22/22 测试，exit 0 |
-| `pnpm build` | 通过 | 无 `.env.local` 和外部凭据，Webpack exit 0；生成公众静态页、后台、CMS 和 health 动态入口。构建器提示 compiled with warnings，未给出具体警告正文 |
-| `pnpm start` 缺少配置 | 通过 | 实际执行 prestart，按名称报告缺失项并拒绝启动；不是模块导入异常 |
-| 构建后的生产进程 | 通过 | `/`、`/api/health`、实际 `/admin/login` HTML 均 200；使用隔离数据库和仅用于门禁的 OSS 占位环境，未调用 OSS |
-| `pnpm db:migrate` 与 `db:migrate:status` | 通过 | 两个独立空测试库执行初始迁移成功，首库显示已应用；未改现有数据库服务 |
-| `pnpm admin:bootstrap` 首次/重复 | 通过 | 第二个空库首次 exit 0，已存在账号时 exit 1；命令正常结束 |
-| 原生登录与 `GET /cms-api/admins/me` | 通过 | 返回启用的 operator，设置 Payload 会话 Cookie，`me` 正确返回本人 |
-| 真实 `/admin` 与公众页面 | 通过 | 已登录后台 HTML 和公众 HTML 200；未将此视为地图/报告功能完成 |
-| 空管理员库的匿名注册 | 通过 | 普通创建与 `/admins/first-register` 均 403，客户端伪造 bootstrap context 无效 |
-| 写请求来源回归 | 通过 | 修复前真实已登录 logout 缺 Origin+same-site 返回 200；修复后缺失或不同 Origin 均 403，原会话仍可读取 `me` |
-| 邮件密码恢复 | 按范围关闭 | `forgot-password` 明确 503，不声称邮件能力已完成 |
-| 请求标识与缓存 | 通过 | health JSON/request header 标识相同且每次唯一；CMS 响应有 request ID 与 private,no-store |
-| 独立只读审查 | 通过 | 修复 Origin 和明确邮件恢复限制后复核无新增实质问题 |
-| `git diff --cached --check` | 通过 | 生成迁移只做空白规范化，并验证所有非空白内容不变 |
+| `pnpm check` | 通过，exit0 | ESLint、Next路由类型、TS、93/93测试 |
+| `pnpm build` | 通过，exit0 | 单应用生产Webpack，D六接口/admin/cms-api/health |
+| 地理19项 | 通过（合成数据） | 缓冲、洞、自交、顶点/面积/障碍上限、端点/吸附/相交、配置冲突 |
+| ORS/Pelias适配14项 | 通过（fetch桩） | 固定域、限制与避让、来源/bbox、数量、稳定ID及错误映射 |
+| 预算/路由必要19项独立复核 | 通过（仓储/时钟桩） | 持久预留边界、有限重试、缓存/个人隔离、自然过期、两轮stale、去重填缓存空窗、共同deadline、等待者独立超时、迟到统计不得新发请求 |
+| 实际挂载处理器 | 通过（未装仓储时） | 503安全错误包络、fresh requestId、private/no-store；health保持200；405可控 |
+| 搜索/地点/usage | 通过（仓储/供应商桩） | 空结果与失败、区域/数量、配置变化失效、unknown标签、真实事件聚合语义 |
+| `bash -n scripts/backup-restore.sh` | 通过 | 单独脚本语法及10项部署脚本用例 |
+| 隔离本地PG备份恢复 | 通过（真实PG） | [JSON](../deployment/local-recovery-evidence.json)；迁移8表、备份、重启、空库恢复及拒绝非空覆盖；合成sentinel不等于业务记录 |
+| 用户本地配置探针 | 部分通过/阻塞 | ORS/GLM仅TLS通过；先前模板DB连接失败，现按用户授权配置专用本机PG；OSS缺失；Vision待同步 |
+| 真实ORS/Geocoding/GLM、OSS、Zenith | 未验证/外部条件阻塞 | 未绕过C持久预算直接调用；无真实部署/线上二维码 |
+| A/B/C集成与管理正式挂载 | 未通过（依赖未交付） | 当前远端无对应分支/可合入PR；未声称四包已合入 |
 
-测试使用的随机数据库/管理员秘密仅位于忽略的临时本地环境中，未提交、未写入本记录。
+## 独立审查
 
-## 阶段结果
+只读reviewer依据authority及当前工作树检查，定位的四类实质边界已各自RED→GREEN修复。最终19项必要回归通过并同意合入“D服务基础阶段”；不覆盖真实数据库事务、供应商权限、线上流程或人工验收。
 
-- 本地初始化骨架：通过。
-- 共享远端交付：通过 PR #1 合入 `dev`，集成提交 `912997dee420e0d2738b56aa0fb58d8965d9f894` 上再次运行 `pnpm check`，22 项测试及静态检查通过。已核对集成提交与证据提交的运行代码一致，构建与数据库证据复用。
-- D0 的 Zenith 探针：未完成；无真实平台模板或部署连接验证。
-- P0：待交付；当前不具备实时 AI 与个人绕行闭环。
-- P1：待交付；当前不具备真实搜索和公共报告管理闭环。
-- 全包/人工验收：未执行。
+## 阶段判定
 
-本记录的 head 固定代码提交；随后仅增加交接及验收说明的提交可引用这些证据。若后续改动运行代码、依赖或迁移，须对受影响项重新验证。
+- 本阶段D独立服务/部署准备：通过。
+- P0：外部条件/跨包依赖阻塞，未完成真实个人绕行闭环。
+- P1：外部条件/跨包依赖阻塞，未完成真实搜索及公共管理闭环。
+- 整包/全项目/人工验收：未完成。
+
+运行代码、依赖、迁移变化须复验受影响项；后续纯执行记录提交可复用本次代码证据。骨架历史证据见git历史中的本文件与PR#1；本次不重复真实外部调用。
