@@ -21,8 +21,20 @@ export function createLeafletMap(L: typeof Leaflet, container: HTMLElement, sett
   let boundsKey = '';
   let renderKey = '';
   let removed = false;
-  tiles.on('tileerror', () => onTileState(true));
-  tiles.on('tileload', () => onTileState(false));
+  const failedTiles = new Set<HTMLElement>();
+  tiles.on('tileerror', (event: Leaflet.TileErrorEvent) => {
+    if (removed) return;
+    failedTiles.add(event.tile);
+    onTileState(true);
+  });
+  const tileRecoveredOrUnloaded = (event: Leaflet.TileEvent) => {
+    if (removed) return;
+    failedTiles.delete(event.tile);
+    // A neighboring tile succeeding does not repair a different missing tile.
+    onTileState(failedTiles.size > 0);
+  };
+  tiles.on('tileload', tileRecoveredOrUnloaded);
+  tiles.on('tileunload', tileRecoveredOrUnloaded);
   tiles.addTo(map);
   const text = (value: string) => {
     const element = container.ownerDocument.createElement('span');
@@ -115,6 +127,7 @@ export function createLeafletMap(L: typeof Leaflet, container: HTMLElement, sett
       removed = true;
       observer?.disconnect();
       tiles.off();
+      failedTiles.clear();
       map.off();
       map.remove();
       current = null;

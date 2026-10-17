@@ -17,16 +17,18 @@ function list(raw: string | undefined): string[] {
 export function configuredFacilities(repository: RoutingRepository, environment: Readonly<Record<string, string | undefined>>, policy: {minuteLimit: number; dayLimit: number}) {
   const primary = new PlacesService(repository, createPlacesAdapter(environment), { policy });
   const primaryName = environment.POI_PROVIDER?.trim() === 'heigit' ? 'heigit' : 'overpass';
-  let cloud: PlacesService | undefined;
   const configured = !!environment.ACCESSIBILITY_CLOUD_APP_TOKEN?.trim() && !!environment.ACCESSIBILITY_CLOUD_LICENSE_IDS?.trim()
     && environment.ACCESSIBILITY_CLOUD_LICENSE_IDS.trim() !== '[]';
-  // Lazy validation keeps an optional source's configuration failure out of routing/search initialization.
-  const supplement = configured ? { getPlaces: async (bbox: Parameters<PlacesService['getPlaces']>[0]) => {
-    cloud ??= new PlacesService(repository, createAccessibilityCloudAdapter({
-      appToken: environment.ACCESSIBILITY_CLOUD_APP_TOKEN!.trim(),
-      sourceIds: list(environment.ACCESSIBILITY_CLOUD_SOURCE_IDS), licenseIds: list(environment.ACCESSIBILITY_CLOUD_LICENSE_IDS),
-    }), { policy });
-    return cloud.getPlaces(bbox);
-  } } : null;
-  return new SupplementedPlacesService(primary, primaryName, supplement);
+  let combined: SupplementedPlacesService | undefined;
+  // Validate on the places request, before either provider runs. Other services may initialize independently.
+  return { getPlaces: async (bbox: Parameters<PlacesService['getPlaces']>[0]) => {
+    if (!combined) {
+      const cloud = configured ? new PlacesService(repository, createAccessibilityCloudAdapter({
+        appToken: environment.ACCESSIBILITY_CLOUD_APP_TOKEN!.trim(),
+        sourceIds: list(environment.ACCESSIBILITY_CLOUD_SOURCE_IDS), licenseIds: list(environment.ACCESSIBILITY_CLOUD_LICENSE_IDS),
+      }), { policy }) : null;
+      combined = new SupplementedPlacesService(primary, primaryName, cloud);
+    }
+    return combined.getPlaces(bbox);
+  } };
 }

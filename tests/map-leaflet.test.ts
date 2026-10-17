@@ -7,17 +7,18 @@ import type { MapViewProps } from '../src/components/map/MapView';
 import { accessibilityLabels, inside, publicStatus } from '../src/features/routing/client/state';
 
 // The host implements only Leaflet's browser boundary; assertions exercise the real map controller.
+type TileEvent = { tile: object };
 type Handler = (event: { latlng: { lat:number; lng:number } }) => void;
 type Layer = { kind:string; value:unknown; options:Record<string, unknown>; tooltip?:{textContent:string}; handlers:Record<string,Handler>; addTo:(target:unknown)=>Layer; bindTooltip:(text:{textContent:string})=>Layer; on:(name:string, handler:Handler)=>Layer };
 function host() {
   const layers:Layer[]=[];
   const handlers:Record<string, Handler>={};
-  const tileHandlers:Record<string,()=>void>={};
+  const tileHandlers:Record<string,(event:TileEvent)=>void>={};
   const bounds:unknown[]=[];
   let cleared=0, removed=0, off=0, tileOff=0, disconnected=0, resized=0;
   const map={on:(name:string,handler:Handler)=>{handlers[name]=handler;},off:()=>{off++;},fitBounds:(value:unknown)=>{bounds.push(value);},remove:()=>{removed++;},invalidateSize:()=>{resized++;}};
   const group={addTo:()=>group,clearLayers:()=>{cleared++;}};
-  const tile={addTo:()=>tile,on:(name:string,handler:()=>void)=>{tileHandlers[name]=handler;return tile;},off:()=>{tileOff++;}};
+  const tile={addTo:()=>tile,on:(name:string,handler:(event:TileEvent)=>void)=>{tileHandlers[name]=handler;return tile;},off:()=>{tileOff++;}};
   const make=(kind:string,value:unknown,options:Record<string,unknown>={})=>{
     const layer:Layer={kind,value,options,handlers:{},addTo:()=>layer,bindTooltip:(text)=>{layer.tooltip=text;return layer;},on:(name,handler)=>{layer.handlers[name]=handler;return layer;}};
     layers.push(layer);return layer;
@@ -81,7 +82,7 @@ test('facility text stays DOM text and selection remains independent of map poin
 
 test('tile failures can recover without removing overlays; teardown disconnects all map resources once',()=>{
   const h=host(),states:boolean[]=[];const c=h.create(props,value=>states.push(value));
-  h.tileHandlers.tileerror();h.tileHandlers.tileload();assert.deepEqual(states,[true,false]);
+  const tile={};h.tileHandlers.tileerror({tile});h.tileHandlers.tileload({tile});assert.deepEqual(states,[true,false]);
   h.resize();assert.equal(h.counts().resized,1);c.remove();c.remove();
   assert.deepEqual(h.counts(),{cleared:1,removed:1,off:1,tileOff:1,disconnected:1,resized:1});
 });
@@ -123,4 +124,29 @@ test('stable facility markers invoke the newest callback with current facility m
   assert.equal(first.length,0);assert.equal(next[0],updated);
   c.update({...props,now:2001,places:[{...updated,name:'Renamed entrance'}]});
   assert.equal(h.counts().cleared,2,'a rendered name change refreshes the marker and tooltip');
+});
+
+
+test('a successful neighboring tile cannot hide a tile that still failed',()=>{
+  const h=host(),states:boolean[]=[];h.create(props,value=>states.push(value));
+  const failed={},neighbor={};
+  h.tileHandlers.tileerror({tile:failed});
+  h.tileHandlers.tileload({tile:neighbor});
+  assert.equal(states.at(-1),true,'the failed tile remains part of the current map');
+  h.tileHandlers.tileload({tile:failed});
+  assert.equal(states.at(-1),false,'the warning clears only when that tile recovers');
+});
+
+test('failed tiles retain the warning until every failure recovers or unloads, and removed maps ignore late events',()=>{
+  const h=host(),states:boolean[]=[];const c=h.create(props,value=>states.push(value));
+  const a={},b={},healthy={};
+  h.tileHandlers.tileerror({tile:a});h.tileHandlers.tileerror({tile:b});
+  assert.equal(typeof h.tileHandlers.tileunload,'function','map failure state follows tile lifecycle');
+  h.tileHandlers.tileunload({tile:healthy});h.tileHandlers.tileunload({tile:a});
+  assert.equal(states.at(-1),true,'one failed tile still remains');
+  h.tileHandlers.tileunload({tile:b});assert.equal(states.at(-1),false,'off-screen unloaded failures no longer affect the map');
+  h.tileHandlers.tileerror({tile:a});
+  c.remove();const count=states.length;
+  h.tileHandlers.tileerror({tile:b});h.tileHandlers.tileload({tile:a});h.tileHandlers.tileunload({tile:b});
+  assert.equal(states.length,count,'teardown detaches and invalidates late tile callbacks');
 });

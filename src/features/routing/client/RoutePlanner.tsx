@@ -53,11 +53,11 @@ export function RoutePlanner({fixture=false}:{fixture?:boolean}) {
     const initialEpoch=++layerEpoch.current;
     let lastFacilitiesReadAt=0;
     let lastFacilitiesTruncated=false;
+    let facilitiesConfigVersion:number|null=null;
     const layers=async(r:Region,expected:Context,epoch:number,signal:AbortSignal,refreshFacilities=true)=>{
-      if(refreshFacilities)lastFacilitiesReadAt=Date.now();
       const [p,ps,pub,own]=await Promise.all([refreshFacilities?service.places(r.bbox,signal):null,refreshFacilities?service.passages(signal):null,service.publicReports(signal),service.mine(signal)]);
       if(disposed||signal.aborted||epoch!==layerEpoch.current||!contextRef.current||contextKey(contextRef.current)!==contextKey(expected))return;
-      if(p){setPlaces(p.items);setFacilitySources(p.sources??[]);lastFacilitiesTruncated=p.truncated}if(ps)setPassages(ps.items);setReports(pub.items);setMine(own.items);setTruncated(lastFacilitiesTruncated||pub.truncated||own.truncated);setLayersUnavailable(false);
+      if(p){setPlaces(p.items);setFacilitySources(p.sources??[]);lastFacilitiesTruncated=p.truncated;lastFacilitiesReadAt=Date.now();facilitiesConfigVersion=r.configVersion}if(ps)setPassages(ps.items);setReports(pub.items);setMine(own.items);setTruncated(lastFacilitiesTruncated||pub.truncated||own.truncated);setLayersUnavailable(false);
     };
     let currentRegion:Region|null=null;
     const initialize=async()=>{
@@ -102,13 +102,14 @@ export function RoutePlanner({fixture=false}:{fixture?:boolean}) {
         }
         if(epoch!==layerEpoch.current||!contextCanReplace(contextRef.current,next))return;
         if(configChanged){
+          setPlaces([]);setPassages([]);setFacilitySources([]);setSelected(null);lastFacilitiesTruncated=false;
           currentRegion=replacementRegion;
           setRegion(currentRegion);setRestrictions(currentRegion.routing.defaultRestrictions);
           inputEpoch.current++;routeRequest.current.cancel();setPlanning(false);setInputChanged(true);
         }
         setContext(next);contextRef.current=next;setContextUnavailable(false);
         // Retry failed layer refreshes as well as version-triggered refreshes.
-        await layers(currentRegion,next,epoch,controller.signal,configChanged||Date.now()-lastFacilitiesReadAt>=60000);
+        await layers(currentRegion,next,epoch,controller.signal,configChanged||facilitiesConfigVersion!==currentRegion.configVersion||Date.now()-lastFacilitiesReadAt>=60000);
       }catch(cause){if(!disposed&&epoch===layerEpoch.current){setContextUnavailable(true);setLayersUnavailable(true);if(cause instanceof ApiError&&cause.code==='UNAUTHENTICATED'){resetSession();setMine([]);setRoute(null);setNotice('Session expired. Reconnect to initialize a new session.')}}}
       finally{clearTimeout(timeout);polling=false}
     },5000);
