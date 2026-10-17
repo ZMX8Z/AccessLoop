@@ -209,6 +209,25 @@ test('C0 repositories share real PostgreSQL transactions and isolate anonymous s
       await assert.rejects(payload.create({ collection: 'regions', data: { ...seed.region, id: `${runId}-blocked`, seedSource: seed.source, seedFingerprint: 'not-used' }, overrideAccess: false }))
       await assert.rejects(payload.find({ collection: 'hazard-reports', overrideAccess: false }))
     })
+    await t.test('routing projects complete publications and excludes withdrawn snapshots', async () => {
+      for (const visible of [true, false]) {
+        await payload.create({
+          collection: 'hazard-reports', overrideAccess: true,
+          data: {
+            id: `${runId}-full-public-${visible}`, regionId: runId, ownerSessionHash: ownerA, status: 'verified', rowVersion: 1,
+            publicSnapshot: {
+              status: 'verified', publicRevision: 1, publicAvoidGeometry: polygon, validUntil: later,
+              visible, location: [0.1, 0.1], category: 'obstruction', description: 'Synthetic publication projection test',
+              observedAt: now.toISOString(),
+              publicVerification: { source: 'admin_field_check', verifiedAt: now.toISOString(), validUntil: later, resolvedAt: null },
+            },
+          },
+        })
+      }
+      const snapshot = await repository.getEffectiveAvoidances({ regionId: runId, ownerSessionHash: ownerA, now })
+      assert.ok(snapshot.publicAvoidances.some((item) => item.id === `${runId}-full-public-true`))
+      assert.ok(!snapshot.publicAvoidances.some((item) => item.id === `${runId}-full-public-false`))
+    })
   } finally {
     await payload.destroy()
   }

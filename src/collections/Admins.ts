@@ -1,16 +1,16 @@
 import { APIError, type CollectionBeforeChangeHook, type CollectionConfig } from 'payload'
+import { z } from 'zod'
 
-type AdminAccount = {
-  collection?: string
-  enabled?: boolean
-  id: number | string
-  role?: 'operator' | 'report_admin'
-}
+const EnabledAccountSchema = z.object({
+  collection: z.string().optional(),
+  enabled: z.literal(true),
+  id: z.union([z.string().min(1), z.number().int().positive()]),
+  role: z.enum(['operator', 'report_admin']),
+})
+type AdminAccount = z.infer<typeof EnabledAccountSchema>
 
 function isEnabledAccount(user: unknown): user is AdminAccount {
-  if (!user || typeof user !== 'object') return false
-  const account = user as AdminAccount
-  return account.enabled === true && (account.role === 'operator' || account.role === 'report_admin')
+  return EnabledAccountSchema.safeParse(user).success
 }
 
 export function isEnabledAdmin(user: unknown): user is AdminAccount {

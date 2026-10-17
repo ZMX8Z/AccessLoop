@@ -1,5 +1,6 @@
 import { postgresAdapter } from '@payloadcms/db-postgres'
 import { en } from '@payloadcms/translations/languages/en'
+import { s3Storage } from '@payloadcms/storage-s3'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { buildConfig } from 'payload'
@@ -7,6 +8,8 @@ import sharp from 'sharp'
 
 import { Admins } from './collections/Admins'
 import { BusinessCollections } from './collections/business'
+import { Photos } from './collections/Photos'
+import { getOssStorageOptions, PHOTO_STORAGE_PREFIX } from './server/photos/oss'
 
 const dirname = path.dirname(fileURLToPath(import.meta.url))
 const configuredBaseURL = process.env.APP_BASE_URL?.trim()
@@ -31,12 +34,28 @@ export function assertPayloadEnvironment(): void {
   }
 }
 
+const hasStorage = ['OSS_ENDPOINT', 'OSS_BUCKET', 'OSS_REGION', 'OSS_ACCESS_KEY_ID', 'OSS_ACCESS_KEY_SECRET']
+  .every((name) => process.env[name]?.trim())
+const storagePlugin = s3Storage(hasStorage ? {
+  ...getOssStorageOptions(process.env), alwaysInsertFields: true,
+} : {
+  enabled: false, alwaysInsertFields: true,
+  bucket: 'unconfigured-private-storage',
+  config: { region: 'unconfigured', forcePathStyle: false },
+  collections: { photos: { prefix: PHOTO_STORAGE_PREFIX } },
+  disableLocalStorage: true, clientUploads: false,
+})
+
 export default buildConfig({
   admin: {
     user: 'admins',
     importMap: { baseDir: dirname },
+    components: {
+      beforeDashboard: ['/components/admin/server#AccessLoopDashboard'],
+    },
   },
-  collections: [Admins, ...BusinessCollections],
+  collections: [Admins, ...BusinessCollections, Photos],
+  plugins: [storagePlugin],
   cors: appOrigin ? [appOrigin] : [],
   csrf: appOrigin ? [appOrigin] : [],
   db: postgresAdapter({

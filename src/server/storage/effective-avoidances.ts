@@ -1,5 +1,6 @@
 import type { Payload, PayloadRequest } from 'payload'
 import type { HazardReport } from '@/payload-types'
+import { z } from 'zod'
 
 import {
   PersonalAvoidanceSchema, PublicAvoidanceSchema, PublicSnapshotSchema,
@@ -9,6 +10,8 @@ import {
 import { requireRegion } from './regions'
 import { getPersonalVersion, requireSession } from './sessions'
 import { withTransaction } from './transaction'
+
+const RoutingPublicationSchema = PublicSnapshotSchema.strip().extend({ visible: z.boolean().optional() })
 
 export type EffectiveAvoidanceSnapshot = {
   region: RegionRecord
@@ -41,8 +44,8 @@ export async function readEffectiveAvoidances(
     })
     const publicAvoidances: EffectiveAvoidanceSnapshot['publicAvoidances'] = []
     for (const report of publicReports.docs) {
-      const snapshot = PublicSnapshotSchema.parse(report.publicSnapshot)
-      if (snapshot.status === 'verified' && Date.parse(snapshot.validUntil) > Date.parse(evaluatedAt)) {
+      const snapshot = RoutingPublicationSchema.parse(report.publicSnapshot)
+      if (snapshot.visible !== false && snapshot.status === 'verified' && Date.parse(snapshot.validUntil) > Date.parse(evaluatedAt)) {
         publicAvoidances.push({ ...PublicAvoidanceSchema.parse({
           id: report.id, publicRevision: snapshot.publicRevision,
           publicAvoidGeometry: snapshot.publicAvoidGeometry, validUntil: snapshot.validUntil,

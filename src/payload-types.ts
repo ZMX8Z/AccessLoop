@@ -79,9 +79,13 @@ export interface Config {
     'provider-blocks': ProviderBlock;
     'provider-events': ProviderEvent;
     'idempotency-records': IdempotencyRecord;
+    'photo-upload-operations': PhotoUploadOperation;
+    'external-operations': ExternalOperation;
+    'ai-analyses': AiAnalysis;
     'hazard-reports': HazardReport;
     'personal-avoidances': PersonalAvoidance;
     'report-events': ReportEvent;
+    photos: Photo;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -101,9 +105,13 @@ export interface Config {
     'provider-blocks': ProviderBlocksSelect<false> | ProviderBlocksSelect<true>;
     'provider-events': ProviderEventsSelect<false> | ProviderEventsSelect<true>;
     'idempotency-records': IdempotencyRecordsSelect<false> | IdempotencyRecordsSelect<true>;
+    'photo-upload-operations': PhotoUploadOperationsSelect<false> | PhotoUploadOperationsSelect<true>;
+    'external-operations': ExternalOperationsSelect<false> | ExternalOperationsSelect<true>;
+    'ai-analyses': AiAnalysesSelect<false> | AiAnalysesSelect<true>;
     'hazard-reports': HazardReportsSelect<false> | HazardReportsSelect<true>;
     'personal-avoidances': PersonalAvoidancesSelect<false> | PersonalAvoidancesSelect<true>;
     'report-events': ReportEventsSelect<false> | ReportEventsSelect<true>;
+    photos: PhotosSelect<false> | PhotosSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -398,6 +406,82 @@ export interface IdempotencyRecord {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "photo-upload-operations".
+ */
+export interface PhotoUploadOperation {
+  id: string;
+  requestFingerprint: string;
+  photoId: string;
+  filename: string;
+  state: 'pending' | 'complete' | 'failed';
+  leaseToken: string;
+  leaseExpiresAt: string;
+  result?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "external-operations".
+ */
+export interface ExternalOperation {
+  id: string;
+  regionId: string;
+  ownerSessionHash: string;
+  requestFingerprint: string;
+  status: 'pending' | 'completed';
+  leaseToken?: string | null;
+  leaseExpiresAt?: string | null;
+  expiresAt: string;
+  result?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Read-only records. Changes use the protected AccessLoop commands.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ai-analyses".
+ */
+export interface AiAnalysis {
+  id: string;
+  regionId: string;
+  ownerSessionHash: string;
+  photoId: string;
+  imageHash: string;
+  cacheKey: string;
+  analysis:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Read-only records. Changes use the protected AccessLoop commands.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "hazard-reports".
  */
 export interface HazardReport {
@@ -406,6 +490,15 @@ export interface HazardReport {
   ownerSessionHash: string;
   status: 'pending' | 'ai_assessed' | 'verified' | 'resolved' | 'rejected';
   rowVersion: number;
+  facts?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
   publicSnapshot?:
     | {
         [k: string]: unknown;
@@ -419,6 +512,8 @@ export interface HazardReport {
   createdAt: string;
 }
 /**
+ * Read-only records. Changes use the protected AccessLoop commands.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "personal-avoidances".
  */
@@ -455,6 +550,8 @@ export interface PersonalAvoidance {
   createdAt: string;
 }
 /**
+ * Read-only records. Changes use the protected AccessLoop commands.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "report-events".
  */
@@ -494,6 +591,33 @@ export interface ReportEvent {
   reason: string;
   updatedAt: string;
   createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "photos".
+ */
+export interface Photo {
+  id: string;
+  regionId: string;
+  purpose: 'report' | 'review_evidence';
+  ownerSessionHash?: string | null;
+  ownerAdminId?: string | null;
+  imageHash: string;
+  uploadState: 'staging' | 'ready';
+  prefix?: string | null;
+  _objectKey?: string | null;
+  updatedAt: string;
+  createdAt: string;
+  url?: string | null;
+  thumbnailURL?: string | null;
+  filename?: string | null;
+  mimeType?: string | null;
+  filesize?: number | null;
+  width?: number | null;
+  height?: number | null;
+  focalX?: number | null;
+  focalY?: number | null;
+  sizes?: {};
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -568,6 +692,18 @@ export interface PayloadLockedDocument {
         value: string | IdempotencyRecord;
       } | null)
     | ({
+        relationTo: 'photo-upload-operations';
+        value: string | PhotoUploadOperation;
+      } | null)
+    | ({
+        relationTo: 'external-operations';
+        value: string | ExternalOperation;
+      } | null)
+    | ({
+        relationTo: 'ai-analyses';
+        value: string | AiAnalysis;
+      } | null)
+    | ({
         relationTo: 'hazard-reports';
         value: string | HazardReport;
       } | null)
@@ -578,6 +714,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'report-events';
         value: string | ReportEvent;
+      } | null)
+    | ({
+        relationTo: 'photos';
+        value: string | Photo;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -801,6 +941,54 @@ export interface IdempotencyRecordsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "photo-upload-operations_select".
+ */
+export interface PhotoUploadOperationsSelect<T extends boolean = true> {
+  id?: T;
+  requestFingerprint?: T;
+  photoId?: T;
+  filename?: T;
+  state?: T;
+  leaseToken?: T;
+  leaseExpiresAt?: T;
+  result?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "external-operations_select".
+ */
+export interface ExternalOperationsSelect<T extends boolean = true> {
+  id?: T;
+  regionId?: T;
+  ownerSessionHash?: T;
+  requestFingerprint?: T;
+  status?: T;
+  leaseToken?: T;
+  leaseExpiresAt?: T;
+  expiresAt?: T;
+  result?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ai-analyses_select".
+ */
+export interface AiAnalysesSelect<T extends boolean = true> {
+  id?: T;
+  regionId?: T;
+  ownerSessionHash?: T;
+  photoId?: T;
+  imageHash?: T;
+  cacheKey?: T;
+  analysis?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "hazard-reports_select".
  */
 export interface HazardReportsSelect<T extends boolean = true> {
@@ -809,6 +997,7 @@ export interface HazardReportsSelect<T extends boolean = true> {
   ownerSessionHash?: T;
   status?: T;
   rowVersion?: T;
+  facts?: T;
   publicSnapshot?: T;
   updatedAt?: T;
   createdAt?: T;
@@ -849,6 +1038,33 @@ export interface ReportEventsSelect<T extends boolean = true> {
   reason?: T;
   updatedAt?: T;
   createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "photos_select".
+ */
+export interface PhotosSelect<T extends boolean = true> {
+  id?: T;
+  regionId?: T;
+  purpose?: T;
+  ownerSessionHash?: T;
+  ownerAdminId?: T;
+  imageHash?: T;
+  uploadState?: T;
+  prefix?: T;
+  _objectKey?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  url?: T;
+  thumbnailURL?: T;
+  filename?: T;
+  mimeType?: T;
+  filesize?: T;
+  width?: T;
+  height?: T;
+  focalX?: T;
+  focalY?: T;
+  sizes?: T | {};
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

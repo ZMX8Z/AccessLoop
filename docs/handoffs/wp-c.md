@@ -1,4 +1,97 @@
-# C 交接：C0 数据与会话基础
+# C 交接：C1–C3 报告、公共核实与区域管理
+
+## 当前交付：C2/C3，2026-10-17
+
+按 Gavin“继续按 C 包文档推进 C2/C3，GLM 暂时不管，每完成一个阶段给我讲解和演示一下”执行。C2/C3 本地工程阶段通过，新增实际 Payload 后台；本轮没有请求真实 GLM。完整 C 包和项目总验收仍受真实模型、校园数据、正式前端及 Zenith 集成限制。
+
+- branch：`codex/c-backend-data-ai`。
+- baseDevCommit：`1d2cd2b9b3420a9b0c072a3b54ec258839a95b19`，交付前重新 fetch 后未变化。
+- codeEvidenceCommit / 待验收运行代码 head：`12ae37cb4e7f431b76c23765b210adff03ee3084`；后续交接记录不改变运行代码。
+- 复用 [PR #15](https://github.com/ZMX8Z/AccessLoop/pull/15)，base=dev，包含既有 C1 与新增 C2/C3，由 D 集成；不重复建 PR，不直接修改 dev。
+- 本机实际页面为 `http://localhost:3100/admin`。生产重启验证完成后已切回 3100 的 development 服务，支持编程热更新；不要另开 build 改写同一 `.next`。页面账号使用本机忽略文件 `.env.local` 的 `ADMIN_EMAIL`、`ADMIN_PASSWORD`，不把密码放入交接或聊天。
+- 技术结果和复现命令见 [C 验收](../acceptance/wp-c.md)。
+
+### C2 的接口与后台
+
+`PATCH /api/reports/:id/review` 支持 verify、correct、reject、resolve、reopen。操作者来自实际管理员会话；每次命令和幂等重放都重新检查账号启用状态。写入检查 Origin、`Idempotency-Key`、`expectedVersion`。管理事实、公共快照、受影响个人版本、审计及幂等结果在同一 Payload 事务提交。
+
+公共核实必须有独立证据、合法公共几何和有效期。用户原图、原始 AI 或个人确认不能充当独立核实。verified 纠错同样重验新证据；重开只变为 pending，不恢复旧确认或公共避让。公共 DTO 不输出原图、身份或私有证据。
+
+- 服务与事务：`src/features/hazards/server/review.ts`、`review-repository.ts`；Schema：`src/shared/contracts/review.ts`。
+- Payload 原生列表/只读详情开放报告、AI 分析、个人确认及审计，仅限当前部署区域的启用管理员。原生业务创建、修改、删除仍关闭；内部会话、照片和预算表保持隐藏。
+- 实际挂载：`src/components/admin/server.tsx`，报告详情使用 `type=ui` 字段，Dashboard 使用 beforeDashboard；`importMap.js` 已生成。自定义字符串 ID 留在集合根字段，未改变主键类型。
+- 适配 B PR #8 的 `adc42779` 展示结构，实现 `AdminHazardReview`、`AdminRegionConfig`、`AdminUsageSummary`。这些组件调用真实 API，错误保留输入，不返回假成功或自动补造证据；没有导入 B 整份未通过集成的分支。
+- 原始 AI 与人工事实分开展示；地图沿用 A 的坐标组件，当前没有街道底图。公共几何仅显式采用通道缓冲建议或输入合法 GeoJSON 后提交，不自动发布。
+
+浏览器在合成记录上实际执行 pending v3 → verified v4 → resolved v5 → pending v6，并看到六条审计。随后生产服务器重启，pending v6、公共 inactive、个人 not effective 保持。以上只是测试工作流，不是 UNSW 实地观察。
+
+### C3 的配置与摘要
+
+| 入口 | 权限与行为 |
+| --- | --- |
+| `GET/PATCH /api/admin/region` | 仅 operator；白名单配置、版本和幂等检查；通道列表完整替换，新 ID 由服务器产生，既有 ID 保持稳定 |
+| `GET /api/admin/usage-summary` | operator/report_admin；调用 D 聚合读取最近 24 小时实际事件；不返回密钥、位置或身份 |
+
+区域/通道修改复用 D 几何规则，并检查全部会话当前有效的个人确认及公共发布。破坏这些数据的空间修改返回 CONFIG_CONFLICT，不能把查不明的历史绑定当作空数据。名称、时区或演示标记修改不因旧 C0 简化记录而被错误阻塞。过期/停用历史可在边界缩小后继续读取、解除、重开和纠错，但重新启用必须符合当前区域。
+
+每次实际配置变更增加 configVersion；影响路由的边界、缓冲或通道几何修改增加 hazardVersion；通道名称/几何变化增加对应 passageVersion。审计使用 `region:<id>`，包含前后版本和操作者。配置只改名称的实际演示使 configVersion 1→2、hazardVersion 保持 3；非法边界被 409 拒绝，重新读取保留原配置。生产重启后相同版本和稳定通道仍在。
+
+### 环境、迁移和剩余验收
+
+本阶段复用 C0/C1 已有 facts、publicSnapshot、report-events 及版本列，无新增持久字段或数据库迁移。新环境仍执行已有 `pnpm db:migrate`，不要重新 seed 覆盖运营配置。
+
+可选新增服务端变量 `TRUSTED_MAINTAINER_REFERENCES` 为最多 100 项 JSON 字符串数组，例如 `[]`。运营批准的记录标识/HTTPS 入口按完整字符串匹配，不抓取 URL。缺省空名单拒绝 trusted_maintainer 证据，独立 field_observation 仍可用。D 在部署环境配置此变量；C 未改 D 所属的环境示例。现有 GLM/OSS 和稳定会话秘密不用重填。
+
+下一步由 D 在同一 dev 集成提交验收 B 正式前端、有效快照到实际路线的传播、UNSW 实测数据、部署持久化及 Zenith。真实 GLM 按用户要求暂缓，不能写成已通过。公共权威验收追踪表由 D 统一更新，本交接和 C 验收记录提供当前证据。
+
+## 历史：C1 私有上传与人工报告流程
+
+## 当前交付，2026-10-17
+
+Gavin 最新指令原文为“GLM不管了，直接推吧”。本阶段按该指令交付人工流程，不等待 GLM 恢复，也没有追加真实 GLM 请求。AI 适配和分析接口保留，但真实模型能力仍未通过；这不是完整 P0、P1 或 Zenith 验收结论。
+
+- branch：`codex/c-backend-data-ai`。
+- baseDevCommit：`1d2cd2b9b3420a9b0c072a3b54ec258839a95b19`；同步时安全快进，未重写历史。
+- codeEvidenceCommit：`efe3269e0832f96e949786ac03120dbd5ee29813`。后续文档及生成迁移的空白整理不改变已验证逻辑。
+- C0 PR #7、供应商准备 PR #13 已由 D 合入。当前阶段为 [C1 PR #15](https://github.com/ZMX8Z/AccessLoop/pull/15)，base=dev，创建时 head=`c4679a126a5536dd1d580aa8a88fbeec57f02cd7`；平台确认 OPEN、非草稿、MERGEABLE，等待 D 复核集成。后续交付链接提交不改变运行代码，最终 head 以平台为准。
+- 实际结果及命令见 [C 技术验收](../acceptance/wp-c.md)；本机开发演示为 `http://localhost:3100/c1-demo`，生产环境返回 404。
+
+### 本阶段可接线的功能
+
+| 入口 | 已实现行为 |
+| --- | --- |
+| `POST /api/uploads`、`GET /api/photos/:id` | JPEG/PNG 解码、限大小、去 EXIF、私有 OSS、同键重放、归属校验；CMS 和原生文件入口不能绕过业务读取 |
+| `POST /api/analyze` | 明确同意才调用；D 门禁、持久租约、不可变分析、按会话缓存；失败可返回 unavailable，不能冒充 completed |
+| `POST /api/reports`、`GET /api/reports`、`GET/PATCH /api/reports/:id` | 人工事实与原始 AI 分开保存；本人读取和公共发布白名单分离；写入带版本及幂等键 |
+| `POST /api/reports/:id/avoidance-preview` | 复用 D 的通道几何，返回短期签名预览；不修改个人有效集 |
+| `POST/DELETE /api/reports/:id/avoidance` | 明确确认或续期才生效；停用只影响本人；版本、确认、审计、幂等在同一事务提交 |
+| `GET /api/reports/:id/export` | 作者授权照片、事实和确认记录；公共导出仅用发布快照；文本转义、私有缓存及 CSP；可复制和打印 |
+
+照片、分析、位置、观测时间或通道等确认依据改变，会使旧确认失效；只改描述或分类保留有效绑定。过期按查询推导。公共变化和管理状态机属于 C2/C3，不能通过 C1 原生 CRUD 修改。
+
+### 给 A/B 与 D 的接线说明
+
+- 先 `POST /api/session`，保留 HttpOnly Cookie。写请求同源，带 `Idempotency-Key`；已有报告写入带 `expectedVersion`。字段只依照 [API 契约](../authority/API_CONTRACTS.md)，客户端 Schema 已从 `src/shared/contracts/index.ts` 导出。
+- 主服务：`src/server/photos/service.ts`、`src/server/photos/analysis.ts`、`src/features/hazards/server/service.ts`；HTTP 边界：`src/features/hazards/server/http.ts`。所有业务共享 Payload 数据库连接，网络请求不占业务事务。
+- B PR #8 尚未合入。本次将其 `adc42779` 的导出版式适配为 `export-html.ts`，避免 Next RSC 对 ReactDOM server 的构建限制；没有导入 B 的假成功客户端。未来 B 的 `export-template.tsx` 不与此文件重名。
+- `src/app/(payload)/admin/importMap.js` 是 Payload S3 插件生成入口，随配置提交；这不开放客户端直传。package、lockfile 和共享环境示例未由 C 改写。
+- 本地仍使用明确标识的合成区域和通道。D 的实测校园数据、B 正式报告页面、C2/C3 管理功能、同一集成提交上的 Zenith 验证都待完成。
+
+### 迁移与环境
+
+新增 `20261017_075455_c1_photos_analyses_reports`：照片、上传操作、外部分析操作、不可变分析，以及报告 facts。开发库和可丢弃测试库已升级；只有测试库做过本次增量 down/up。正式环境只执行 `pnpm db:migrate`，不要撤销数据库来部署。
+
+当前 C 目录的忽略文件 `.env.local` 保留既有 `DATABASE_URL`、`PAYLOAD_SECRET`、`SESSION_SECRET`、`APP_BASE_URL`、`REGION_ID`，并配置团队 `OSS_*` 和可选 `VISION_*`。不要提交或复制密钥到聊天。测试库由独立 `.env.c0-test` 指向，不复用正式数据库。`VISION_DAILY_BUDGET=unlimited` 保留用户选择，分钟门禁和供应商配额仍有效。
+
+OSS 配置缺失或不通时明确失败，不回退本地文件，也不返回假上传成功。GLM 只有显式同意后才调用；当前演示直接选择人工填报。真实模型探针历史保留在 [供应商记录](c1-provider-checks.md)。
+
+### Gavin 的演示入口
+
+打开项目外层的 `C0开发终端.cmd`，运行 `pnpm dev --port 3100`。访问 `/c1-demo`，依次操作：上传合成样例 → 保存人工报告 → 预览 → 勾选确认 → 启用个人避让 → 打开打印记录 → 停用。AI 按钮可跳过。页面和截图均标明合成数据，不能作为校园通行证明。
+
+浏览器已实际完成上述流程及复制导出文本。确认时截图见 [C1 演示证据](../acceptance/screenshots/c1-manual-confirmed.png)。独立只读代码审查未发现剩余高优先级问题，但这不代替正式前端联调或目标使用者测试。
+
+## 历史：C0 数据与会话基础
 
 日期：2026-10-17，Australia/Sydney。分支 `codex/c-backend-data-ai`。本次仅交付 C0 工程基础及 D 服务接线；C1、C2/C3 未计入完成。
 

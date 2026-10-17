@@ -39,7 +39,6 @@ export function getOssStorageOptions(env: unknown) {
     collections: {
       photos: {
         prefix: PHOTO_STORAGE_PREFIX,
-        disablePayloadAccessControl: false,
         signedDownloads: false,
       },
     },
