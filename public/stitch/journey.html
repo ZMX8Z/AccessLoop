@@ -1,0 +1,207 @@
+<!DOCTYPE html><html lang="en" style=""><head><title>AccessLoop · Journey</title><meta charset="utf-8"><meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"><meta content="mobile_stack" name="shell-type"><style>@layer base{html,body{width:100vw;margin:0;padding:0;}body{overscroll-behavior:none;}.pb-safe{padding-bottom:env(safe-area-inset-bottom,0px);}.pt-safe{padding-top:env(safe-area-inset-top,0px);}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style>
+
+<link rel="stylesheet" href="styles.css"><link rel="stylesheet" href="app.css"><script src="app.js" defer></script></head><body data-page="journey" class="bg-surface text-on-surface font-body-md text-body-md flex flex-col min-h-screen selection:bg-secondary-container selection:text-on-secondary-container"><header class="fixed top-0 inset-x-0 z-50 bg-surface/80 backdrop-blur-xl pt-safe shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="h-16 px-margin flex items-center justify-between"><div class="flex items-center gap-space-sm"><button aria-label="Go back" class="min-w-[44px] min-h-[44px] -ml-2 flex items-center justify-center rounded-lg text-on-surface hover:bg-surface-container transition-colors focus:outline-none focus:ring-2 focus:ring-primary"><span class="material-symbols-outlined text-[24px]">arrow_back</span></button><h1 class="font-headline-sm text-headline-sm tracking-tight text-on-surface line-clamp-1">Your Journey</h1></div><div class="flex items-center gap-space-sm"><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center shadow-sm"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><main class="flex flex-col relative w-full pt-16 pb-safe bg-surface flex-1 min-h-[calc(100vh-4rem)]"><div class="flex flex-col w-full">
+<!-- Live Map Viewport Segment (~36vh) -->
+<div class="relative w-full h-[36vh] bg-surface-container overflow-hidden select-none">
+<!-- Static Map Tile layer -->
+<div class="absolute inset-0 w-full h-full bg-cover bg-center" data-location="West Gate to Engineering Hall, University Campus, Accessible Pathway" style="background-image: url('campus.svg'); opacity: 0.85;" data-stitch-orig-opacity="0.85"></div>
+<!-- Map Ambience Vector Scrim -->
+<div class="absolute inset-0 bg-gradient-to-t from-surface via-transparent to-surface/40 pointer-events-none"></div>
+<!-- Active Route Vector Overlay (Accessible Teal Track) -->
+<svg class="absolute inset-0 w-full h-full" fill="none" preserveAspectRatio="xMidYMid meet" viewBox="0 0 360 260">
+<!-- Original Blocked Path (dashed crimson) -->
+<path d="M 50,195 Q 120,165 180,140 T 310,85" stroke="#BA1A1A" stroke-dasharray="4 4" stroke-opacity="0.65" stroke-width="3"></path>
+<!-- Active Safe Detour Arc (solid accessible emerald/teal) -->
+<path d="M 50,195 C 100,205 130,225 175,210 C 225,190 240,110 310,85" stroke="#0F766E" stroke-linecap="round" stroke-width="5"></path>
+<!-- Pulsing Detour Waypoint Glow -->
+<circle class="animate-ping" cx="175" cy="210" fill="#97F5CC" fill-opacity="0.5" r="10"></circle>
+<circle cx="175" cy="210" fill="#005C55" r="6"></circle>
+<circle cx="175" cy="210" fill="#FFFFFF" r="3"></circle>
+<!-- Blocked Barrier Icon Badge (#AL-204) -->
+<g transform="translate(170, 126)">
+<rect fill="#FFDAD6" height="28" rx="8" width="28" x="-14" y="-14"></rect>
+<path d="M -6,-6 L 6,6 M 6,-6 L -6,6" stroke="#93000A" stroke-linecap="round" stroke-width="2.5"></path>
+</g>
+</svg>
+<!-- Animated Pulsating Teal User Location Pin -->
+<div class="absolute left-[35%] top-[64%] -translate-x-1/2 -translate-y-1/2 flex items-center justify-center pointer-events-none transition-all duration-700 ease-out" id="user-location-marker">
+<div class="absolute w-11 h-11 rounded-full bg-primary/20 animate-ping"></div>
+<div class="absolute w-7 h-7 rounded-full bg-primary/40 animate-pulse"></div>
+<div class="relative w-4 h-4 rounded-full bg-primary shadow-[0_0_12px_rgba(0,92,85,0.8)] flex items-center justify-center">
+<div class="w-1.5 h-1.5 rounded-full bg-surface-container-lowest"></div>
+</div>
+</div>
+<!-- Top Live Navigation Status Chip -->
+
+<!-- Floating Map Quick Control Buttons (Min 44x44px Touch Footprint) -->
+<div class="absolute bottom-3 right-margin flex flex-col gap-space-sm z-10">
+<button aria-label="Recenter map on current location" class="w-11 h-11 rounded-full bg-surface-container-lowest shadow-md flex items-center justify-center text-on-surface hover:bg-surface-container-low active:scale-95 transition-all" id="recenter-btn">
+<span class="material-symbols-outlined text-[20px] text-primary">my_location</span>
+</button>
+<button aria-label="Toggle slope elevation cross-section" class="w-11 h-11 rounded-full bg-surface-container-lowest shadow-md flex items-center justify-center text-on-surface hover:bg-surface-container-low active:scale-95 transition-all" id="elevation-toggle-btn">
+<span class="material-symbols-outlined text-[20px] text-on-surface-variant">landscape</span>
+</button>
+</div>
+</div>
+<!-- Bottom Sheet / Journey Guidance Drawer -->
+<div class="w-full bg-surface-container-lowest rounded-t-3xl shadow-[0_-8px_30px_rgba(19,27,46,0.08)] -mt-4 relative z-20 flex flex-col">
+<!-- Drag affordance handle -->
+<div class="w-full flex justify-center pt-2.5 pb-1">
+<div class="w-10 h-1 rounded-full bg-outline-variant/60"></div>
+</div>
+<div class="px-margin pt-1 pb-4 flex flex-col pb-20">
+<!-- Title & Mission Bar -->
+<div class="flex items-center justify-between pb-3">
+<div class="flex flex-col min-w-0 pr-2">
+<div class="flex items-center gap-1.5">
+<span class="inline-flex items-center px-1.5 py-0.5 rounded bg-secondary-container text-on-secondary-container font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[13px] mr-0.5" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+              Campus route preview
+            </span>
+<span class="font-tabular-data text-label-sm text-on-surface-variant">~12 min (785m)</span>
+</div>
+<h2 class="font-headline-sm text-headline-sm text-on-surface font-bold tracking-tight truncate mt-0.5">
+            West Gate → Engineering Hall
+          </h2>
+</div>
+<!-- Pause & Alert Action Group -->
+<div class="flex items-center gap-space-xs shrink-0">
+<button aria-label="Pause Journey" class="w-11 h-11 rounded-xl bg-surface-container-low text-on-surface flex items-center justify-center hover:bg-surface-container active:scale-95 transition-all" id="pause-journey-btn">
+<span class="material-symbols-outlined text-[22px]" id="pause-icon">pause</span>
+</button>
+<button aria-label="Report Barrier" class="w-11 h-11 rounded-xl bg-error-container text-on-error-container flex items-center justify-center hover:opacity-90 active:scale-95 transition-all" id="report-issue-btn">
+<span class="material-symbols-outlined text-[20px]">report</span>
+</button>
+</div>
+</div>
+<!-- Real-Time Waypoint Node Timeline (垂直节点图) -->
+<div class="relative flex flex-col pt-2 pb-1">
+<!-- Node 1: COMPLETED / ORIGIN -->
+<div class="relative flex items-start gap-space-md pb-6 group">
+<!-- Continuous Connection Trunk Line -->
+<div class="absolute left-[13px] top-[26px] bottom-0 w-[3px] bg-primary rounded-full"></div>
+<!-- Node Indicator (Teal Checked Dot) -->
+<div class="relative z-10 w-7 h-7 rounded-full bg-primary flex items-center justify-center text-on-primary shrink-0 shadow-sm mt-0.5">
+<span class="material-symbols-outlined text-[16px] font-bold">check</span>
+</div>
+<!-- Waypoint Meta & Live Road Condition Card -->
+<div class="flex flex-col min-w-0 flex-1">
+<div class="flex items-baseline justify-between gap-2">
+<p class="font-body-bold text-body-bold text-on-surface">West Gate Plaza (Start)</p>
+<span class="font-label-sm text-label-sm text-on-surface-variant shrink-0 font-medium">Start point</span>
+</div>
+<!-- Road Condition Badge -->
+<div class="mt-1.5 p-2 rounded-lg bg-surface-container-low flex items-start gap-2 text-on-surface-variant">
+<span class="material-symbols-outlined text-[17px] text-primary shrink-0 mt-0.5" style="font-variation-settings: 'FILL' 1;">task_alt</span>
+<p class="font-label-sm text-label-sm leading-tight text-on-surface">
+                Smooth asphalt · <span class="font-tabular-data font-semibold">0.8%</span> flat slope · Dry surface
+              </p>
+</div>
+</div>
+</div>
+<!-- Node 2: ACTIVE NEXT / CURRENT LEG -->
+<div class="relative flex items-start gap-space-md pb-6 group">
+<!-- Connecting Line (Upcoming Segment) -->
+<div class="absolute left-[13px] top-[28px] bottom-0 w-[3px] bg-surface-variant rounded-full"></div>
+<!-- Pulsating Active Teal Ring Node -->
+<div class="relative z-10 w-7 h-7 rounded-full bg-surface-container-lowest flex items-center justify-center shrink-0 mt-0.5">
+<div class="absolute inset-0 rounded-full bg-primary/25 animate-ping"></div>
+<div class="w-5 h-5 rounded-full bg-primary flex items-center justify-center shadow-sm">
+<span class="w-2 h-2 rounded-full bg-surface-container-lowest"></span>
+</div>
+</div>
+<!-- Waypoint Meta & Live Road Condition Card -->
+<div class="flex flex-col min-w-0 flex-1">
+<div class="flex items-baseline justify-between gap-2">
+<div class="flex items-center gap-1.5">
+<p class="font-body-bold text-body-bold text-primary font-bold">North Atrium Ramp Apex</p>
+<span class="px-1.5 py-0.5 rounded-full bg-secondary-container text-on-secondary-container font-label-sm text-[11px] font-bold animate-pulse">CURRENT</span>
+</div>
+<span class="font-tabular-data text-label-sm font-bold text-primary shrink-0">In 120m</span>
+</div>
+<!-- Road Condition Badge (Emphasized active status) -->
+<div class="mt-1.5 p-2.5 rounded-lg bg-surface-container flex flex-col gap-1.5 text-on-surface">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[18px] text-secondary" style="font-variation-settings: 'FILL' 1;">accessible_forward</span>
+<p class="font-body-bold text-body-bold text-on-surface font-semibold text-[13px]">
+                  Brushed concrete ramp · <span class="text-tertiary font-tabular-data font-bold">3.2% uphill</span>
+</p>
+</div>
+<div class="flex flex-wrap items-center gap-1.5 pt-0.5">
+<span class="inline-flex items-center px-2 py-0.5 rounded bg-surface-container-lowest text-on-surface font-label-sm text-[11px] font-medium">
+<span class="material-symbols-outlined text-[13px] mr-1 text-primary">straighten</span>1.6m wide dual handrails
+                </span>
+<span class="inline-flex items-center px-2 py-0.5 rounded bg-surface-container-lowest text-secondary font-label-sm text-[11px] font-semibold">
+<span class="material-symbols-outlined text-[13px] mr-1" style="font-variation-settings: 'FILL' 1;">check_circle</span>Example route segment
+                </span>
+</div>
+</div>
+</div>
+</div>
+<!-- Node 3: UPCOMING -->
+<div class="relative flex items-start gap-space-md pb-6 group">
+<!-- Connecting Line to Destination -->
+<div class="absolute left-[13px] top-[26px] bottom-0 w-[3px] bg-surface-variant rounded-full"></div>
+<!-- Muted Slate Circle Node -->
+<div class="relative z-10 w-7 h-7 rounded-full bg-surface-container-high flex items-center justify-center shrink-0 mt-0.5">
+<span class="w-2.5 h-2.5 rounded-full bg-outline"></span>
+</div>
+<!-- Waypoint Meta & Live Road Condition Card -->
+<div class="flex flex-col min-w-0 flex-1">
+<div class="flex items-baseline justify-between gap-2">
+<p class="font-body-md text-body-md font-semibold text-on-surface">Science Lawn Walkway</p>
+<span class="font-tabular-data text-label-sm text-on-surface-variant shrink-0">In 310m</span>
+</div>
+<!-- Road Condition Badge -->
+<div class="mt-1.5 p-2 rounded-lg bg-surface-container-low flex items-start gap-2 text-on-surface-variant">
+<span class="material-symbols-outlined text-[17px] text-outline shrink-0 mt-0.5">info</span>
+<p class="font-label-sm text-label-sm leading-tight text-on-surface-variant">
+                Wide concrete pavers · <span class="font-tabular-data font-medium">1.5%</span> gentle downhill · Temporary foliage cleared
+              </p>
+</div>
+</div>
+</div>
+<!-- Node 4: DESTINATION -->
+<div class="relative flex items-start gap-space-md group">
+<!-- Destination Flag Node -->
+<div class="relative z-10 w-7 h-7 rounded-full bg-inverse-surface flex items-center justify-center text-inverse-on-surface shrink-0 mt-0.5 shadow-sm">
+<span class="material-symbols-outlined text-[16px]">sports_score</span>
+</div>
+<!-- Waypoint Meta & Destination Condition Card -->
+<div class="flex flex-col min-w-0 flex-1">
+<div class="flex items-baseline justify-between gap-2">
+<p class="font-body-bold text-body-bold text-on-surface">Engineering Hall East Entrance</p>
+<span class="font-label-sm text-label-sm font-semibold text-primary shrink-0">Arrival Leg</span>
+</div>
+<!-- Road Condition Badge -->
+<div class="mt-1.5 p-2 rounded-lg bg-surface-container-low flex items-start gap-2 text-on-surface-variant">
+<span class="material-symbols-outlined text-[17px] text-secondary shrink-0 mt-0.5">sensor_door</span>
+<p class="font-label-sm text-label-sm leading-tight text-on-surface">
+                Automatic power-assist doors · <span class="font-semibold text-secondary">Level threshold (zero lip)</span>
+</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Quick Action Floating Deck (Audio & End Trip) -->
+<div class="pt-4 mt-2 flex items-center gap-space-sm">
+<button aria-label="Voice guidance unavailable" class="min-h-[48px] px-3.5 rounded-lg bg-surface-container flex items-center justify-center gap-2 text-on-surface hover:bg-surface-container-high active:scale-95 transition-all" id="toggle-audio-btn">
+<span class="material-symbols-outlined text-[20px] text-primary" id="audio-icon">volume_up</span>
+<span class="font-label-md text-label-md font-semibold" id="audio-label">Audio unavailable</span>
+</button>
+<button aria-label="Audited Route Deviation Help" class="min-h-[48px] px-3.5 rounded-lg bg-surface-container flex items-center justify-center gap-2 text-on-surface hover:bg-surface-container-high active:scale-95 transition-all" id="emergency-assist-btn">
+<span class="material-symbols-outlined text-[20px] text-outline">alt_route</span>
+<span class="font-label-md text-label-md font-semibold">Detour</span>
+</button>
+<button class="flex-1 min-h-[48px] px-4 rounded-lg bg-error text-on-error flex items-center justify-center gap-2 font-body-bold text-body-bold shadow-sm hover:opacity-95 active:scale-95 transition-all" id="end-trip-btn">
+<span class="material-symbols-outlined text-[20px]">stop_circle</span>
+<span class="">End Journey</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Bottom Navigation Tab Bar (Active tab: Route with shaded pill) -->
+<nav aria-label="Main Navigation" class="fixed bottom-0 inset-x-0 z-50 bg-surface-container-lowest border-t border-outline-variant/30 pb-safe pt-2 px-6 shadow-[0_-2px_12px_rgba(0,0,0,0.05)] flex items-center justify-around"><a aria-current="page" class="flex-1 flex flex-col items-center justify-center py-1 px-1 rounded-xl min-h-[44px] transition-all" href="route.html"><div class="w-16 h-8 rounded-full bg-secondary-container text-on-secondary-container flex items-center justify-center shadow-sm"><span class="material-symbols-outlined text-[20px] font-bold">alt_route</span></div><span class="font-label-sm text-label-sm font-bold text-primary mt-1">Route</span></a><a class="flex-1 flex flex-col items-center justify-center py-1 px-1 rounded-xl text-on-surface-variant hover:text-on-surface min-h-[44px] transition-colors" href="report-photo.html"><span class="material-symbols-outlined text-[24px]">add</span><span class="font-label-sm text-label-sm text-on-surface-variant mt-1 font-medium">Report</span></a><a class="flex-1 flex flex-col items-center justify-center py-1 px-1 rounded-xl text-on-surface-variant hover:text-on-surface min-h-[44px] transition-colors" href="my-reports.html"><span class="material-symbols-outlined text-[24px]">assignment</span><span class="font-label-sm text-label-sm text-on-surface-variant mt-1 font-medium">My Reports</span></a></nav>
+<!-- Micro-interactions Script -->
+
+</div></main><div id="feedback" role="status" aria-live="polite"></div></body></html>
