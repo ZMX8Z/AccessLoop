@@ -109,3 +109,11 @@
 ## A0 PR #11 独立审查
 
 PR head=`3b5e8db54b1098dbd61c22acb12aca09a8b0edbd`，target dev=`2f38fcdc449c400dfcfbb916e2c64730a2bfcdbb`。阶段未通过，未合入：360px报告确认页根画布锁定且无法滚至提交；共享PassagePicker换路线后可沿用越界旧索引。隔离合并树check113通过/3跳过、build exit0，不能替代功能验收。完整双轴报告、复现和截图见[A审查](a-pr-11-review.md)。Schema归并与后续A1迟到context风险分别列明，未把明确Design Demo或未交付后续功能本身算作A0失败。
+
+
+## A0 修复集成与 C1 准备跟进（2026-10-17）
+
+- C 准备阶段 PR #13 已按固定head独立核查合入，integratedDevCommit=`9997880921d65739d9efd3bfc3bd507385e57d58`；图片/OSS/GLM探针模块可用，尚未启用照片/报告业务入口。
+- 用户授权D帮助A后，在A固定分支修复手机确认页、通道索引、重复响应Schema和迟到context/配置并发发布；A PR #11 deliveryHead=`4678661d826b7077a292953cae06703eb52ab489`，integratedDevCommit=`1b17f3cfb6c787fb96d0dc01f098d3f3ea9f7b14`。独立复审及完整check/build通过，360px演示实际保存成功；仅为A0阶段。
+- D `7a5697f` 补齐明确403配额识别、无效模型输出错误统计；真实GLM单次探针仍返回429/1305。已通过C仓储核对持久预留、脱敏事件与24h摘要，见[集成记录](../acceptance/d-integration-2026-10-17.md)和[Vision证据](../deployment/vision-connection-evidence.json)。正式C分析服务需接入分类器；未把错误结果或人工降级计作模型通过。
+- P0/P1和四包总验收保持未完成：B修复交付、C1报告/照片/确认与管理、真实A/B联调、现场通道与Zenith仍待完成；OSS本机连接已过，GLM实时能力仍受上游限制。

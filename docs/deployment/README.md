@@ -32,7 +32,7 @@ pnpm exec tsx scripts/deployment-probe.ts --http --database --egress
 1. 比赛提供的 Zenith 模板/项目入口及部署权限：确认 Node/容器方式、构建命令、PORT、资源、持久化、出网、密钥注入、健康检查与发布审核。公开页面没有给出比赛模板的 manifest Schema，本仓库未据此编造配置。
 2. 真实部署地址；PostgreSQL 连接与持久化资源；稳定且分别配置的 PAYLOAD_SECRET、SESSION_SECRET。
 3. OSS本机配置和基础读写已验证；C仍需接入实际照片上传、授权代理与备份目标，Zenith环境须重新验证。秘密不进入提交或浏览器。
-4. ORS/Geocoding密钥与权限已实测；VISION_API_KEY已配置，但模型权限和独立Vision预算待C1。调用继续经已持久化的预算预留。
+4. ORS/Geocoding密钥与权限已实测；VISION_API_KEY已配置。D 最新单次GLM探针仍为429/1305，见[真实脱敏证据](vision-connection-evidence.json)。探针仅在该进程设日上限1，未修改环境策略；正式Vision日预算仍需显式配置，解析规则见技术文档11.1。调用必须经持久化预算预留。
 5. D 的现场通道测量记录；已有带官方 GIS/OSM 来源的[校园候选](campus-survey.md)，仍需现场与真实 ORS 核验。另需 A/B/C 最新阶段集成代码，未取得实测证据不能称已验证可通行。
 
 以上是所需资源类别，不要求将任何秘密填入提交或聊天。探针的存在性结果应在目标部署里重新生成。
