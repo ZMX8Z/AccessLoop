@@ -93,3 +93,17 @@ node --env-file=.env.local --import tsx --test --test-force-exit tests/c0-http.i
 本阶段已经提供人工页面入口，人工只需点击检查。数据库服务恢复/备份、真实 ORS/Geocoding/POI、GLM、OSS、目标区域通行及完整无障碍用户测试均未被本记录宣布通过。
 
 交付时运行代码已提交并推送，后续文档记录提交不改变上述代码证据。开发服务运行期间 Next 自动把 next-env.d.ts 的类型路径切到 .next/dev/types，该本地生成差异未作为业务变更推送。
+
+## C1 接入准备验证，2026-10-17
+
+- baseDevCommit：`d3e06bded36f2ca4cef98cd2a802dc633acf8a01`。C0 PR #7 已由 D 合入，本分支已同步。
+- codeEvidenceCommit：`0a971d4fda31bf00a39695fbd97a69001037dc90`。
+- 新增图片与视觉行为测试 21/21 通过，无跳过；新增八文件 ESLint 与全仓 `pnpm exec tsc --noEmit --incremental false` 通过。独立审查发现的全空白模型文本问题已修复并复核。
+- OSS 真实上传 200、授权读与散列核对 200、匿名读拒绝 403、签名读与散列核对 200、删除 204 及不存在确认均通过。该验证只覆盖对象与 SDK 配置，未验证完整应用照片权限流程或 Bucket ACL。
+- GLM 共三次真实图片请求，未收到合法工具结果。后两次为 HTTP 429、业务码 1305；供应商模型繁忙，真实视觉能力为外部条件阻塞。数据库脱敏事件为三条 call、三条 error，没有额外上游请求。
+- `VISION_DAILY_BUDGET=unlimited` 实现用户“不限制”应用每日次数的选择，仍保留分钟门禁、供应商配额和单次超时。
+- 本阶段没有安装照片 Collection、修改 Payload 配置或新增业务 HTTP 接口，没有迁移、生产构建或 Zenith 验证。C1/P0 业务和 C2/C3/P1 仍待交付，不宣布整包通过。
+
+详细命令和恢复条件见 [C1 交接](../handoffs/c1-provider-checks.md)，原始安全标量见 [验证证据](c1-provider-evidence.json)。
+
+交付同步基线更新为 `7d57441d624f8630be68d623463a7c4766bb62ed`。与代码检查提交相比，`src`、`scripts` 和 `tests` 无差异；新增团队提交为文档及审查证据，未改变本次探针与静态检查对应源码。

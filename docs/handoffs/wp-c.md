@@ -73,3 +73,11 @@ seed 输入见 `RegionSeedSchema`。同一内容重试保持 ID/版本；不同�
 ## Windows 检查差异
 
 最新 dev 中的 `tests/deployment.test.ts` 有四项依赖 Unix bash 或 shell 形式的 fake psql，在本机 Windows 原生运行失败。未修改 D 的测试或部署脚本；本机完整 `pnpm check` 不是全绿。已逐项定位并在 C 验收中记录，D 需在其 Unix/部署环境复核这些平台项。其他静态检查、兼容测试、C0 真实数据库和 HTTP 检查、生产构建均通过。
+
+## C1 接入准备更新
+
+2026-10-17，C0 PR #7 已由 D 合入。C 分支已同步 `origin/dev=d3e06bded36f2ca4cef98cd2a802dc633acf8a01`，旧 C0 结果保留为历史阶段证据。
+
+本次新增图片处理、私有 OSS 配置、GLM 原生图片与工具适配、两份可重跑探针及必要测试。代码证据为 `0a971d4fda31bf00a39695fbd97a69001037dc90`。本地 21 项行为测试、ESLint、全仓 TypeScript 检查和独立审查通过。
+
+OSS 真实对象读写与私有性验证通过，随机测试文件已清理。GLM 三次真实请求未通过，后两次明确返回 HTTP 429、业务码 1305，模型当前繁忙。按用户先验证再推进的要求，C1 报告、个人避让和导出业务仍待开始，Zenith 未验证。重跑方法、D 配置需求与边界见 [C1 供应商交接](c1-provider-checks.md)，实际结果见 [机器可读证据](../acceptance/c1-provider-evidence.json)。

@@ -1,0 +1,64 @@
+{
+  "verificationDate": "2026-10-17",
+  "timezone": "Australia/Sydney",
+  "branch": "codex/c-backend-data-ai",
+  "baseDevCommit": "d3e06bded36f2ca4cef98cd2a802dc633acf8a01",
+  "deliveryBaseDevCommit": "7d57441d624f8630be68d623463a7c4766bb62ed",
+  "deliveryBaseAssessment": "New dev commits changed documentation and review evidence only; src, scripts and tests remain identical to codeEvidenceCommit. No extra model requests were made.",
+  "codeEvidenceCommit": "0a971d4fda31bf00a39695fbd97a69001037dc90",
+  "scope": "Local provider connectivity and integration preparation only. C1 business endpoints and Zenith have not been verified.",
+  "configuration": {
+    "source": "existing developer configuration in the old AccessLoop directory",
+    "target": "ignored AccessLoop-c/.env.local",
+    "copiedPrefixes": ["VISION_", "OSS_"],
+    "existingDatabaseAndSessionSettingsPreserved": true,
+    "visionDailyBudget": "unlimited",
+    "visionMinuteLimit": 10,
+    "model": "glm-4.6v-flash"
+  },
+  "oss": {
+    "command": "pnpm exec tsx scripts/probe-oss.ts",
+    "exitCode": 0,
+    "passed": true,
+    "sample": "generated 32x24 PNG without personal information",
+    "transport": "same installed AWS SDK and S3 configuration as @payloadcms/storage-s3 3.91.0",
+    "checks": [
+      {"stage": "upload", "ok": true, "httpStatus": 200},
+      {"stage": "authenticated_read", "ok": true, "hashMatches": true, "httpStatus": 200},
+      {"stage": "anonymous_read_denied", "ok": true, "httpStatus": 403},
+      {"stage": "signed_read", "ok": true, "hashMatches": true, "httpStatus": 200},
+      {"stage": "cleanup", "ok": true, "deletionConfirmed": true, "httpStatus": 204}
+    ],
+    "limits": "Only a random probe object was written and removed. This proves private object access, not the complete application upload/authorization pipeline or the bucket ACL."
+  },
+  "glm": {
+    "commandEachTime": "pnpm exec tsx scripts/probe-glm.ts --attempts=1",
+    "passed": false,
+    "externalBlocker": "model_capacity_1305",
+    "httpRequestCount": 3,
+    "budget": "C persistent PostgreSQL repository through D ProviderGate; no in-memory substitute",
+    "sample": "generated geometric JPEG without personal information",
+    "accuracyValidation": "not-performed",
+    "attempts": [
+      {"logTimeSydney": "18:38:26", "elapsedMs": 2053, "exitCode": 1, "code": "RATE_LIMITED", "httpStatus": 429, "upstreamCode": null, "note": "Initial diagnostic did not retain the provider business code."},
+      {"logTimeSydney": "18:39:59", "elapsedMs": 1703, "exitCode": 1, "code": "PROVIDER_UNAVAILABLE", "httpStatus": 429, "upstreamCode": "1305"},
+      {"logTimeSydney": "18:40:41", "elapsedMs": 1832, "exitCode": 1, "code": "PROVIDER_UNAVAILABLE", "httpStatus": 429, "upstreamCode": "1305"}
+    ],
+    "persistedEventCounts": {"call": 3, "error": 3, "wait": 0},
+    "persistenceCheckedAtUtc": "2026-10-17T07:43:06Z",
+    "toolResultValidated": false,
+    "note": "Official code 1305 means current model demand is too high. No inference about successful vision/tool capability or account entitlement is made. Application business implementation remains gated on a successful probe."
+  },
+  "localChecks": {
+    "unitTests": {"command": "pnpm exec tsx --test tests/photos.test.ts tests/vision.test.ts", "passed": 21, "failed": 0, "skipped": 0},
+    "eslint": "passed for all eight new source, probe and test files",
+    "typescript": "pnpm exec tsc --noEmit --incremental false passed",
+    "productionBuild": "not rerun; new provider modules are not installed in application routes or Payload config",
+    "independentReview": "passed after rejecting whitespace-only model text; 21 local tests independently rerun, no extra external requests"
+  },
+  "references": [
+    "https://docs.bigmodel.cn/cn/api/api-code",
+    "https://docs.bigmodel.cn/cn/guide/models/free/glm-4.6v-flash",
+    "https://www.alibabacloud.com/help/en/oss/developer-reference/use-aws-sdks-to-access-oss"
+  ]
+}
