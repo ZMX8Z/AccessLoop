@@ -69,12 +69,12 @@ async function readUpstreamErrorCode(response: Response): Promise<string | undef
 
 function responseError(response: Response, upstreamCode: string | undefined): GlmProviderError {
   const metadata = { upstreamStatus: response.status, upstreamCode }
+  // Official business codes: docs.bigmodel.cn/cn/api/api-code. Never classify by untrusted message text.
+  if ((response.status === 403 || response.status === 429) && upstreamCode && ['1113', '1308', '1310', '1316', '1317', '1318', '1319', '1320', '1321'].includes(upstreamCode)) {
+    return new GlmProviderError(503, 'QUOTA_EXHAUSTED', 'The image analysis provider quota or balance is unavailable.', { ...metadata, retryable: false })
+  }
   if (response.status === 401 || response.status === 403) {
     return new GlmProviderError(503, 'PROVIDER_UNAVAILABLE', 'The image analysis service is unavailable.', { ...metadata, retryable: false })
-  }
-  // Official business codes: docs.bigmodel.cn/cn/api/api-code. Never classify by untrusted message text.
-  if (response.status === 429 && upstreamCode && ['1113', '1308', '1310', '1316', '1317', '1318', '1319', '1320', '1321'].includes(upstreamCode)) {
-    return new GlmProviderError(503, 'QUOTA_EXHAUSTED', 'The image analysis provider quota or balance is unavailable.', { ...metadata, retryable: false })
   }
   if (response.status === 429 && upstreamCode && ['1309', '1311', '1314', '1315'].includes(upstreamCode)) {
     return new GlmProviderError(503, 'PROVIDER_UNAVAILABLE', 'The configured image analysis account cannot use this service.', { ...metadata, retryable: false })

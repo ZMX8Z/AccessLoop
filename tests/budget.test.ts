@@ -119,3 +119,39 @@ test('slow telemetry cannot start a new provider attempt after the deadline', as
   );
   assert.ok(startedAt < Date.parse(instant) + 15000);
 });
+
+test('classified error results retain their value and count one failed attempt without retrying', async () => {
+  const f = fakeRepository();
+  let attempts = 0;
+  f.repo.blockBudget = async () => assert.fail('An invalid result must not block the provider budget.');
+  const value = { status: 'unavailable', privateDetail: 'Must never enter telemetry.' };
+  const result = await new ProviderGate(f.repo, { now: () => Date.parse(instant) }).run({
+    ...request,
+    service: 'vision',
+    operation: async () => {
+      attempts++;
+      return value;
+    },
+    isErrorResult: (outcome) => outcome.status === 'unavailable',
+  });
+  assert.equal(result, value);
+  assert.equal(attempts, 1);
+  assert.deepEqual(f.events, [
+    { service: 'vision', event: 'call', at: instant },
+    { service: 'vision', event: 'error', at: instant, category: 'INVALID_PROVIDER_RESULT' },
+  ]);
+});
+
+test('failure to persist classified result errors fails closed', async () => {
+  const f = fakeRepository();
+  f.repo.recordUsage = async (event) => {
+    if (event.event === 'error') throw new Error('Telemetry offline');
+    f.events.push(event);
+  };
+  await assert.rejects(new ProviderGate(f.repo).run({
+    ...request,
+    operation: async () => 'unavailable',
+    isErrorResult: (outcome) => outcome === 'unavailable',
+  }), /Telemetry offline/);
+  assert.deepEqual(f.events.map((event) => event.event), ['call']);
+});

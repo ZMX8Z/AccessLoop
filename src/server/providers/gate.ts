@@ -23,6 +23,8 @@ export class ProviderGate {
     keyFingerprint: string;
     policy: { minuteLimit: number; dayLimit: number };
     operation: () => Promise<T>;
+    /** Count a fulfilled result as an error while returning it unchanged, without retrying. */
+    isErrorResult?: (value: T) => boolean;
     deadlineAt?: number;
     maxAttemptMs?: number;
   }): Promise<T> {
@@ -107,6 +109,13 @@ export class ProviderGate {
       if (outcome.ok) {
         if (outcome.completedAt > deadlineAt) error = timeout();
         else {
+          if (input.isErrorResult?.(outcome.value))
+            await this.repository.recordUsage({
+              service,
+              event: 'error',
+              at: new Date(this.now()).toISOString(),
+              category: 'INVALID_PROVIDER_RESULT',
+            });
           // Telemetry latency is not an upstream failure; the overall request may still time out.
           if (this.now() > deadlineAt)
             throw new AppError(
