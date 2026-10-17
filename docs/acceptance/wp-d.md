@@ -76,3 +76,8 @@ D同步该base并加入离线校园交接后，`pnpm check` exit0：108通过、
 baseDevCommit/codeEvidenceCommit=`d3e06bded36f2ca4cef98cd2a802dc633acf8a01`。用户更新主目录.env后，D仅同步五项OSS配置，未修改运行源码/依赖/迁移。独立生产配置检查exit0；health/PG/TLS探针通过。真实S3兼容探针完成上传、读取、私有匿名拒绝、签名有效/过期及删除；9项最终检查通过，两个自建探针对象均清理，见[JSON证据](../deployment/oss-connection-evidence.json)。首次短签名时序失败保留且未计通过。
 
 本轮没有产品代码变化，不重复全量构建和供应商路由调用；复用同运行树的C0集成证据。OSS配置/本机基础权限阻塞已解除；C照片API与会话隔离、GLM、Zenith和最终P0/P1仍未通过。
+
+
+## 2026-10-17 后续集成
+
+C13准备阶段、A11修复与D供应商硬化的固定提交、独立审查、真实GLM失败和真实24h事件摘要见[本次集成记录](d-integration-2026-10-17.md)。A11已经合入dev `1b17f3cfb6c787fb96d0dc01f098d3f3ea9f7b14`，A0可用不代表A完整P0/P1。D最终统一树检查结果追加到同一记录；最终P0/P1判定保持未完成。

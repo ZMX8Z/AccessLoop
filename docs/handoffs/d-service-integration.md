@@ -15,7 +15,7 @@
 
 预览与确认均使用 `resolvePassage`；C 在事务中的最终版本/预览摘要核对后调用相同地理函数，几何不得另写一套。配置命令调用 `validateRegionConfigChange`，使用事务读取的**全部有效公共与个人确认**及通道绑定；合法变更的版本、审计与幂等由 C 一次提交。
 
-Vision 调用可复用 `ProviderGate.run({service:'vision', keyFingerprint, policy, operation})`，政策独立配置，缓存复用另记 cacheHit；有效 uncertain 结果不抛供应商错误。网络请求不可放进 Payload 事务。
+Vision 调用复用 `ProviderGate.run({service:'vision', keyFingerprint, policy, operation, isErrorResult: outcome => outcome.aiStatus === 'unavailable'})`，政策独立配置，缓存复用另记 cacheHit。无效供应商输出保留 unavailable 降级并记一次 INVALID_PROVIDER_RESULT 错误，不自动重试；合法 uncertain 不计错误。分类器是内部服务接口，C 后续分析服务接线时须显式传入（目前只有探针调用）。网络请求不可放进 Payload 事务。预算解析复用 `parseVisionPolicy`，配置取 `.env.example`；不将其他开发库的策略复制到当前环境。
 
 ## A/B：可消费接口
 

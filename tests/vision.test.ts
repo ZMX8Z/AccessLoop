@@ -3,10 +3,12 @@ import test from 'node:test'
 import { z } from 'zod'
 
 import { createGlmAdapter, GlmProviderError, parseVisionPolicy } from '../src/server/providers/glm'
+import { ProviderGate } from '../src/server/providers/gate'
 import { ProviderError } from '../src/server/providers/provider-error'
 import {
   AnalysisDTOSchema, parseGlmToolResult, RecordHazardAnalysisTool, VisionResultSchema, type VisionResult,
 } from '../src/shared/contracts/vision'
+import { fakeRepository, instant } from './routing-support'
 
 const visibleHazard: VisionResult = {
   image_quality: 'usable', hazard_present: true, category: 'construction', visible_passage: 'blocked',
@@ -159,6 +161,78 @@ test('GLM authentication and server errors are sanitized and are never automatic
     } })
     await assert.rejects(adapter.analyze({ bytes, mime: 'image/jpeg' }), expectProviderError('PROVIDER_UNAVAILABLE', 503, status >= 500))
     assert.equal(requests, 1)
+  }
+})
+
+test('explicit GLM quota codes on 403 block the shared budget without treating other auth failures as quota', async () => {
+  for (const item of [
+    { httpStatus: 403, upstreamCode: '1113', code: 'QUOTA_EXHAUSTED', blocked: true },
+    { httpStatus: 403, upstreamCode: '1308', code: 'QUOTA_EXHAUSTED', blocked: true },
+    { httpStatus: 403, upstreamCode: '1309', code: 'PROVIDER_UNAVAILABLE', blocked: false },
+    { httpStatus: 403, upstreamCode: '9999', code: 'PROVIDER_UNAVAILABLE', blocked: false },
+    { httpStatus: 401, upstreamCode: '1113', code: 'PROVIDER_UNAVAILABLE', blocked: false },
+  ]) {
+    const f = fakeRepository()
+    const blocks: Parameters<typeof f.repo.blockBudget>[0][] = []
+    f.repo.blockBudget = async (input) => { blocks.push(input) }
+    let requests = 0
+    const adapter = createGlmAdapter({ apiKey: 'server-secret', fetch: async () => {
+      requests++
+      return Response.json({ error: { code: item.upstreamCode, message: 'private-upstream' } }, { status: item.httpStatus })
+    } })
+    await assert.rejects(new ProviderGate(f.repo, { now: () => Date.parse(instant) }).run({
+      service: 'vision', keyFingerprint: adapter.keyFingerprint, policy: { minuteLimit: 10, dayLimit: 100 },
+      operation: () => adapter.analyze({ bytes, mime: 'image/jpeg' }),
+    }), expectProviderError(item.code, 503, false))
+    assert.equal(requests, 1)
+    assert.deepEqual(f.events.map((event) => event.event), ['call', 'error'])
+    assert.deepEqual(blocks, item.blocked ? [{
+      service: 'vision', keyFingerprint: adapter.keyFingerprint, until: '2026-10-18T00:00:00.000Z', reason: 'quota',
+    }] : [])
+  }
+})
+
+test('invalid successful GLM responses remain unavailable while counting exactly one provider error', async () => {
+  for (const item of [
+    { body: 'not JSON', reason: 'invalid_output' },
+    { body: JSON.stringify({ choices: [] }), reason: 'no_valid_tool_result' },
+    { body: JSON.stringify(completion({ ...visibleHazard, location: [0, 0] })), reason: 'invalid_output' },
+    { body: JSON.stringify({ choices: [{ finish_reason: 'content_filter', message: {} }] }), reason: 'refused' },
+  ]) {
+    const f = fakeRepository()
+    let requests = 0
+    const adapter = createGlmAdapter({ apiKey: 'server-secret', fetch: async () => {
+      requests++
+      return new Response(item.body)
+    } })
+    const result = await new ProviderGate(f.repo, { now: () => Date.parse(instant) }).run({
+      service: 'vision', keyFingerprint: adapter.keyFingerprint, policy: { minuteLimit: 10, dayLimit: 100 },
+      operation: () => adapter.analyze({ bytes, mime: 'image/jpeg' }),
+      isErrorResult: (outcome) => outcome.aiStatus === 'unavailable',
+    })
+    assert.deepEqual(result, { aiStatus: 'unavailable', result: null, unavailableReason: item.reason })
+    assert.equal(requests, 1)
+    assert.deepEqual(f.events, [
+      { service: 'vision', event: 'call', at: instant },
+      { service: 'vision', event: 'error', at: instant, category: 'INVALID_PROVIDER_RESULT' },
+    ])
+  }
+})
+
+test('completed and valid uncertain GLM results do not count as provider errors', async () => {
+  for (const item of [
+    { result: visibleHazard, status: 'completed' },
+    { result: { ...visibleHazard, hazard_present: false }, status: 'uncertain' },
+  ]) {
+    const f = fakeRepository()
+    const adapter = createGlmAdapter({ apiKey: 'key', fetch: jsonFetch(completion(item.result)) })
+    const result = await new ProviderGate(f.repo, { now: () => Date.parse(instant) }).run({
+      service: 'vision', keyFingerprint: adapter.keyFingerprint, policy: { minuteLimit: 10, dayLimit: 100 },
+      operation: () => adapter.analyze({ bytes, mime: 'image/jpeg' }),
+      isErrorResult: (outcome) => outcome.aiStatus === 'unavailable',
+    })
+    assert.deepEqual(result, { aiStatus: item.status, result: item.result, unavailableReason: null })
+    assert.deepEqual(f.events, [{ service: 'vision', event: 'call', at: instant }])
   }
 })
 

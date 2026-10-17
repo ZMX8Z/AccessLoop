@@ -54,6 +54,7 @@ async function main(): Promise<void> {
         const result = await gate.run({
           service: 'vision', keyFingerprint: adapter.keyFingerprint, policy,
           maxAttemptMs: adapter.timeoutMs, deadlineAt: startedAt + adapter.timeoutMs + 1000,
+          isErrorResult: (outcome) => outcome.aiStatus === 'unavailable',
           operation: async () => {
             try { return await adapter.analyze({ bytes, mime: 'image/jpeg' }) }
             catch (error) {
