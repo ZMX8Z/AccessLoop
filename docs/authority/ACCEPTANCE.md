@@ -47,4 +47,4 @@
 **最终完成定义：**四包 P0/P1 必要功能均完成，AI 技术验收通过，人工功能与界面验收通过，Zenith 上真实核心闭环、搜索和公共管理流程可复现。单独 P0 通过、静态页面完成或预存演示可用均不代表整项目完成。
 
 
-D 服务阶段的固定提交/PR/命令证据由 [D 技术验收](../acceptance/wp-d.md)与 [D 交接](../handoffs/wp-d.md)维护。C0 PR #7 已进入 dev `5e4867d8b6141aacbc8fc4988f4aa41287bd370a`，见 [C0 集成验收](../acceptance/c0-integration.md)；真实持久预算/快照/会话/事务已过，ORS/Geocoding连接各一次HTTP200，仍未完成同一集成提交上的真实 P0/P1 总验收。A待交付，B固定head审查未过，C1/P1后续待交付；校园候选保持未实测，OSS与Zenith仍阻塞。
+D 服务阶段的固定提交/PR/命令证据由 [D 技术验收](../acceptance/wp-d.md)与 [D 交接](../handoffs/wp-d.md)维护。C0 PR #7 已进入 dev `5e4867d8b6141aacbc8fc4988f4aa41287bd370a`，见 [C0 集成验收](../acceptance/c0-integration.md)；真实持久预算/快照/会话/事务已过，ORS/Geocoding连接各一次HTTP200，仍未完成同一集成提交上的真实 P0/P1 总验收。A待交付，B固定head审查未过，C1/P1后续待交付；校园候选保持未实测；OSS本机配置/基础读写及私有签名检查已通过，C照片API和Zenith仍待验收。
