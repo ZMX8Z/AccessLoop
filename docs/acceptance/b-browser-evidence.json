@@ -1,0 +1,52 @@
+{
+  "recordedAt": "2026-10-17T12:58:10.896Z",
+  "status": "passed",
+  "codeEvidenceCommit": "4b642c63dc8cdb3918123934673c3d72e242f646",
+  "baseDevCommit": "d49eef50a59cd3c42b6c6ce3996a075822a68228",
+  "initialPostChecks": [
+    {
+      "status": "failed",
+      "code": "NotFound",
+      "diagnosis": "Verifier used the HTTP DTO photoId on a storage record whose photo is in facts.photoId; no writes or external requests preceded the lookup."
+    },
+    {
+      "status": "failed",
+      "code": "NotFound",
+      "diagnosis": "Changing Payload depth did not address the same incorrect storage field. Corrected to the existing C facts.photoId field; product code was unchanged."
+    }
+  ],
+  "scope": "One generated private photo and explicitly synthetic report in dedicated local _test database; production B bundle; browser actions recorded separately",
+  "checks": {
+    "finalReportVersion": 5,
+    "fixtureProviderReservations": 0,
+    "aiAnalysisCreated": false,
+    "otherSessionDenied": {
+      "report": 404,
+      "photo": 404,
+      "export": 404
+    },
+    "ownedSourceRecordsPhotoAndProviderBlocksCleaned": true
+  },
+  "limitations": [
+    "No real GLM, ORS, Geocoding or POI request.",
+    "No physical campus or Zenith acceptance.",
+    "Native print preview could not be inspected through the desktop browser tool; Escape returned to the page. Authorized HTML and copy success were verified."
+  ],
+  "browserChecks": {
+    "externalAiConsentInitiallyUnchecked": true,
+    "realPrivateOssUpload": true,
+    "manualReportSavedWithoutEnablingAvoidance": true,
+    "automaticServerPreviewAndFreshExplicitConsent": true,
+    "confirmationThenRenewalIncrementVersions": true,
+    "descriptionOnlyCorrectionPreservesObservationAndEffectiveConfirmation": true,
+    "stopDisablesAvoidance": true,
+    "authorizedHtmlExportAndCopyFeedback": true,
+    "mobile360ViewportWidth": 360,
+    "mobile360ContentWidth": 360
+  },
+  "browserLimitations": [
+    "Coordinate-map display and synthetic preset only; no current-route segment from a real ORS request in this browser run.",
+    "Datetime fill by automation did not populate the native control; the explicit Observed now button worked. Label automation in detail used the visible native accessibility field.",
+    "Native print click did not yield an inspectable preview through the tool; Escape returned to the page. No physical print was requested."
+  ]
+}

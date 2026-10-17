@@ -20,7 +20,7 @@ function host(service: ReturnType<typeof createFixtureService>) {
   useMemo:(factory:()=>unknown)=>{const index=cursor++;return values[index]??=factory()},
   useEffect:(effect:()=>unknown)=>{const index=cursor++;if(!(index in values)){values[index]=true;effects.push(effect)}},
  };
- const imports:Record<string,unknown>={'react/jsx-runtime':{jsx:element,jsxs:element},react,'next/link':{default:()=>null},'@/shared/client/api':api,'@/components/map/MapView':{MapView:()=>null},'@/components/map/PassagePicker':{PassagePicker:()=>null},'./service':{liveService:service},'./fixtures':{createFixtureService:()=>service},'./state':state};
+ const imports:Record<string,unknown>={'react/jsx-runtime':{jsx:element,jsxs:element},react,'next/link':{default:()=>null},'@/shared/client/api':api,'@/components/map/MapView':{MapView:()=>null},'@/components/map/PassagePicker':{PassagePicker:()=>null},'@/features/hazards/client/ReportWizard':{ReportWizard:()=>null},'./service':{liveService:service},'./fixtures':{createFixtureService:()=>service},'./state':state};
  const source=readFileSync(new URL('../src/features/routing/client/RoutePlanner.tsx',import.meta.url),'utf8');
  const code=ts.transpileModule(source,{compilerOptions:{jsx:ts.JsxEmit.ReactJSX,module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
  const loaded={exports:{} as {RoutePlanner:(props:object)=>Element}};
@@ -87,4 +87,43 @@ test('observing a config change cancels an old plan while region refresh is pend
  releaseRegion({...region,configVersion:2});await poll;
  assert.doesNotMatch(output,/Current context/);
  assert.match(output,/Conditions changed/);
+});
+
+
+test('report changes preserve journey inputs, invalidate the old route and never auto-call directions', async () => {
+ const service=createFixtureService();const original=service.route;const inputs:unknown[]=[];
+ service.route=async input=>{inputs.push(input);return original(input)};
+ const app=host(service);app.render();app.effects.forEach(effect=>effect());await flush();
+ let nodes=app.render();(nodes.find(node=>'onPlaceSelect' in node.props)!.props.onPlaceSelect as (place:unknown)=>void)(fixturePlaces[0]);
+ nodes=app.render();(nodes.find(node=>'onPlaceSelect' in node.props)!.props.onPlaceSelect as (place:unknown)=>void)(fixturePlaces[1]);
+ nodes=app.render();(nodes.find(node=>node.type==='button'&&text(node)==='Plan route →')!.props.onClick as ()=>void)();await flush();
+ nodes=app.render();const launch=nodes.find(node=>node.type==='button'&&text(node)==='Report an obstacle');
+ assert.ok(launch,'The live planner must expose the actual reporting flow.');
+ (launch.props.onClick as ()=>void)();
+ nodes=app.render();const wizard=nodes.find(node=>'onChanged' in node.props&&'passages' in node.props);
+ assert.ok(wizard,'The reporter receives the configured passages and current route.');
+ assert.ok(wizard.props.route);
+ await (wizard.props.onChanged as ()=>Promise<void>)();
+ assert.equal(inputs.length,1,'Saving a report must not automatically call directions.');
+ nodes=app.render();assert.match(text(nodes[0]),/Recalculation needed/);
+ (nodes.find(node=>node.type==='button'&&text(node)==='Recalculate route →')!.props.onClick as ()=>void)();await flush();
+ assert.equal(inputs.length,2);assert.deepEqual(inputs[1],inputs[0]);
+});
+
+test('a delayed pre-save poll cannot replace the freshly published personal report layer', async () => {
+ const service=createFixtureService();const initial=await service.context();let contexts=0,mines=0;
+ const next:Context={...initial,personalVersion:1,activeDigest:'after-report-save',evaluatedAt:new Date(Date.parse(initial.evaluatedAt)+1000).toISOString()};
+ service.context=async()=>++contexts<=2?initial:next;
+ let releaseOldMine!:(value:Awaited<ReturnType<typeof service.mine>>)=>void;
+ const saved={id:'new-report',location:fixturePlaces[0].location,description:'Freshly saved personal observation.',status:'pending' as const,personalAvoidance:null};
+ service.mine=async()=>{mines++;if(mines===2)return new Promise(resolve=>{releaseOldMine=resolve});return {items:mines>=3?[saved]:[],truncated:false}};
+ const app=host(service);app.render();app.effects.forEach(effect=>effect());await flush();
+ const oldPoll=app.intervals.find(timer=>timer.ms===5000)!.run();await flush();
+ assert.equal(mines,2);
+ let nodes=app.render();(nodes.find(node=>node.type==='button'&&text(node)==='Report an obstacle')!.props.onClick as ()=>void)();
+ nodes=app.render();const wizard=nodes.find(node=>'onChanged' in node.props&&'passages' in node.props)!;
+ await (wizard.props.onChanged as ()=>Promise<void>)();
+ assert.match(text(app.render()[0]),/Freshly saved personal observation/);
+ releaseOldMine({items:[],truncated:false});await oldPoll;
+ assert.match(text(app.render()[0]),/Freshly saved personal observation/,'A prior poll may not erase the acknowledged report.');
 });
