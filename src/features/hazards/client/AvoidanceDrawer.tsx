@@ -79,7 +79,7 @@ export function AvoidanceDrawer({ report, region, passages, route = null, onUpda
     finally { setBusy(false) }
   }
   return <section aria-label="Personal avoidance"><h2>Personal temporary avoidance</h2>
-    <p role="status"><strong>{effective ? 'Effective for your session' : report.personalAvoidance?.active ? 'Expired or confirmation no longer effective' : 'Not enabled'}</strong></p>
+    <p role="status"><strong>{effective ? "Effective for the report author's session" : report.personalAvoidance?.active ? 'Expired or confirmation no longer effective' : 'Not enabled'}</strong></p>
     <p>Personal avoidance affects your session only. Stopping it does not remove any verified public barrier. Expiry does not mean the passage is clear.</p>
     {report.personalAvoidance && <p className="report-note">Observed {report.personalAvoidance.observedAt}; confirmed {report.personalAvoidance.confirmedAt}; valid until {report.personalAvoidance.validUntil}. Source: {report.personalAvoidance.decisionSource === 'user_manual' ? 'your manual observation' : 'AI suggestion and your confirmation'}.</p>}
     {!possible && <p>This report is {report.status}; personal avoidance cannot be confirmed.</p>}

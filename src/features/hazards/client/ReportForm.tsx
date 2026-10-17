@@ -19,27 +19,29 @@ interface ReportFormProps {
   initialReport?: PrivateReportDTO
   onReportCreated: (report: PrivateReportDTO) => void
   onCancel?: () => void
+  onSavingChange?: (saving: boolean) => void
   disabled?: boolean
 }
 export function ReportForm({ photoId, analysisId, category = 'obstruction', description = '', onFactsChange,
-  region, passages = [], route = null, initialReport, onReportCreated, onCancel, disabled = false }: ReportFormProps) {
+  region, passages = [], route = null, initialReport, onReportCreated, onCancel, onSavingChange, disabled = false }: ReportFormProps) {
   const [now, setNow] = useState(0)
   useEffect(() => { const timer = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(timer) }, [])
   const [location, setLocation] = useState<Position | null>(initialReport?.location ?? null)
   const [passage, setPassage] = useState<PassageRef | null>(initialReport?.passage ?? null)
   const [observedAt, setObservedAt] = useState(initialReport ? localTime(initialReport.observedAt) : '')
+  const [observationEdited, setObservationEdited] = useState(false)
   const [busy, setBusy] = useState(false), [error, setError] = useState('')
   const operation = useRef<{ body: string; key: string } | null>(null)
   async function save() {
-    setError(''); setBusy(true)
+    setError(''); setBusy(true); onSavingChange?.(true)
     try {
       if (!region || !location || !passage || !observedAt) throw new Error('Choose a location, passage and actual observation time before saving.')
       const time = new Date(observedAt).toISOString()
       if (Date.parse(time) > Date.now()) throw new Error('Observation time cannot be in the future.')
-      const facts = { photoId, ...(analysisId ? { analysisId } : {}), location, passage, category, description, observedAt: time }
+      const facts = { photoId, ...(analysisId ? { analysisId } : {}), location, passage, category, description }
       const input = initialReport
-        ? UpdateReportInputSchema.parse({ ...facts, analysisId: analysisId ?? null, expectedVersion: initialReport.rowVersion })
-        : CreateReportInputSchema.parse(facts)
+        ? UpdateReportInputSchema.parse({ ...facts, analysisId: analysisId ?? null, expectedVersion: initialReport.rowVersion, ...(observationEdited ? { observedAt: time } : {}) })
+        : CreateReportInputSchema.parse({ ...facts, observedAt: time })
       const body = JSON.stringify(input)
       if (operation.current?.body !== body) operation.current = { body, key: createIdempotencyKey() }
       const report = initialReport
@@ -48,7 +50,7 @@ export function ReportForm({ photoId, analysisId, category = 'obstruction', desc
       onReportCreated(report)
     } catch (failure) {
       setError(failure instanceof ApiError ? `${failure.code}: ${failure.message}${failure.requestId ? ` Reference: ${failure.requestId}` : ''}` : errorMessage(failure))
-    } finally { setBusy(false) }
+    } finally { setBusy(false); onSavingChange?.(false) }
   }
   return <section aria-label="Report facts"><h2>{initialReport ? 'Edit observed facts' : '2. Confirm the observed facts'}</h2>
     <p>AI findings are suggestions. These fields record your own account. Saving a report does not enable avoidance.</p>
@@ -58,8 +60,8 @@ export function ReportForm({ photoId, analysisId, category = 'obstruction', desc
         if (value.success) onFactsChange?.(value.data, description)
       }}>{ReportCategorySchema.options.map((value) => <option key={value} value={value}>{value.replaceAll('_', ' ')}</option>)}</select></label>
       <label>Observation description<textarea value={description} maxLength={1000} onChange={(event) => onFactsChange?.(category, event.target.value)} /></label>
-      <label>Actually observed at · your device time<input type="datetime-local" value={observedAt} onChange={(event) => setObservedAt(event.target.value)} required /></label>
-      <button className="report-secondary" type="button" onClick={() => setObservedAt(localTime())}>Observed now · use device time</button>
+      <label>Actually observed at · your device time<input type="datetime-local" value={observedAt} onChange={(event) => { setObservedAt(event.target.value); setObservationEdited(true) }} required /></label>
+      <button className="report-secondary" type="button" onClick={() => { setObservedAt(localTime()); setObservationEdited(true) }}>Observed now · use device time</button>
       {region && <PassagePicker bbox={region.bbox} location={location} route={route} passages={passages} value={passage} preview={null}
         now={now} onLocationChange={(value) => { if (!busy) setLocation(value) }} onChange={(value) => { if (!busy) setPassage(value) }} />}
       {!region && <p>Waiting for the configured region and passages.</p>}

@@ -139,6 +139,10 @@ export function AIAnalysisFeedback({
           <p style={{ margin: '0 0 0.5rem' }}>
             The AI could not confidently identify this obstruction. Please inspect and fill in the report details manually.
           </p>
+          {result && <div>
+            <p><strong>Saved AI observation (uncertain):</strong> {result.description}</p>
+            {result.evidence.length > 0 && <><strong>Visible evidence:</strong><ul>{result.evidence.map((item, index) => <li key={index}>{item}</li>)}</ul></>}
+          </div>}
           {result?.uncertainties && (
             <p style={{ margin: '0 0 0.5rem', fontSize: '0.85rem', fontStyle: 'italic' }}>
               Reason: {result.uncertainties.join('; ')}

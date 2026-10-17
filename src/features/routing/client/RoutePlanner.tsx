@@ -30,6 +30,7 @@ export function RoutePlanner({fixture=false}:{fixture?:boolean}) {
   const [passage,setPassage]=useState<PassageRef|null>(null),[picker,setPicker]=useState(false);
   const [reportOpen,setReportOpen]=useState(false);
   const reportRefresh=useRef(new LatestRequest());
+  const layerEpoch=useRef(0);
   const [manualLng,setManualLng]=useState(''),[manualLat,setManualLat]=useState('');
   const routeRequest=useRef(new LatestRequest()),searchRequest=useRef(new LatestRequest());
   const contextRef=useRef<Context|null>(null);
@@ -48,9 +49,10 @@ export function RoutePlanner({fixture=false}:{fixture?:boolean}) {
     let disposed=false;
     let polling=false;
     let activeController:AbortController|undefined;
-    const layers=async(r:Region,signal:AbortSignal)=>{
+    const initialEpoch=++layerEpoch.current;
+    const layers=async(r:Region,expected:Context,epoch:number,signal:AbortSignal)=>{
       const [p,ps,pub,own]=await Promise.all([service.places(r.bbox,signal),service.passages(signal),service.publicReports(signal),service.mine(signal)]);
-      if(disposed||signal.aborted)return;
+      if(disposed||signal.aborted||epoch!==layerEpoch.current||!contextRef.current||contextKey(contextRef.current)!==contextKey(expected))return;
       setPlaces(p.items);setPassages(ps.items);setReports(pub.items);setMine(own.items);setTruncated(p.truncated||pub.truncated||own.truncated);setLayersUnavailable(false);
     };
     let currentRegion:Region|null=null;
@@ -61,21 +63,21 @@ export function RoutePlanner({fixture=false}:{fixture?:boolean}) {
         await service.initialize();
         const r=await service.region(activeController.signal);
         const c=await service.context(activeController.signal);
-        if(disposed)return;
+        if(disposed||activeController.signal.aborted||initialEpoch!==layerEpoch.current)return;
         currentRegion=r;setRegion(r);setRestrictions(r.routing.defaultRestrictions);setContext(c);contextRef.current=c;setContextUnavailable(false);
-        await layers(r,activeController.signal);
-      }catch(cause){if(!disposed){setError(errorMessage(cause));setLayersUnavailable(true);setContextUnavailable(true)}}
+        await layers(r,c,initialEpoch,activeController.signal);
+      }catch(cause){if(!disposed&&initialEpoch===layerEpoch.current){setError(errorMessage(cause));setLayersUnavailable(true);setContextUnavailable(true)}}
       finally{if(!disposed)setLoading(false)}
     };
     void initialize();
     const timer=setInterval(async()=>{
       if(disposed||polling||!currentRegion)return;
       polling=true;activeController=new AbortController();
-      const controller=activeController;
+      const controller=activeController,epoch=layerEpoch.current;
       const timeout=setTimeout(()=>controller.abort(),4500);
       try{
         const next=await service.context(controller.signal);
-        if(disposed||controller.signal.aborted)return;
+        if(disposed||controller.signal.aborted||epoch!==layerEpoch.current)return;
         const previous=contextRef.current;
         if(!contextCanReplace(previous,next))return;
         const changed=!previous||contextKey(previous)!==contextKey(next);
@@ -90,11 +92,11 @@ export function RoutePlanner({fixture=false}:{fixture?:boolean}) {
         }
         if(configChanged){
           replacementRegion=await service.region(controller.signal);
-          if(disposed||controller.signal.aborted)return;
+          if(disposed||controller.signal.aborted||epoch!==layerEpoch.current)return;
           // A newer config may have arrived between the two reads. Retry the snapshot next poll.
           if(replacementRegion.configVersion!==next.configVersion)return;
         }
-        if(!contextCanReplace(contextRef.current,next))return;
+        if(epoch!==layerEpoch.current||!contextCanReplace(contextRef.current,next))return;
         if(configChanged){
           currentRegion=replacementRegion;
           setRegion(currentRegion);setRestrictions(currentRegion.routing.defaultRestrictions);
@@ -102,8 +104,8 @@ export function RoutePlanner({fixture=false}:{fixture?:boolean}) {
         }
         setContext(next);contextRef.current=next;setContextUnavailable(false);
         // Retry failed layer refreshes as well as version-triggered refreshes.
-        await layers(currentRegion,controller.signal);
-      }catch(cause){if(!disposed){setContextUnavailable(true);setLayersUnavailable(true);if(cause instanceof ApiError&&cause.code==='UNAUTHENTICATED'){resetSession();setMine([]);setRoute(null);setNotice('Session expired. Reconnect to initialize a new session.')}}}
+        await layers(currentRegion,next,epoch,controller.signal);
+      }catch(cause){if(!disposed&&epoch===layerEpoch.current){setContextUnavailable(true);setLayersUnavailable(true);if(cause instanceof ApiError&&cause.code==='UNAUTHENTICATED'){resetSession();setMine([]);setRoute(null);setNotice('Session expired. Reconnect to initialize a new session.')}}}
       finally{clearTimeout(timeout);polling=false}
     },5000);
     return()=>{disposed=true;clearInterval(timer);activeController?.abort();routes.cancel();searches.cancel();refreshReport.cancel()};
@@ -144,17 +146,17 @@ export function RoutePlanner({fixture=false}:{fixture?:boolean}) {
     finally{if(task.current())setPlanning(false)}
   }
   async function reportChanged(){
-    const task=reportRefresh.current.begin();
+    const task=reportRefresh.current.begin(),epoch=++layerEpoch.current;
     inputEpoch.current++;routeRequest.current.cancel();setPlanning(false);setInputChanged(true);
     setContextUnavailable(true);setLayersUnavailable(true);
     setNotice('Your report changed. Recalculate to use the current personal and public conditions.');
     try{
       const next=await service.context(task.signal);
       const [pub,own]=await Promise.all([service.publicReports(task.signal),service.mine(task.signal)]);
-      if(!task.current()||!region||next.configVersion!==region.configVersion||!contextCanReplace(contextRef.current,next))return;
+      if(!task.current()||epoch!==layerEpoch.current||!region||next.configVersion!==region.configVersion||!contextCanReplace(contextRef.current,next))return;
       setContext(next);contextRef.current=next;setReports(pub.items);setMine(own.items);
       setContextUnavailable(false);setLayersUnavailable(false);
-    }catch(cause){if(task.current())showError(cause)}
+    }catch(cause){if(task.current()&&epoch===layerEpoch.current)showError(cause)}
   }
   const stale=!!route&&(inputChanged||contextUnavailable||routeOutdated(route,context,now));
   const wait=Math.max(0,Math.ceil((retryAt-now)/1000));

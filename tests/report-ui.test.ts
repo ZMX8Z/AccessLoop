@@ -3,6 +3,7 @@ import test from 'node:test'
 import React from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { PhotoUpload } from '../src/features/hazards/client/PhotoUpload'
+import { AIAnalysisFeedback } from '../src/features/hazards/client/AIAnalysisFeedback'
 import { ReportForm } from '../src/features/hazards/client/ReportForm'
 
 test('external AI consent starts unchecked until the person selects it', () => {
@@ -18,4 +19,19 @@ test('report facts require an editable observation time instead of fabricating s
   }))
   assert.match(html, /type="datetime-local"/)
   assert.doesNotMatch(html, /passage-library-walk|passage-ancete-walk|passage-quadrangle/)
+})
+
+
+test('uncertain AI findings still expose the saved description, evidence and uncertainty', () => {
+  const html = renderToStaticMarkup(React.createElement(AIAnalysisFeedback, {
+    analysis: { analysisId: 'analysis-uncertain', photoId: 'photo-uncertain', aiStatus: 'uncertain', unavailableReason: null,
+      model: 'glm-4.6v-flash', promptVersion: '1', schemaVersion: '1', createdAt: '2020-01-01T00:00:00.000Z', cacheHit: false,
+      result: { image_quality: 'poor', hazard_present: true, category: 'obstruction', visible_passage: 'unknown',
+        description: 'The path edge is partially visible.', evidence: ['A bin covers part of the frame.'], uncertainties: ['The whole passage is outside the frame.'] } },
+    isLoading: false, onApplyFindings: () => undefined, onManualFallback: () => undefined,
+  }))
+  assert.match(html, /The path edge is partially visible/)
+  assert.match(html, /A bin covers part of the frame/)
+  assert.match(html, /The whole passage is outside the frame/)
+  assert.match(html, /Continue with Manual Details/)
 })

@@ -109,3 +109,21 @@ test('report changes preserve journey inputs, invalidate the old route and never
  (nodes.find(node=>node.type==='button'&&text(node)==='Recalculate route →')!.props.onClick as ()=>void)();await flush();
  assert.equal(inputs.length,2);assert.deepEqual(inputs[1],inputs[0]);
 });
+
+test('a delayed pre-save poll cannot replace the freshly published personal report layer', async () => {
+ const service=createFixtureService();const initial=await service.context();let contexts=0,mines=0;
+ const next:Context={...initial,personalVersion:1,activeDigest:'after-report-save',evaluatedAt:new Date(Date.parse(initial.evaluatedAt)+1000).toISOString()};
+ service.context=async()=>++contexts<=2?initial:next;
+ let releaseOldMine!:(value:Awaited<ReturnType<typeof service.mine>>)=>void;
+ const saved={id:'new-report',location:fixturePlaces[0].location,description:'Freshly saved personal observation.',status:'pending' as const,personalAvoidance:null};
+ service.mine=async()=>{mines++;if(mines===2)return new Promise(resolve=>{releaseOldMine=resolve});return {items:mines>=3?[saved]:[],truncated:false}};
+ const app=host(service);app.render();app.effects.forEach(effect=>effect());await flush();
+ const oldPoll=app.intervals.find(timer=>timer.ms===5000)!.run();await flush();
+ assert.equal(mines,2);
+ let nodes=app.render();(nodes.find(node=>node.type==='button'&&text(node)==='Report an obstacle')!.props.onClick as ()=>void)();
+ nodes=app.render();const wizard=nodes.find(node=>'onChanged' in node.props&&'passages' in node.props)!;
+ await (wizard.props.onChanged as ()=>Promise<void>)();
+ assert.match(text(app.render()[0]),/Freshly saved personal observation/);
+ releaseOldMine({items:[],truncated:false});await oldPoll;
+ assert.match(text(app.render()[0]),/Freshly saved personal observation/,'A prior poll may not erase the acknowledged report.');
+});
