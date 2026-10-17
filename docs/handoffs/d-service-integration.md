@@ -24,3 +24,8 @@ Vision 调用可复用 `ProviderGate.run({service:'vision', keyFingerprint, poli
 ## Fixture 与固定路线
 
 `src/shared/fixtures/d-routing.ts` 是带 provenance 的合成契约样例，仅供单元/接线测试。不能落成“已实测”校园数据。真实区域/通道/起终点须以 D 的校园资料与 ORS 实测记录替换并经 C 受控导入；线上默认不得安装测试 fakeRepository。
+
+
+## OSS 本机连接补充
+
+用户已补齐OSS五项配置，D本机通过S3兼容上传/读取/匿名拒绝/签名有效与过期/删除验证；配置参数和证据见[部署记录](../deployment/README.md#oss-接入实测参数交接给-c)。C在所属photos配置/存储适配器接入这些已验证选项；D未改Payload配置或Collections。基础OSS权限通过不代替照片API的归属、去EXIF和授权代理验收。

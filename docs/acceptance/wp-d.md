@@ -69,3 +69,10 @@ D同步该base并加入离线校园交接后，`pnpm check` exit0：108通过、
 [B阶段审查](../handoffs/b-integration-review.md)未通过准入：正常业务路径桩回退掩盖真实失败等问题待B修复。D P0/P1整体判定保持未完成。
 
 本次准备阶段 codeEvidenceCommit/headCommit：`08f160dad39777e26841c69339114811bd9cda67`；baseDevCommit：`5e4867d8b6141aacbc8fc4988f4aa41287bd370a`。后续仅执行记录提交不改变运行代码，最终deliveryHead与集成提交见本阶段PR元数据。
+
+
+## OSS 本机真实连接验证
+
+baseDevCommit/codeEvidenceCommit=`d3e06bded36f2ca4cef98cd2a802dc633acf8a01`。用户更新主目录.env后，D仅同步五项OSS配置，未修改运行源码/依赖/迁移。独立生产配置检查exit0；health/PG/TLS探针通过。真实S3兼容探针完成上传、读取、私有匿名拒绝、签名有效/过期及删除；9项最终检查通过，两个自建探针对象均清理，见[JSON证据](../deployment/oss-connection-evidence.json)。首次短签名时序失败保留且未计通过。
+
+本轮没有产品代码变化，不重复全量构建和供应商路由调用；复用同运行树的C0集成证据。OSS配置/本机基础权限阻塞已解除；C照片API与会话隔离、GLM、Zenith和最终P0/P1仍未通过。

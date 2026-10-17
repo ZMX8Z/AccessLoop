@@ -5,10 +5,12 @@
 ## 当前状态
 
 - 已准备：不含秘密值的配置、health、PostgreSQL 和 TLS 出网探针；带 SHA-256 的自定义格式备份、独立空库恢复脚本；发布/恢复步骤与演示草案。
-- 持久本机开发库已配置、迁移/重启/密码认证及SELECT1通过；管理员已受控初始化并通过Local API登录/身份验证，见[本机开发库](local-development-db.md)。这不代表C业务或B后台挂载已通过。
+- 持久本机开发库已配置、迁移/重启/密码认证及SELECT1通过；管理员已受控初始化并通过Local API登录/身份验证，见[本机开发库](local-development-db.md)。C0持久仓储/匿名会话/预算已进入dev，见[C0集成验收](../acceptance/c0-integration.md)；C1照片/AI/报告和B后台正式挂载仍待交付。
 - 本地数据库实测：见 [local-recovery-evidence.json](local-recovery-evidence.json)。该记录只证明隔离本地 PostgreSQL 的相应步骤，不能替代 Zenith、照片、真实业务预算、会话或到期行为验收。
 - 本机 TLS 实测：2026-10-17，ORS 与 GLM 的 TLS 握手成功；没有发送供应商 API 请求或验证密钥、模型权限、地理覆盖。此结果不能推导 Zenith 出网情况。
-- Zenith、OSS、真实 ORS/Geocoding、GLM 核心链路及真实业务重启恢复：仍需现场配置并执行。没有线上入口，因此尚未生成二维码。
+- ORS/Geocoding经C持久预算各一次真实HTTP200，专用PG重启保留预算和事件，见[供应商连接证据](provider-connection-evidence.json)。不代表公众路线/搜索闭环已过。
+- 用户已补齐OSS五项配置并同步D环境；本机S3兼容上传、授权读取、匿名403、签名读取/过期403、删除/404均真实通过，见[OSS连接证据](oss-connection-evidence.json)。两次随机合成探针对象均已删除；没有读取已有对象。
+- Zenith、GLM、C1照片授权/报告、完整业务重启恢复和四包UI闭环仍待验证。没有线上入口，因此尚未生成二维码。
 
 ## 脱敏探针
 
@@ -29,8 +31,8 @@ pnpm exec tsx scripts/deployment-probe.ts --http --database --egress
 
 1. 比赛提供的 Zenith 模板/项目入口及部署权限：确认 Node/容器方式、构建命令、PORT、资源、持久化、出网、密钥注入、健康检查与发布审核。公开页面没有给出比赛模板的 manifest Schema，本仓库未据此编造配置。
 2. 真实部署地址；PostgreSQL 连接与持久化资源；稳定且分别配置的 PAYLOAD_SECRET、SESSION_SECRET。
-3. OSS_ENDPOINT、OSS_BUCKET、OSS_REGION 及只允许指定私有前缀操作的 OSS_ACCESS_KEY_ID/OSS_ACCESS_KEY_SECRET；C 的实际上传、授权读取与备份目标。
-4. ORS_API_KEY 及可用的 Geocoding 权限/分服务预算；VISION_API_KEY 和实际模型权限。调用只能经已持久化的预算预留。
+3. OSS本机配置和基础读写已验证；C仍需接入实际照片上传、授权代理与备份目标，Zenith环境须重新验证。秘密不进入提交或浏览器。
+4. ORS/Geocoding密钥与权限已实测；VISION_API_KEY已配置，但模型权限和独立Vision预算待C1。调用继续经已持久化的预算预留。
 5. D 的现场通道测量记录；已有带官方 GIS/OSM 来源的[校园候选](campus-survey.md)，仍需现场与真实 ORS 核验。另需 A/B/C 最新阶段集成代码，未取得实测证据不能称已验证可通行。
 
 以上是所需资源类别，不要求将任何秘密填入提交或聊天。探针的存在性结果应在目标部署里重新生成。
@@ -61,3 +63,12 @@ bash -n scripts/backup-restore.sh
 全应用仍须在待交付提交执行 package.json 的统一检查与构建。演示草案见 [demo-120s.md](demo-120s.md)。
 
 部署接入发现补充：本会话使用 Plugin Management 搜索 Zenith，未返回可直接连接的插件。此结果不代表没有其他集成途径；仍可使用官方提供的项目模板/连接流程。
+
+
+## OSS 接入实测参数交接给 C
+
+本机实测使用已锁定的`@payloadcms/storage-s3`所依赖AWS SDK 3.1152.0，`forcePathStyle:false`、`requestChecksumCalculation:'WHEN_REQUIRED'`、`responseChecksumValidation:'WHEN_REQUIRED'`，固定HTTPS外网endpoint；应用显式读取OSS配置，不依赖SDK自行识别OSS环境变量。此配置通过一个随机合成对象验证，不是对Payload照片插件/业务权限的验收。
+
+[阿里云官方兼容说明](https://www.alibabacloud.com/help/en/oss/developer-reference/compatibility-with-amazon-s3)要求virtual-hosted寻址；本次读取/写入/删除在该方式真实成功。C实现和挂载photos时复用已验证参数，保留现有API规定的应用授权代理。签名URL仅在服务端探针内用于兼容/到期检查，没有交给前端或写入证据。
+
+首次2秒签名在匿名检查之后得到403，无法区分提前过期；该次结果未计作签名通过。后续用30秒链接验证200，并用另一条2秒链接先得到200、等待后得到403，才记录过期通过。证据保留原失败，不修改Bucket权限以绕过问题。生产配置存在性检查`pnpm exec tsx scripts/check-environment.ts`已exit0；尚未据此声称Zenith或完整生产流程通过。
