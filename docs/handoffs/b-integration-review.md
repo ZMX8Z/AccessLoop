@@ -36,3 +36,10 @@
 主 agent 使用 TypeScript CompilerHost 在内存中将固定 B hazards.ts 及其 barrel export 叠加到当前 D/dev；没有改磁盘或切分支。实际得到 5 条 TS2308，分别为 AvoidGeometry、AvoidGeometrySchema、InstantSchema、PresetPassageDTO、RegionDTO。这是精确的共享类型冲突证据，不声称已运行整个 B 合并构建。
 
 修复应由 B 在固定分支同步 dev 并交付阶段 PR。最低复验：断开 API 后不显示保存/确认/审核成功；401/403/409 保留错误和输入；缺独立证据拒绝核实；两个会话的私人导出互不可读；合并后的共享契约、类型、构建通过。正式后台挂载和真实上报仍需 C/A 联调。
+
+
+## PR #8 最新核对（2026-10-17）
+
+扫描全部开放PR后发现[#8](https://github.com/ZMX8Z/AccessLoop/pull/8)原目标为main，因此此前只筛dev的交付查询遗漏了该PR。D已按唯一集成目标约定将base修正为dev；head仍为本报告已审查的`adc42779af23db231b6b3a46d479751dc4e54162`，没有新修复提交。主agent再次读取AvoidanceDrawer.tsx:66–76（实际预览固定useMock=true）及client/api.ts，原真实失败/演示混用阻塞仍成立；没有合入。
+
+C15已从B旧版式适配真实后台组件并正式挂载，这不代表B整个报告分支已通过。B后续应同步当前dev中的C正式Schema、A请求工具和C已挂载组件，避免以旧hazards.ts或同名admin组件覆盖已集成实现。

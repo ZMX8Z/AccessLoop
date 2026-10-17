@@ -299,9 +299,11 @@ MVP 采用“服务端拒绝超预算请求 + 前端等待倒计时”，不依�
 
 HeiGIT POI 是独立的 openpoiservice，不是自托管 ORS 自带模块。[S7] API 迁移公告对应的地址为 https://api.heigit.org/openpoiservice/v0/pois；地址搜索对应 https://api.heigit.org/pelias/v1。[S5] 分类 ID、请求体和返回标签以实际 API Playground 和目标账号响应为准，不能从地图页面样式猜测字段。
 
-先用目标区域测试厕所、入口及休息点等所需类别，核对是否真的有 wheelchair 相关字段。建议地点缓存 15 分钟并记录 fetched_at，不对用户承诺实时状态。少量预设演示地点应标明数据来源与演示属性；不能把人工种子数据写成刚从 API 获得的完整覆盖。
+先用目标区域测试厕所、入口及休息点等所需类别，核对是否真的有 wheelchair 相关字段。地点按区域、configVersion 和适配器来源隔离，成功结果缓存 24 小时并记录 fetched_at，不对用户承诺实时状态。少量预设演示地点应标明数据来源与演示属性；不能把人工种子数据写成刚从 API 获得的完整覆盖。
 
-若 POI 字段不足，可接入 Overpass 查询 OSM 标签，或评估 accessibility.cloud。后者官方文档描述非商业免费访问、Token 可见范围和数据源许可约束；取得 Token 不代表获得所有合作方数据。[S9]这些接入属于后续选择，不作为 P0 同时接三家服务的前提。
+若 POI 字段不足或目标服务不可用，可接入 Overpass 查询 OSM 标签，或评估 accessibility.cloud。后者官方文档描述非商业免费访问、Token 可见范围和数据源许可约束；取得 Token 不代表获得所有合作方数据。[S9]这些接入属于后续选择，不作为 P0 同时接三家服务的前提。
+
+当前适配器由部署配置选择：默认 Overpass，或显式 HeiGIT。Overpass 仅允许固定 HTTPS interpreter，读取 node 坐标及 way/relation 的 bbox 中心；中心是地图选点，并不证明其为真实可通行入口。查询仅取区域内厕所、休息点、入口及含 wheelchair 标签的对象，源返回最多102项，公开最多100项；源截断标记必须穿过区域过滤、去重及缓存保留。原始 wheelchair/toilets:wheelchair 缺失或冲突仍为 unknown。HTTP200 的 remark、坏坐标、非法 JSON 均按失败处理，不缓存为无结果。读取上限1 MiB、总超时8秒，门禁按该单次上限判断剩余15秒预算；公共端点不发送 ORS 密钥。源身份指纹独立计入 C 持久 poi 预算，默认10次/分钟、450次/24小时；固定全区域成功缓存避免拖图逐次请求，失败不自动切换来源。[S22][S23]
 
 地图底图、地点数据、路线数据和用户报告各自保留来源。使用 OSM 公共瓦片时显示清晰署名，遵守缓存政策，不做批量下载或预取；瓦片地址使用配置项，便于替换服务。[S10]
 
@@ -373,7 +375,10 @@ P0 不做完整公众账号，以服务器生成的不可预测匿名会话标�
 | OSS_SIGNED_URL_TTL_SECONDS | 建议 300；授权后生成的文件临时访问链接有效期 | 服务端配置 |
 | ORS_API_KEY | HeiGIT API Key | 服务端秘密 |
 | ORS_BASE_URL | https://api.heigit.org/openrouteservice | 服务端固定允许列表 |
-| POI_BASE_URL | https://api.heigit.org/openpoiservice/v0 | 服务端固定允许列表 |
+| POI_PROVIDER | 默认 overpass；可显式 heigit | 服务端固定选择；不接受请求代理地址 |
+| OVERPASS_BASE_URL | https://overpass-api.de/api/interpreter | 服务端固定允许列表；无 ORS 凭据 |
+| POI_BASE_URL | https://api.heigit.org/openpoiservice/v0；仅 heigit 使用 | 服务端固定允许列表 |
+| POI_RPM / POI_DAILY_BUDGET | 默认10与450，独立 poi 服务持久门禁 | 服务端可配置 |
 | ORS_RPM / ORS_DAILY_BUDGET | 建议 30 与 1800，共享门禁预算 | 服务端可配置 |
 | VISION_PROVIDER / VISION_MODEL / VISION_API_KEY | 默认 glm / glm-4.6v-flash，原生图片和工具参数提取，后端严格校验；密钥 | 服务端；缺省可启动和人工降级，不计 AI 验收完成 |
 | VISION_SCHEMA_VERSION / VISION_PROMPT_VERSION | 输出契约与提示词版本，参与分析缓存键和审计 | 服务端固定配置 |
@@ -381,6 +386,7 @@ P0 不做完整公众账号，以服务器生成的不可预测匿名会话标�
 | PERSONAL_AVOIDANCE_TTL_SECONDS / PUBLIC_HAZARD_TTL_SECONDS | 建议个人 3600 秒、公共 86400 秒 | 服务端可配置运营值 |
 | MAP_TILE_URL / MAP_ATTRIBUTION | 底图地址与署名 | 允许公开 |
 | SESSION_SECRET | 匿名会话签名或加密 | 服务端秘密；每实例独立 |
+| TRUSTED_MAINTAINER_REFERENCES | JSON字符串数组，默认空数组，最多100个受控来源引用 | 服务端维护方名单；客户端自报不能建立可信身份 |
 
 变量名称为应用配置约定，不能直接当作已确认的 Zenith manifest 字段。`payload.config.ts` 将 DATABASE_URL 映射到 PostgreSQL 适配器，将 OSS_* 映射到 OSS 存储适配层的 endpoint、bucket、region、credentials 及签名有效期，不能假定插件会自动读取这些应用变量。S3 兼容接入固定 `forcePathStyle: false`，保留 Payload 文件访问控制；配置由统一存储封装读取。生产环境缺少 PAYLOAD_SECRET、数据库或 OSS 必要配置时启动失败，不退回临时文件存储。秘密不得冠以 NEXT_PUBLIC_；公开构建变量与运行时服务端配置分别管理。[S8][S17][S20]
 
@@ -480,6 +486,10 @@ P0 不做完整公众账号，以服务器生成的不可预测匿名会话标�
 
 - [S21 阿里云 OSS Node.js SDK 与私有对象签名下载](https://www.alibabacloud.com/help/en/oss/developer-reference/download-objects-using-a-presigned-url-generated-with-oss-sdk-for-node-js)
 
+
+- [S22 Overpass官方查询手册](https://dev.overpass-api.de/overpass-doc/en/criteria/per_tag.html)
+
+- [S23 Overpass官方数据格式与center](https://dev.overpass-api.de/overpass-doc/en/targets/formats.html)
 
 ## 15 D 服务实现接线记录（2026-10-17）
 
