@@ -120,3 +120,17 @@ PR head=`3b5e8db54b1098dbd61c22acb12aca09a8b0edbd`，target dev=`2f38fcdc449c400
 
 
 本次统一运行证据提交为 `09946eb9f4ceaaa34e141a5554286484b1f01fe6`，同步base为 `1b17f3cfb6c787fb96d0dc01f098d3f3ea9f7b14`；`pnpm check`149通过/3跳过、生产构建exit0。阶段PR记录deliveryHead与最终集成SHA；完整命令、独立审查和限制见本次集成记录。
+
+
+## C15 后续集成与地点/恢复阶段（当前状态）
+
+C15已合入dev 6dfd3c559842b462d3139b89628e033995110bde；本D阶段以此为base，最终产品证据5b4ba4ced0ee721ab0948f9eaa9c825471209e6e。deliveryHead及integratedDevCommit由本阶段PR元数据锁定。完整命令、独立Standards/Spec与限制见[最新阶段](../acceptance/d-post-c15-integration.md)，C见[C15验收](../acceptance/c15-integration.md)。前述历史“C1未交付/无B PR”已经更新为本节状态。
+
+- P0：C照片/人工报告/自动预览/明确确认及授权导出生产HTTP、真实OSS双会话权限通过；A地图使用C正式Schema。D地点适配/24h缓存/截断/预算已实现，但真实HeiGIT非法NaN、Overpass406，地点实时能力未通过；校园未实测。
+- P0/P1：新增真实PG的C管理→D快照/路由缓存/各自routeRef→A过时判断回归1/1，通过个人隔离、重新核实、双会话公共集、自然到期、解除/重开；ORS为桩，未计导航验收。
+- P1：C后台、区域命令、受保护真实摘要及原生旁路边界已挂载和生产HTTP复验；B公众报告流程仍在修复，P0/P1浏览器总闭环待验。
+- 部署恢复：本机生产bundle的真实私有照片/合成报告/确认、原Cookie、预算事件重启与独立空库恢复通过；自然到期不复活，末次时间窗断言失败及独立复核均保留。Zenith和OSS对象独立备份回填未验证，测试归档不能当可用生产照片备份。
+- 最终check：191通过、0失败、11项默认集成跳过；build exit0；本地日志与可提交脱敏证据可追踪，未重复GLM/ORS实测。
+- 最新PR：C15已合入；B8已修正base为dev，旧head仍阻塞，修复使用B固定分支/独立工作树。D14集成SHA为1d2cd2b9b3420a9b0c072a3b54ec258839a95b19。
+
+当前仍无Zenith在线入口或二维码。最小外部缺项：可用GLM账号响应、可用实时地点源、校园固定通道实测资料、Zenith真实项目/模板/部署权限。用户已提供数据库/OSS/ORS/Vision和管理员配置，不能再将“缺OSS密钥”列作阻塞。人工继续按所属MANUAL操作；未实测数据不导入生产。

@@ -1,0 +1,68 @@
+{
+  "recordedAt": "2026-10-17T12:26:06.646Z",
+  "status": "passed",
+  "stage": null,
+  "bundleCodeEvidenceCommit": "483da3ac45ebee51f95367675cfbbf0f13e405b6",
+  "integratedBaseCommit": "6dfd3c559842b462d3139b89628e033995110bde",
+  "scope": "Local production application restart and empty-database restore; one generated image and synthetic report; no real-world observation or external model/routing request",
+  "backupChecksum": "956d407dc0fa7fb108c8c2340d62f2a036519f0cdc9af6ee1f5c70b0214a0d73",
+  "beforeCounts": {
+    "reservations": 4,
+    "events": 6,
+    "admins": 1,
+    "migrations": 5
+  },
+  "summaryBefore": {
+    "windowStart": "2026-10-16T12:25:09.718Z",
+    "windowEnd": "2026-10-17T12:25:09.718Z",
+    "services": {
+      "ors": {
+        "calls": 2,
+        "waits": 0,
+        "errors": 1,
+        "cacheHits": 0
+      },
+      "vision": {
+        "calls": 1,
+        "waits": 0,
+        "errors": 1,
+        "cacheHits": 0
+      }
+    }
+  },
+  "checks": {
+    "activeBeforeRestart": true,
+    "otherSessionPhotoDenied": true,
+    "backupCreated": true,
+    "reportPhotoAndConfirmationSurviveAppRestart": true,
+    "realProviderBudgetsAndEventsSurviveRestart": true,
+    "emptyDatabaseRestoreWithMatchingChecksum": true,
+    "realProviderBudgetsAndEventsRestored": true,
+    "originalCookieReportPhotoAndConfirmationRestored": true,
+    "photoAuthorizationSurvivesRestore": true,
+    "naturalExpiryChangesDigestWithoutVersionWrite": true,
+    "expiredAvoidanceDoesNotReviveAfterRestart": true,
+    "ownedSyntheticSourceRecordsAndOssPhotoCleaned": true,
+    "ownedRestoredDatabaseRemoved": true,
+    "sourceBudgetAndSummaryUnchanged": true
+  },
+  "limitations": [
+    "Not a Zenith deployment or infrastructure recovery.",
+    "Synthetic report/photo; no campus accessibility or AI accuracy acceptance.",
+    "Private archive retained under ignored .local/backups; no credentials, cookie, object key or archive contents included.",
+    "Synthetic OSS test object and source fixture were removed after successful restored reads. The retained private test archive is not a reusable production photo backup; OSS object deletion/version restoration was not tested."
+  ],
+  "initialVerificationAttempt": {
+    "status": "failed",
+    "stage": {
+      "stage": "expired_restore",
+      "code": "VERIFICATION_FAILED"
+    },
+    "reason": "The final probe assertion compared a newly moving summary window with the original window. The service counters were re-read for the identical original window below; no photo or upstream request was repeated."
+  },
+  "postCheck": {
+    "recordedAt": "2026-10-17T12:26:43.525Z",
+    "identicalWindowSummaryMatched": true,
+    "sourceCountsMatched": true
+  }
+}

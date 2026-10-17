@@ -4,7 +4,7 @@
 
 已确定技术栈：**Next.js + Payload + PostgreSQL + 阿里云 OSS 私有对象存储**。照片由阿里云托管，应用通过服务端存储适配器访问 OSS。Payload 提供数据管理、管理员认证及 Payload Admin；AI 识别、用户确认、个人避让与 ORS 路线由 AccessLoop 业务服务实现。
 
-本轮交付完整 P0 与 P1：个人绕行闭环、地点搜索和 Payload Admin 公共核实/纠错。四人共用同一仓库，分别使用固定开发分支及独立工作目录，所有阶段成果合入 dev。统一 Next.js + Payload 骨架已初始化；D 的地理、路由、预算门禁、搜索与调用摘要服务已实现并进入阶段验证。C0真实仓储/匿名会话/持久预算已合入，ORS/Geocoding和本机OSS连接已验证；A0设计演示/公共客户端与C1图片/供应商准备模块已合入；GLM最新实测仍429/1305，正式C1照片/AI/报告、A/B真实页面联调及Zenith部署尚未完成，不代表完整 P0/P1 已通过。
+本轮交付完整 P0 与 P1。四包共用一个 Next.js + Payload 应用，固定分支的阶段 PR 串行合入 dev。C0–C3 的真实仓储、照片/报告/确认、公共管理、区域命令和后台已集成；A0 公共客户端及手机修复已集成。ORS/Geocoding、本机 OSS/双会话照片权限及业务重启/空库恢复已验证；D 新增地点来源、持久缓存和跨包公共路由回归。最新真实 GLM 仍返回429/1305，地点源实测分别遇到 HeiGIT 非法 JSON 与 Overpass 406；B 报告前端仍在修复，校园现场与 Zenith 尚未完成。阶段通过不表示完整 P0/P1 已通过。
 
 先阅读 [AI 协作入口](AGENTS.md)，再进入 [四人工作包目录](docs/work-packages/README.md)，选择自己的 START.md 执行。
 

@@ -1,0 +1,45 @@
+{
+  "latestProvider": "overpass",
+  "heigit": {
+    "recordedAt": "2026-10-17T12:28:29.077Z",
+    "codeEvidenceCommit": "b9bb61c9f59185783abb4abf1b44d7550c8230d5",
+    "baseDevCommit": "6dfd3c559842b462d3139b89628e033995110bde",
+    "httpAttempts": 1,
+    "httpStatuses": [
+      200
+    ],
+    "elapsedMs": 1286,
+    "budget": "C persistent atomic repository via D ProviderGate, independent poi service",
+    "scope": "Fixed public Kensington bounding box connectivity/data probe; no field validation or live navigation acceptance",
+    "passed": false,
+    "code": "INVALID_PROVIDER_RESULT",
+    "limitations": [
+      "Unknown source tags remain unknown.",
+      "Campus candidate not imported as a production or surveyed region."
+    ],
+    "provider": "heigit",
+    "diagnosis": "HTTP 200 with non-JSON NaN bbox values was strictly rejected; not normalized into empty success."
+  },
+  "overpass": {
+    "recordedAt": "2026-10-17T12:35:12.469Z",
+    "provider": "overpass",
+    "endpoint": "https://overpass-api.de/api/interpreter",
+    "codeEvidenceCommit": "5b4ba4ced0ee721ab0948f9eaa9c825471209e6e",
+    "baseDevCommit": "6dfd3c559842b462d3139b89628e033995110bde",
+    "httpAttempts": 1,
+    "httpStatuses": [
+      406
+    ],
+    "elapsedMs": 1481,
+    "budget": "C persistent atomic repository via D ProviderGate; poi service; actual usage records retained",
+    "scope": "Fixed public Kensington bbox connectivity with temporary probe-only region metadata, not persisted as a surveyed or production region",
+    "passed": false,
+    "code": "PROVIDER_UNAVAILABLE",
+    "probeCacheCleaned": true,
+    "limitations": [
+      "No physical accessibility or live navigation acceptance.",
+      "Missing/conflicting source labels remain unknown.",
+      "No ORS, model or Geocoding call."
+    ]
+  }
+}
