@@ -1,0 +1,181 @@
+{
+  "recordedAt": "2026-10-17T14:15:00.008Z",
+  "status": "passed",
+  "baseDevCommit": "2d85e52c7e488c706f1fad606a67ebf55ec317d2",
+  "codeEvidenceCommit": "938cfc29d2b91f31102f562b5a1ffc8ff2de863c",
+  "checks": {
+    "pnpmCheck": {
+      "passed": 262,
+      "skipped": 11,
+      "failed": 0
+    },
+    "pnpmBuildExit": 0,
+    "specReview": {
+      "passed": 63,
+      "skipped": 0
+    },
+    "standardsReview": {
+      "passed": 25,
+      "skipped": 0
+    }
+  },
+  "coverageProbe": {
+    "recordedAt": "2026-10-17T14:05:47.921Z",
+    "status": "passed",
+    "httpStatus": 200,
+    "calls": 1,
+    "elapsedMs": 1603,
+    "items": 15,
+    "truncated": false,
+    "scope": "Public Kensington bbox provider coverage probe; no production seed, field observation or route claim."
+  },
+  "facilityDatasetCounts": {
+    "Australian National Public Toilet Map": 4,
+    "Wheelmap OSM Mirror": 11
+  },
+  "earlierFailures": [
+    {
+      "recordedAt": "2026-10-17T14:03:28.080Z",
+      "status": "failed",
+      "httpStatus": 200,
+      "calls": 1,
+      "elapsedMs": 1779,
+      "code": "INVALID_PROVIDER_RESULT"
+    },
+    {
+      "recordedAt": "2026-10-17T14:03:49.991Z",
+      "status": "failed",
+      "httpStatus": 200,
+      "calls": 1,
+      "elapsedMs": 189,
+      "code": "INVALID_PROVIDER_RESULT"
+    }
+  ],
+  "metadataProbe": {
+    "httpStatus": 200,
+    "calls": 1,
+    "elapsedMs": 2149,
+    "scope": "selected public non-draft source and license metadata only"
+  },
+  "temporaryBrowserVerification": {
+    "recordedAt": "2026-10-17T14:15:00.008Z",
+    "codeEvidenceCommit": "938cfc29d2b91f31102f562b5a1ffc8ff2de863c",
+    "baseDevCommit": "2d85e52c7e488c706f1fad606a67ebf55ec317d2",
+    "scope": "Local production build, temporary explicitly synthetic bbox; real browser OSM tiles and real supplementary facility information; no field/route/Zenith acceptance",
+    "totals": {
+      "poi": {
+        "calls": 4,
+        "errors": 3,
+        "cacheHits": 2
+      },
+      "ors": {
+        "calls": 0,
+        "errors": 0,
+        "cacheHits": 0
+      },
+      "vision": {
+        "calls": 0,
+        "errors": 0,
+        "cacheHits": 0
+      },
+      "geocoding": {
+        "calls": 0,
+        "errors": 0,
+        "cacheHits": 0
+      }
+    },
+    "observations": {
+      "codeEvidenceCommit": "938cfc29d2b91f31102f562b5a1ffc8ff2de863c",
+      "facilityCount": 15,
+      "desktop": {
+        "width": 1280,
+        "scrollWidth": 1280,
+        "loadedTiles": 15,
+        "tileOrigin": "https://tile.openstreetmap.org"
+      },
+      "mobile": {
+        "loadedTiles": 15,
+        "scrollWidth": 360,
+        "width": 360
+      },
+      "checks": {
+        "mapMarkerSelectsStart": true,
+        "listSelectsDestination": true,
+        "unknownPreserved": true,
+        "datasetAndLicenseVisible": true,
+        "osmCopyrightLinkVisible": true,
+        "primaryFailureVisible": true,
+        "truncatedInventoryWarningVisible": true,
+        "planButtonOnlyEnabledAfterPoints": true,
+        "noRouteRequested": true
+      }
+    },
+    "cleanup": {
+      "serverStopped": true,
+      "ownCloudCacheRemoved": true,
+      "ownSyntheticRegionPassageAndSessionsRemoved": true
+    },
+    "initialBuildCommit": "05b56d087a8d07eb380eb574664149ec86df4571",
+    "cacheCleanupVerification": {
+      "ownCacheFound": 1,
+      "ownCacheRemoved": true
+    }
+  },
+  "persistentLedgerAfterRetainedDemo": {
+    "cloudKeyPersistentReservations": 6,
+    "browserPeriodEvents": {
+      "poi": {
+        "calls": 6,
+        "errors": 4,
+        "cacheHits": 2
+      },
+      "ors_directions": {
+        "calls": 0,
+        "errors": 0,
+        "cacheHits": 0
+      },
+      "vision": {
+        "calls": 0,
+        "errors": 0,
+        "cacheHits": 0
+      },
+      "geocoding": {
+        "calls": 0,
+        "errors": 0,
+        "cacheHits": 0
+      }
+    }
+  },
+  "stageRealRequests": {
+    "cloud": 6,
+    "primaryOverpass": 4,
+    "allPoi": 10,
+    "poiErrors": 6,
+    "poiCacheHits": 2,
+    "orsDirections": 0,
+    "geocoding": 0,
+    "vision": 0
+  },
+  "retainedLocalEntry": {
+    "url": "http://localhost:3000/live",
+    "regionId": "unsw-kensington-facilities-demo",
+    "isDemo": true,
+    "syntheticPresetPassages": 1,
+    "surveyedPassages": 0,
+    "existingRegionReplaced": false,
+    "firstEmptyPassageSeed": "rejected by shared Schema before writes or providers; corrected to explicitly synthetic demo passage"
+  },
+  "entryChecks": {
+    "health": 200,
+    "live": 200,
+    "adminLogin": 200,
+    "cmsMeAnonymousUserNull": true,
+    "adminUsageAnonymous": 401
+  },
+  "limits": [
+    "temporary/retained demonstration coverage only; no campus field validation",
+    "primary Overpass remains unavailable; supplementation is incomplete",
+    "no final ORS/search/public management closure or Zenith acceptance",
+    "initial locale-name parser failures retained; repaired using offline response replay"
+  ]
+}

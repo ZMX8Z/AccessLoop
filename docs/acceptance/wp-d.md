@@ -1,6 +1,8 @@
 # D 技术验收：服务基础阶段（P0/P1）
 
-当前模型阶段见[付费GLM验收](../acceptance/d-paid-vision.md)：用户指定glm-4.6v并确认充值，本机真实私有照片分析/重放/缓存通过；全量check220通过/11跳过，build exit0。前次[四包集成](../acceptance/d-four-package-integration.md)及以下旧模型失败均保留历史。地点源、校园实测、Zenith与最终P0/P1尚未通过。
+当前地图/cloud阶段见[最新验收](../acceptance/d-map-cloud.md)：真实Leaflet/OSM底图、cloud补充设施15条及来源/许可、生产浏览器和262通过/11跳过/build exit0已验。底图、Token、许可选择及保留Demo入口见[部署接线](../deployment/maps-and-facilities.md)。原HeiGIT/Overpass失败保留，但“无任何实时设施来源”已解除；模型上一阶段已通过。以下旧阶段状态按时间保留，完整P0/P1仍缺现场、最终导航/搜索/公共管理闭环、人工验收和Zenith。
+
+上一模型阶段见[付费GLM验收](../acceptance/d-paid-vision.md)：用户指定glm-4.6v并确认充值，本机真实私有照片分析/重放/缓存通过；全量check220通过/11跳过，build exit0。前次[四包集成](../acceptance/d-four-package-integration.md)及以下旧模型失败均保留历史。该模型阶段当时尚未验证地点源；后续地点补充见上述地图/cloud阶段，校园实测、Zenith与最终P0/P1仍未通过。
 
 日期：2026-10-17。固定分支：`codex/d-backend-routing`。
 
@@ -111,3 +113,9 @@ D协助B在其独立固定分支保留历史同步dev d49eef50a59cd3c42b6c6ce399
 D17恢复证据阶段实际集成SHA为d49eef50a59cd3c42b6c6ce3996a075822a68228；配套对象回填缺项已在本机解除。其后本次B浏览器无模型/ORS/搜索/地点调用。四包已有阶段成果共享，但P0/P1总验收仍须在最终集成提交完成真实GLM、地点、ORS/搜索公众闭环、校园实测和Zenith；未将本机人工路径算作最终完成。
 
 付费模型阶段：baseDevCommit=7da9f32fe62b2916de038b949db3a28f5a351af2，codeEvidenceCommit=f7357ac14d7123e3ff394e4073d269d07365580f。运行默认值、当前fixture/调用方和authority同步，沿用原key持久账本；首次1113后用户确认充值才解除该上游封锁，3条原预留保留。后续生成图连通5121ms与真实私有照片HTTP分析7508ms成功，原键重放及新键缓存不新增请求；自建数据/OSS对象已清理。两轴独立vision各19/19（重叠）无发现。最终deliveryHead/集成SHA见本阶段PR元数据，完整范围见上述付费验收。
+
+## 真实底图与设施补充交接
+
+baseDevCommit=2d85e52c7e488c706f1fad606a67ebf55ec317d2，codeEvidenceCommit/headCommit=938cfc29d2b91f31102f562b5a1ffc8ff2de863c；最终交付/集成SHA见本阶段PR元数据。Leaflet依赖/锁文件、共享MapView、设施Schema、HTTP与客户端已同批同步；A/B保持既有props。C预算/缓存仓储所有权不变，无迁移/新连接。两轴发现均修复并独立复核。真实事件、原失败、截图与清理详见上述阶段验收；本阶段没有ORS/模型/搜索外呼。
+
+本机http://localhost:3000/live保留isDemo=true的独立设施演示区域，C初始化所需一条synthetic通道明确标为未实测，不作为生产校园种子。云设施是实际读取；源故障、许可与unknown在UI可见。主/工作树环境均仅本地保存cloud配置。现场与Zenith缺项不因设施连通而消失。
