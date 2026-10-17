@@ -10,7 +10,11 @@ export type PassagePickerProps={bbox:BBox;location:Position|null;route:Route|nul
 export function PassagePicker({bbox,location,route,passages,value,preview,onLocationChange,onChange,now}:PassagePickerProps){
   const [locationError,setLocationError]=useState('');
   const coordinates=route?.route.features[0].geometry.coordinates??[];
-  const routeAvailable=route&&Date.parse(route.routeRefExpiresAt)>now;
+  const routeAvailable=route&&coordinates.length>=2&&Date.parse(route.routeRefExpiresAt)>now;
+  const selectedSegment=value&&'routeRef'in value&&value.routeRef===route?.routeRef
+    &&Number.isInteger(value.startIndex)&&Number.isInteger(value.endIndex)
+    &&value.startIndex>=0&&value.startIndex<value.endIndex&&value.endIndex<coordinates.length
+    ?value:{startIndex:0,endIndex:Math.max(1,coordinates.length-1)};
   return <section className="passage-picker" aria-label="Location and passage selection">
     <MapView now={now} bbox={bbox} location={location} route={route} preview={preview} onLocationChange={onLocationChange}/>
     <form key={location?.join(',')??'no-location'} onSubmit={event=>{
@@ -21,10 +25,10 @@ export function PassagePicker({bbox,location,route,passages,value,preview,onLoca
       setLocationError('');onLocationChange(point);
     }}><div className="two-column"><label>Report longitude<input name="longitude" type="number" step="any" required defaultValue={location?.[0]}/></label><label>Report latitude<input name="latitude" type="number" step="any" required defaultValue={location?.[1]}/></label></div><button type="submit">Set report location</button>{locationError&&<p role="alert">{locationError}</p>}</form>
     <fieldset><legend>Preset passage</legend>{passages.length===0&&<p>No configured passages are available.</p>}{passages.map(p=><label className="radio-row" key={p.id}><input type="radio" name="passage" checked={!!value&&'presetPassageId' in value&&value.presetPassageId===p.id&&value.passageVersion===p.passageVersion} onChange={()=>onChange({presetPassageId:p.id,passageVersion:p.passageVersion})}/>{p.name} · v{p.passageVersion}</label>)}</fieldset>
-    <fieldset disabled={!routeAvailable}><legend>Current route segment</legend><p>Coordinate indices start at zero; both ends are included.</p><div className="two-column">{(['startIndex','endIndex'] as const).map((key)=><label key={key}>{key==='startIndex'?'From point':'To point'}<select value={value&&'routeRef'in value?value[key]:key==='startIndex'?0:Math.max(1,coordinates.length-1)} onChange={e=>{
-      if(!route)return;
-      const selection={routeRef:route.routeRef,startIndex:value&&'routeRef'in value?value.startIndex:0,endIndex:value&&'routeRef'in value?value.endIndex:coordinates.length-1,[key]:Number(e.target.value)};
-      if(PassageRefSchema.safeParse(selection).success)onChange(selection);
+    <fieldset disabled={!routeAvailable}><legend>Current route segment</legend><p>Coordinate indices start at zero; both ends are included.</p><div className="two-column">{(['startIndex','endIndex'] as const).map((key)=><label key={key}>{key==='startIndex'?'From point':'To point'}<select value={selectedSegment[key]} onChange={e=>{
+      if(!route||!routeAvailable)return;
+      const selection={routeRef:route.routeRef,startIndex:selectedSegment.startIndex,endIndex:selectedSegment.endIndex,[key]:Number(e.target.value)};
+      if(PassageRefSchema.safeParse(selection).success&&selection.endIndex<coordinates.length)onChange(selection);
     }}>{coordinates.map((_,i)=><option key={i} value={i}>{i}</option>)}</select></label>)}</div>
     {routeAvailable&&<button type="button" onClick={()=>onChange({routeRef:route.routeRef,startIndex:0,endIndex:coordinates.length-1})}>Select whole route</button>}
     </fieldset>{!routeAvailable&&<p>Plan a current route to select its segments.</p>}

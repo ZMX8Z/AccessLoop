@@ -43,3 +43,27 @@ test('request unwraps response, preserves credentials/no-store, and exposes retr
   await assert.rejects(request('/api/test',z.unknown()),e=>e instanceof ApiError&&e.code==='SERVICE_UNAVAILABLE');
  }finally{globalThis.fetch=original}
 });
+
+test('consumer region validation rejects version zero under the shared contract', async()=>{
+ const {regionSchema}=await import('../src/features/routing/client/models');
+ assert.equal(regionSchema.safeParse({...fixtureRegion,configVersion:0}).success,false);
+});
+test('consumer geometry validation rejects a polygon without a ring', async()=>{
+ const {geometrySchema}=await import('../src/features/routing/client/models');
+ assert.equal(geometrySchema.safeParse({type:'Polygon',coordinates:[]}).success,false);
+});
+test('consumer context validation accepts the contract timezone-offset timestamps', async()=>{
+ const {contextSchema}=await import('../src/features/routing/client/models');
+ const context=await createFixtureService().context();
+ assert.equal(contextSchema.safeParse({...context,evaluatedAt:'2030-01-01T11:00:00+11:00'}).success,true);
+});
+
+
+test('context publication is monotonic but accepts a naturally expired effective set',async()=>{
+ const {contextCanReplace}=await import('../src/features/routing/client/state');
+ const current={...await createFixtureService().context(),hazardVersion:2,personalVersion:1,configVersion:2,evaluatedAt:'2030-01-01T00:00:01Z'};
+ assert.equal(contextCanReplace(null,current),true);
+ for(const older of [{evaluatedAt:'2030-01-01T00:00:00Z'},{hazardVersion:1},{personalVersion:0},{configVersion:1},{regionId:'another-region'}])assert.equal(contextCanReplace(current,{...current,...older}),false);
+ assert.equal(contextCanReplace(current,{...current,activeDigest:'expired-set',evaluatedAt:'2030-01-01T00:00:02Z'}),true);
+ assert.equal(contextCanReplace(current,{...current,activeDigest:'ambiguous-set'}),false);
+});

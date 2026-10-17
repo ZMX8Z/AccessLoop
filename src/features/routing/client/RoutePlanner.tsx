@@ -7,7 +7,7 @@ import { MapView } from '@/components/map/MapView';
 import { PassagePicker } from '@/components/map/PassagePicker';
 import { liveService } from './service';
 import { createFixtureService } from './fixtures';
-import { accessibilityLabels, contextKey, inside, publicStatus, routeOutdated } from './state';
+import { accessibilityLabels, contextCanReplace, contextKey, inside, publicStatus, routeOutdated } from './state';
 import type { Context, Mine, Passage, Place, PublicReport, Region, Route, SearchResult } from './models';
 
 type Endpoint = {name:string;location:Position};
@@ -74,18 +74,26 @@ export function RoutePlanner({fixture=false}:{fixture?:boolean}) {
         const next=await service.context(controller.signal);
         if(disposed||controller.signal.aborted)return;
         const previous=contextRef.current;
-        if(previous && Date.parse(next.evaluatedAt)<Date.parse(previous.evaluatedAt))return;
+        if(!contextCanReplace(previous,next))return;
         const changed=!previous||contextKey(previous)!==contextKey(next);
+        const configChanged=currentRegion.configVersion!==next.configVersion;
+        let replacementRegion=currentRegion;
         if(changed){
-          setLayersUnavailable(true);
-          // Immediately invalidate labels while replacement layers are loading.
+          // A known change invalidates the route even while replacement data is pending.
+          setContextUnavailable(true);setLayersUnavailable(true);
           setReports([]);setMine([]);setPassage(null);
-          if(previous?.configVersion!==next.configVersion){
-            currentRegion=await service.region(controller.signal);
-            if(disposed||controller.signal.aborted)return;
-            setRegion(currentRegion);setRestrictions(currentRegion.routing.defaultRestrictions);
-            inputEpoch.current++;routeRequest.current.cancel();setPlanning(false);setInputChanged(true);
-          }
+        }
+        if(configChanged){
+          replacementRegion=await service.region(controller.signal);
+          if(disposed||controller.signal.aborted)return;
+          // A newer config may have arrived between the two reads. Retry the snapshot next poll.
+          if(replacementRegion.configVersion!==next.configVersion)return;
+        }
+        if(!contextCanReplace(contextRef.current,next))return;
+        if(configChanged){
+          currentRegion=replacementRegion;
+          setRegion(currentRegion);setRestrictions(currentRegion.routing.defaultRestrictions);
+          inputEpoch.current++;routeRequest.current.cancel();setPlanning(false);setInputChanged(true);
         }
         setContext(next);contextRef.current=next;setContextUnavailable(false);
         // Retry failed layer refreshes as well as version-triggered refreshes.
@@ -125,7 +133,7 @@ export function RoutePlanner({fixture=false}:{fixture?:boolean}) {
       const result=await service.route({start:start.location,end:end.location,profile:'wheelchair',restrictions},task.signal);
       const latest=await service.context(task.signal);
       if(!task.current()||epoch!==inputEpoch.current)return;
-      if(contextKey(result)!==contextKey(latest))throw new ApiError('ROUTE_STALE','Conditions changed during planning. Please recalculate.');
+      if(latest.configVersion!==region.configVersion||!contextCanReplace(contextRef.current,latest)||contextKey(result)!==contextKey(latest))throw new ApiError('ROUTE_STALE','Conditions changed during planning. Please recalculate.');
       setRoute(result);setRouteNames({start:start.name,end:end.name});setContext(latest);contextRef.current=latest;setContextUnavailable(false);setInputChanged(false);setNotice('Candidate route ready. Review the sources and current conditions before travelling.');
     }catch(cause){if(task.current()){setInputChanged(true);showError(cause)}}
     finally{if(task.current())setPlanning(false)}

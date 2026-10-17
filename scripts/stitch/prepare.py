@@ -3,11 +3,18 @@ import re,json
 root=Path(__file__).resolve().parents[2]
 source=root/'docs/design/stitch/source';out=root/'public/stitch'
 pages={'route':'route_v3_compact_preview','journey':'route_active_journey_guidance','report-photo':'report_stage_1_upload_evidence','report-confirm':'report_stage_2_ai_scan_confirm','report-success':'report_stage_3_successfully_reported','my-reports':'my_reports_simple_list'}
+def remove_root_canvas(match):
+ # Export dimensions describe the design canvas, not the live document height.
+ declarations=[item.strip() for item in match.group(2).split(';') if item.strip()]
+ declarations=[item for item in declarations if item.partition(':')[0].strip().lower() not in {'width','height','overflow','overflow-y'}]
+ style='; '.join(declarations)+(';' if declarations else '')
+ return match.group(1)+style+match.group(3)
 config=re.search(r'tailwind.config\s*=\s*(.*?);</script>',(source/pages['route']/'code.html').read_text(),re.S).group(1)
 (root/'scripts/stitch/tailwind.config.cjs').write_text('module.exports = '+config+';\n')
 (root/'scripts/stitch/input.css').write_text('@tailwind base;\n@tailwind components;\n@tailwind utilities;\n')
 for page,folder in pages.items():
  html=(source/folder/'code.html').read_text()
+ html=re.sub(r'(<html\b[^>]*\bstyle=")([^"]*)(")',remove_root_canvas,html,count=1,flags=re.I)
  html=re.sub(r'<script\b[^>]*>.*?</script>','',html,flags=re.S)
  html=re.sub(r'<link\b[^>]*>','',html)
  html=html.replace('maximum-scale=1.0, user-scalable=no, ','')
