@@ -78,6 +78,7 @@ export function createPoiAdapter(options: ProviderOptions & { now?: () => number
   return {
     identity: `heigit-openpoiservice:osm-places-v1:${transport.baseUrl}`,
     keyFingerprint: transport.keyFingerprint,
+    timeoutMs: options.timeoutMs ?? 6000,
     async fetchPlaces(bbox: BBox, isDemo: boolean): Promise<{ items: PlaceDTO[]; truncated: boolean }> {
       if (!BBoxSchema.safeParse(bbox).success || typeof isDemo !== 'boolean') {
         throw new AppError(400, 'INVALID_INPUT', 'Choose a valid place search area.');

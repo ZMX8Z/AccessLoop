@@ -12,6 +12,7 @@ export type PoiPlaces = { items: PlaceDTO[]; truncated: boolean };
 export type PoiAdapter = {
   identity: string;
   keyFingerprint: string;
+  timeoutMs?: number;
   fetchPlaces(bbox: BBox, isDemo: boolean): Promise<PoiPlaces>;
 };
 const PlacesSchema = z.array(PlaceSchema).max(101);
@@ -32,7 +33,7 @@ export class PlacesService {
   ) {
     this.now = options.now ?? Date.now;
     this.gate = new ProviderGate(repository, { now: this.now });
-    this.policy = options.policy ?? { minuteLimit: 30, dayLimit: 450 };
+    this.policy = options.policy ?? { minuteLimit: 10, dayLimit: 450 };
   }
 
   private async requireCurrentRegion(region: RegionDTO): Promise<void> {
@@ -68,6 +69,7 @@ export class PlacesService {
         pending = (async () => {
           const result = await this.gate.run({
             service: 'poi', keyFingerprint: this.adapter.keyFingerprint, policy: this.policy,
+            maxAttemptMs: this.adapter.timeoutMs ?? 6000,
             operation: async () => {
               const places = SourceSchema.safeParse(await this.adapter.fetchPlaces(region.bbox, region.isDemo));
               if (!places.success || places.data.items.some((item) => item.source !== 'openstreetmap' || item.isDemo !== region.isDemo)) {

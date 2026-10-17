@@ -23,3 +23,17 @@ test('the public places handler consumes the configured source and retains incom
  assert.equal(data.truncated,true);
  assert.equal(response.headers.get('Cache-Control'),'private, no-store');
 });
+
+test('default place source sends a bounded public OSM query without transmitting the ORS key',async()=>{
+ const {createPlacesAdapter}=await import('../src/server/providers/places-source');
+ let calls=0;
+ const adapter=createPlacesAdapter({ORS_API_KEY:'synthetic-secret-must-not-be-sent'}, {fetch:async(url,init)=>{
+  calls++;assert.equal(String(url),'https://overpass-api.de/api/interpreter');
+  assert.equal(new Headers(init?.headers).has('Authorization'),false);
+  assert.equal(init?.redirect,'error');
+  return Response.json({version:0.6,elements:[]});
+ }});
+ assert.deepEqual(await adapter.fetchPlaces(region.bbox,true),{items:[],truncated:false});
+ assert.equal(calls,1);
+ assert.throws(()=>createPlacesAdapter({POI_PROVIDER:'client-controlled-proxy'}),{code:'PROVIDER_UNAVAILABLE'});
+});

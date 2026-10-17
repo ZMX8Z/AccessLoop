@@ -157,7 +157,7 @@ test('places caches the entire configured region across viewports for 24 hours w
   assert.equal((await service.getPlaces(bbox)).items.length, 2);
   assert.equal(calls, 1);
   assert.equal(f.events.filter((event) => event.service === 'poi' && event.event === 'cacheHit').length, 1);
-  assert.deepEqual(requests[0], { service: 'poi', keyFingerprint: 'fingerprint', minuteLimit: 30, dayLimit: 450, now: instant });
+  assert.deepEqual(requests[0], { service: 'poi', keyFingerprint: 'fingerprint', minuteLimit: 10, dayLimit: 450, now: instant });
   clock += 86_400_000;
   await service.getPlaces(bbox);
   assert.equal(calls, 2);
@@ -244,4 +244,22 @@ test('places preserves source truncation after lookahead points are filtered and
   assert.deepEqual(reloaded, output);
   const empty = await new PlacesService(fakeRepository().repo, adapter(collection([])), { now }).getPlaces(bbox);
   assert.deepEqual(empty, { items: [], truncated: false });
+});
+
+test('places does not reserve or start an eight-second retry beyond its overall deadline', async () => {
+  const f = fakeRepository();
+  let clock = now(), calls = 0, reservations = 0;
+  f.repo.reserveBudget = async () => { reservations++; return { allowed: true, reservationId: 'slow-test' }; };
+  const slow = {
+    identity: 'slow-eight-second-provider', keyFingerprint: 'test', timeoutMs: 8000,
+    fetchPlaces: async () => {
+      calls++;
+      clock += 8000;
+      throw new ProviderError(503, 'PROVIDER_UNAVAILABLE', 'Unavailable', { retryable: true });
+    },
+  };
+  const service = new PlacesService(f.repo, slow, { now: () => clock });
+  await assert.rejects(service.getPlaces(bbox), { code: 'PROVIDER_UNAVAILABLE' });
+  assert.equal(calls, 1);
+  assert.equal(reservations, 1);
 });

@@ -3,7 +3,7 @@ import { createOrsAdapter } from '../../../server/providers/ors';
 import { createGeocodingAdapter } from '../../../server/providers/geocoding';
 import { SearchService } from '../../places/server/search';
 import { PlacesService } from '../../places/server/places';
-import { createPoiAdapter } from '../../../server/providers/poi';
+import { createPlacesAdapter } from '../../../server/providers/places-source';
 import { RoutingService } from './service';
 import { createRoutingHandlers } from './handlers';
 import type { RoutingRepository } from './repository';
@@ -65,9 +65,9 @@ export async function routingHandlers() {
           dayLimit: limit('GEOCODING_DAILY_BUDGET', 2500),
         },
       });
-      const places = new PlacesService(repository, createPoiAdapter({
-        apiKey: process.env.ORS_API_KEY ?? '', baseUrl: process.env.POI_BASE_URL,
-      }), { policy: { minuteLimit: limit('POI_RPM', 30), dayLimit: limit('POI_DAILY_BUDGET', 450) } });
+      const places = new PlacesService(repository, createPlacesAdapter(process.env), {
+        policy: { minuteLimit: limit('POI_RPM', 10), dayLimit: limit('POI_DAILY_BUDGET', 450) },
+      });
       const applicationOrigin = process.env.APP_BASE_URL
         ? new URL(process.env.APP_BASE_URL).origin
         : '';
