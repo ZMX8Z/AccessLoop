@@ -1,0 +1,72 @@
+{
+  "date": "2026-10-17",
+  "environment": "temporary isolated local PostgreSQL 17.6; not Zenith",
+  "checks": [
+    {
+      "check": "committed Payload initial migration",
+      "status": "passed"
+    },
+    {
+      "check": "postgres-connection",
+      "status": "passed",
+      "code": "POSTGRES_SELECT_1"
+    },
+    {
+      "check": "custom archive creation and sha256",
+      "status": "passed",
+      "archivePermissions": "0o600",
+      "checksumPermissions": "0o600"
+    },
+    {
+      "check": "database restart preserves synthetic sentinel JSON",
+      "status": "passed"
+    },
+    {
+      "check": "restore into distinct empty database preserves Payload schema and sentinel JSON",
+      "status": "passed"
+    },
+    {
+      "check": "nonempty restore target refused without mutation",
+      "status": "passed"
+    }
+  ],
+  "payloadTableCountBeforeProbe": 8,
+  "limits": [
+    "Synthetic sentinel is not an AccessLoop report, budget or OSS object.",
+    "No photo persistence, session restart, expiry semantics or vendor authentication is verified.",
+    "No Zenith deployment is verified."
+  ],
+  "temporaryClusterAndArchiveRemoved": true,
+  "baseCommit": "1ad24d707370a80fb0dc11da20b7e55be6d310c7",
+  "codeState": "D fixed branch working tree, parent agent will commit and integrate; not an integrated deployment verdict",
+  "runtime": {
+    "node": "22.14.0",
+    "pnpm": "10.20.0",
+    "postgresql": "17.6"
+  },
+  "migration": "20261017_055558_initial_admins",
+  "scriptSha256": {
+    "scripts/deployment-probe.ts": "b1c83f7f7e77355f19c1166b3e37c327d2403123a74d8683e8d915c8f99a75d6",
+    "scripts/backup-restore.sh": "26e408fb45797e1ec5b7522dfb13c7fb15926870872f3b6c01031f66a7afeb7b"
+  },
+  "verification": [
+    {
+      "command": "pnpm test",
+      "exitCode": 0,
+      "testsPassed": 87,
+      "testsFailed": 0
+    },
+    {
+      "command": "pnpm exec tsc --noEmit",
+      "exitCode": 0
+    },
+    {
+      "command": "pnpm exec eslint scripts/deployment-probe.ts tests/deployment.test.ts",
+      "exitCode": 0
+    },
+    {
+      "command": "bash -n scripts/backup-restore.sh",
+      "exitCode": 0
+    }
+  ]
+}

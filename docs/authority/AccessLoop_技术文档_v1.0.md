@@ -479,3 +479,8 @@ P0 不做完整公众账号，以服务器生成的不可预测匿名会话标�
 - [S20 阿里云 OSS 的 S3 API 兼容范围与寻址差异](https://www.alibabacloud.com/help/en/oss/developer-reference/compatibility-with-amazon-s3)
 
 - [S21 阿里云 OSS Node.js SDK 与私有对象签名下载](https://www.alibabacloud.com/help/en/oss/developer-reference/download-objects-using-a-presigned-url-generated-with-oss-sdk-for-node-js)
+
+
+## 15 D 服务实现接线记录（2026-10-17）
+
+实现沿用本文单应用/单仓储架构：地理函数与路线服务位于 `src/features/routing/server`，ORS/Pelias/预算门禁及脱敏摘要位于 `src/server/providers`，真实搜索位于 `src/features/places/server`。`RoutingRepository` 由 C 实现并在 Node 初始化中安装；D 不新建数据库连接，不以进程内 Map 保存生产预算。Map 只用于同键进行中请求去重。详细接线见 [D 服务交接](../handoffs/d-service-integration.md)，实际验证结果见 [D 技术验收](../acceptance/wp-d.md)。未配置仓储或密钥时不把未知有效集当空集；不会提供合成校园成功数据。
