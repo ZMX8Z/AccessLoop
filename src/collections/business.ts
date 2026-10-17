@@ -1,7 +1,9 @@
 import type { CollectionConfig, Field } from 'payload'
+import { isEnabledAdmin } from './Admins'
+import { readAdminAudit, readAdminRegionData } from '@/server/admin/collection-access'
 
 const deny = () => false
-const id: Field = { name: 'id', type: 'text', required: true }
+const id = { name: 'id', type: 'text', required: true } satisfies Field
 const text = (name: string, indexed = false): Field => ({ name, type: 'text', required: true, index: indexed })
 const json = (name: string): Field => ({ name, type: 'json', required: true })
 const date = (name: string): Field => ({ name, type: 'date', required: true, index: true })
@@ -18,6 +20,36 @@ function internal(slug: string, fields: Field[]): CollectionConfig {
     endpoints: false,
     access: { create: deny, read: deny, update: deny, delete: deny, unlock: deny },
     fields: [{ ...id }, ...fields],
+  }
+}
+
+function administrativeRead(slug: string, fields: Field[]): CollectionConfig {
+  const collection = internal(slug, fields)
+  for (const field of collection.fields) {
+    if (field.type === 'ui') continue
+    field.admin = { ...field.admin, readOnly: true }
+  }
+  if (slug === 'hazard-reports') collection.fields = [
+    { ...id, admin: { readOnly: true } },
+    { name: 'reviewActions', type: 'ui', admin: { components: { Field: '/components/admin/server#ReportReviewPanel' } } },
+    { type: 'collapsible', label: 'Read-only stored record', admin: { initCollapsed: true }, fields: collection.fields.slice(1) },
+  ]
+  return {
+    ...collection,
+    endpoints: [],
+    admin: {
+      group: 'Reports and evidence',
+      useAsTitle: 'id',
+      defaultColumns: slug === 'hazard-reports' ? ['id', 'status', 'rowVersion', 'updatedAt']
+        : slug === 'report-events' ? ['reportId', 'action', 'actorRole', 'reason', 'createdAt']
+          : ['id', 'createdAt'],
+      description: 'Read-only records. Changes use the protected AccessLoop commands.',
+    },
+    access: {
+      ...collection.access,
+      admin: ({ req }) => isEnabledAdmin(req.user),
+      read: slug === 'report-events' ? readAdminAudit : readAdminRegionData,
+    },
   }
 }
 
@@ -81,18 +113,18 @@ export const BusinessCollections: CollectionConfig[] = [
     { name: 'leaseExpiresAt', type: 'date' },
     date('expiresAt'), { name: 'result', type: 'json' },
   ]),
-  internal('ai-analyses', [
+  administrativeRead('ai-analyses', [
     text('regionId', true), text('ownerSessionHash', true), text('photoId', true),
     text('imageHash'), text('cacheKey', true), json('analysis'),
   ]),
-  internal('hazard-reports', [
+  administrativeRead('hazard-reports', [
     text('regionId', true), text('ownerSessionHash', true),
     { name: 'status', type: 'select', required: true, options: ['pending', 'ai_assessed', 'verified', 'resolved', 'rejected'] },
     version('rowVersion'),
     { name: 'facts', type: 'json' },
     { name: 'publicSnapshot', type: 'json' },
   ]),
-  internal('personal-avoidances', [
+  administrativeRead('personal-avoidances', [
     { name: 'reportId', type: 'text', required: true, unique: true },
     text('regionId', true), text('ownerSessionHash', true),
     { name: 'active', type: 'checkbox', required: true, defaultValue: false, index: true },
@@ -100,7 +132,7 @@ export const BusinessCollections: CollectionConfig[] = [
     { name: 'decisionSource', type: 'select', required: true, options: ['ai_user_confirmed', 'user_manual'] },
     date('observedAt'), date('confirmedAt'), date('validUntil'), version('confirmationReportVersion'),
   ]),
-  internal('report-events', [
+  administrativeRead('report-events', [
     text('reportId', true), text('actorId'), text('actorRole'), text('action'),
     json('before'), json('after'), json('contextVersions'), text('reason'),
   ]),

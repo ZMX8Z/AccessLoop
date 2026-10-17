@@ -50,6 +50,9 @@ export default buildConfig({
   admin: {
     user: 'admins',
     importMap: { baseDir: dirname },
+    components: {
+      beforeDashboard: ['/components/admin/server#AccessLoopDashboard'],
+    },
   },
   collections: [Admins, ...BusinessCollections, Photos],
   plugins: [storagePlugin],

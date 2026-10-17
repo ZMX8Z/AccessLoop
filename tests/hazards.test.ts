@@ -7,8 +7,10 @@ import {
   PublicReportDTOSchema, UpdateReportInputSchema,
 } from '../src/shared/contracts/hazards'
 import { dRoutingFixture } from '../src/shared/fixtures/d-routing'
-import { publicReportDTO } from '../src/features/hazards/server/dto'
+import { privateReportDTO, publicReportDTO } from '../src/features/hazards/server/dto'
 import { issuePreviewToken, readPreviewToken, verifyPreviewToken } from '../src/features/hazards/server/preview'
+import { ConfirmationRecordSchema, ReportRecordSchema } from '../src/features/hazards/server/records'
+import type { RegionRecord } from '../src/shared/contracts/storage'
 
 const facts = {
   photoId: 'photo-synthetic', location: [151.2295, -33.917], category: 'construction',
@@ -85,4 +87,47 @@ test('public reports use the complete publication whitelist and never borrow pri
     report: { ...report, publicSnapshot: { status: 'verified', publicRevision: 4, publicAvoidGeometry: polygon, validUntil: published.validUntil } },
     region: dRoutingFixture.region, now,
   }), null)
+})
+
+test('legal coverage changes preserve inactive and expired historical geometry while active areas remain constrained', () => {
+  const owner = 'a'.repeat(64)
+  const region: RegionRecord = { ...dRoutingFixture.region, configVersion: 2, bbox: [151.231, -33.919, 151.239, -33.911] }
+  const report = ReportRecordSchema.parse({
+    id: 'historical-report', regionId: region.id, ownerSessionHash: owner, status: 'pending', rowVersion: 1,
+    facts: { ...facts, analysisId: null, passage: null }, publicSnapshot: null,
+    createdAt: facts.observedAt, updatedAt: facts.observedAt,
+  })
+  const confirmation = ConfirmationRecordSchema.parse({
+    id: 'historical-confirmation', reportId: report.id, regionId: region.id, ownerSessionHash: owner,
+    active: false, confirmedPath: { passage: { presetPassageId: 'historical-passage', passageVersion: 1 }, geometry: dRoutingFixture.passages[0].geometry },
+    avoidGeometry: polygon, decisionSource: 'user_manual', observedAt: facts.observedAt, confirmedAt: facts.observedAt,
+    validUntil: new Date(now + 1000).toISOString(), confirmationReportVersion: 1,
+  })
+  const stopped = privateReportDTO({ report, confirmation, analysis: null, region, now })
+  assert.equal(stopped.personalAvoidance?.active, false)
+  assert.equal(stopped.personalAvoidance?.effective, false)
+  assert.deepEqual(stopped.personalAvoidance?.avoidGeometry, polygon)
+  const expired = privateReportDTO({ report, confirmation: { ...confirmation, active: true, validUntil: new Date(now - 1).toISOString() }, analysis: null, region, now })
+  assert.equal(expired.personalAvoidance?.effective, false)
+  assert.deepEqual(expired.personalAvoidance?.avoidGeometry, polygon)
+  assert.throws(() => privateReportDTO({ report, confirmation: { ...confirmation, active: true }, analysis: null, region, now }),
+    (error) => error instanceof AppError && error.code === 'INVALID_GEOMETRY')
+
+  const snapshot = {
+    publicRevision: 1, status: 'verified', location: facts.location, category: facts.category, description: facts.description,
+    observedAt: facts.observedAt, publicAvoidGeometry: polygon, validUntil: new Date(now - 1).toISOString(), visible: true,
+    publicVerification: { source: 'admin_field_check', verifiedAt: facts.observedAt, validUntil: new Date(now - 1).toISOString(), resolvedAt: null },
+  }
+  const publishedReport = { ...report, publicSnapshot: snapshot }
+  const history = publicReportDTO({ report: publishedReport, region, now })
+  assert.equal(history?.status, 'verified')
+  assert.equal(history?.publicActivity, 'expired')
+  assert.deepEqual(history?.publicAvoidGeometry, polygon)
+  assert.deepEqual(privateReportDTO({ report: publishedReport, confirmation: null, analysis: null, region, now }).publicAvoidGeometry, polygon)
+  const activeSnapshot = { ...snapshot, validUntil: new Date(now + 1000).toISOString(), publicVerification: { ...snapshot.publicVerification, validUntil: new Date(now + 1000).toISOString() } }
+  assert.throws(() => publicReportDTO({ report: { ...report, publicSnapshot: activeSnapshot }, region, now }),
+    (error) => error instanceof AppError && error.code === 'INVALID_GEOMETRY')
+  const resolved = publicReportDTO({ report: { ...report, publicSnapshot: { ...activeSnapshot, status: 'resolved', publicVerification: { ...activeSnapshot.publicVerification, resolvedAt: facts.observedAt } } }, region, now })
+  assert.equal(resolved?.publicActivity, 'inactive')
+  assert.deepEqual(resolved?.publicAvoidGeometry, polygon)
 })

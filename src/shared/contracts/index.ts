@@ -6,3 +6,5 @@ export * from './route-result';
 export * from './photos';
 export * from './vision';
 export * from './hazards';
+export * from './review';
+export * from './admin-region';

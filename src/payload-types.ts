@@ -454,6 +454,8 @@ export interface ExternalOperation {
   createdAt: string;
 }
 /**
+ * Read-only records. Changes use the protected AccessLoop commands.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "ai-analyses".
  */
@@ -477,6 +479,8 @@ export interface AiAnalysis {
   createdAt: string;
 }
 /**
+ * Read-only records. Changes use the protected AccessLoop commands.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "hazard-reports".
  */
@@ -508,6 +512,8 @@ export interface HazardReport {
   createdAt: string;
 }
 /**
+ * Read-only records. Changes use the protected AccessLoop commands.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "personal-avoidances".
  */
@@ -544,6 +550,8 @@ export interface PersonalAvoidance {
   createdAt: string;
 }
 /**
+ * Read-only records. Changes use the protected AccessLoop commands.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "report-events".
  */

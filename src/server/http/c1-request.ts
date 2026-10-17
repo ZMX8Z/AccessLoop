@@ -45,11 +45,11 @@ export async function readBoundedBody(request: Request, maximumBytes: number): P
   } finally { reader.releaseLock() }
 }
 
-export async function readJSON(request: Request): Promise<unknown> {
+export async function readJSON(request: Request, maximumBytes = 32768): Promise<unknown> {
   if (request.headers.get('Content-Type')?.split(';')[0].trim().toLowerCase() !== 'application/json') {
     throw new AppError(400, 'INVALID_INPUT', 'Send a JSON request body.')
   }
-  try { return JSON.parse((await readBoundedBody(request, 32768)).toString('utf8')) }
+  try { return JSON.parse((await readBoundedBody(request, maximumBytes)).toString('utf8')) }
   catch (error) {
     if (error instanceof AppError) throw error
     throw new AppError(400, 'INVALID_INPUT', 'Send a valid JSON request body.')

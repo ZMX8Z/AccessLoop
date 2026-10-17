@@ -513,6 +513,8 @@ type ReviewInput = ReviewBase & (
 
 `sourceReference` 是 1–500 字符的可信维护方记录标识或 HTTPS 来源，仅存私有证据，不作为服务器自动抓取 URL。field_observation 必须是管理员独立观察记录；可选 photoId 必须为 purpose=review_evidence、由管理身份授权读取的证据照片，且不能是原报告照片；不能复用匿名 report 上传冒充独立补证。trusted_maintainer 必须是运营确认的可信来源。服务端校验来源资格、时间、归属与完整性；同一匿名会话重复报告、原照片、AI 自评或原有个人确认不满足额外核实。证据内容保存为私有记录；公共 source 分别映射 admin_field_check/trusted_maintainer。
 
+运营通过服务端环境变量 `TRUSTED_MAINTAINER_REFERENCES` 配置获准的 `sourceReference`，格式为 JSON 字符串数组，最多 100 项。接口按完整字符串精确匹配，不按域名或前缀放行，也不抓取 URL。未配置时名单为空，trusted_maintainer 核实返回 `EVIDENCE_REQUIRED`；独立实地观察方式仍可使用。
+
 | action | 允许起始状态 | 最小行为与条件 |
 | --- | --- | --- |
 | verify | pending、ai_assessed、verified | 首次核实或重新核实；必须有独立 extraEvidence 和合法 publicAvoidGeometry。verifiedAt 由服务器写；validUntil 缺省为证据观察时间 + 公共默认时长，显式值须在 `(now, 证据观察时间+公共时长]` |

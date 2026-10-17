@@ -5,9 +5,12 @@ import {
 } from '@/shared/contracts/hazards'
 import { PublicSnapshotSchema, type RegionRecord } from '@/shared/contracts/storage'
 import type { AnalysisDTO } from '@/shared/contracts/vision'
+import type { BBox } from '@/shared/contracts/common'
 import { validateAvoidGeometry } from '@/features/routing/server/geometry'
 
 import type { ConfirmationRecord, ReportRecord } from './records'
+
+const historicalBounds: BBox = [-180, -90, 180, 90]
 
 function publication(raw: unknown) {
   if (raw == null) return null
@@ -29,7 +32,8 @@ export function publicReportDTO(input: {
   const published = publication(input.report.publicSnapshot)
   if (!published || published.kind !== 'published' || !published.value.visible) return null
   const snapshot = published.value
-  const geometry = validateAvoidGeometry(snapshot.publicAvoidGeometry, input.region.bbox)
+  const publicActivity = activity(snapshot.status, snapshot.validUntil, input.now)
+  const geometry = validateAvoidGeometry(snapshot.publicAvoidGeometry, publicActivity === 'active' ? input.region.bbox : historicalBounds)
   return PublicReportDTOSchema.parse({
     id: input.report.id,
     regionId: input.report.regionId,
@@ -41,7 +45,7 @@ export function publicReportDTO(input: {
     observedAt: snapshot.observedAt,
     publicAvoidGeometry: geometry,
     publicVerification: snapshot.publicVerification,
-    publicActivity: activity(snapshot.status, snapshot.validUntil, input.now),
+    publicActivity,
     isDemo: input.region.isDemo,
   })
 }
@@ -56,12 +60,13 @@ export function privateReportDTO(input: {
   const { report, confirmation, region, now } = input
   const published = publication(report.publicSnapshot)
   const snapshot = published?.kind === 'published' && published.value.visible ? published.value : null
-  const confirmationGeometry = confirmation ? validateAvoidGeometry(confirmation.avoidGeometry, region.bbox) : null
+  const effective = !!confirmation && confirmation.active && Date.parse(confirmation.validUntil) > now
+    && confirmation.confirmationReportVersion === report.rowVersion
+    && report.status !== 'resolved' && report.status !== 'rejected'
+  const confirmationGeometry = confirmation ? validateAvoidGeometry(confirmation.avoidGeometry, effective ? region.bbox : historicalBounds) : null
   const personal = confirmation && confirmationGeometry ? PersonalAvoidanceDTOSchema.parse({
     active: confirmation.active,
-    effective: confirmation.active && Date.parse(confirmation.validUntil) > now
-      && confirmation.confirmationReportVersion === report.rowVersion
-      && report.status !== 'resolved' && report.status !== 'rejected',
+    effective,
     passage: confirmation.confirmedPath.passage,
     avoidGeometry: confirmationGeometry,
     decisionSource: confirmation.decisionSource,
@@ -84,7 +89,8 @@ export function privateReportDTO(input: {
     observedAt: report.facts.observedAt,
     passage: report.facts.passage,
     personalAvoidance: personal,
-    publicAvoidGeometry: snapshot ? validateAvoidGeometry(snapshot.publicAvoidGeometry, region.bbox) : null,
+    publicAvoidGeometry: snapshot ? validateAvoidGeometry(snapshot.publicAvoidGeometry,
+      activity(snapshot.status, snapshot.validUntil, now) === 'active' ? region.bbox : historicalBounds) : null,
     publicVerification: snapshot?.publicVerification ?? null,
     publicActivity: snapshot ? activity(snapshot.status, snapshot.validUntil, now) : 'inactive',
     createdAt: report.createdAt,
