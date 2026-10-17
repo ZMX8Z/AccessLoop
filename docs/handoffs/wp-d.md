@@ -1,5 +1,7 @@
 # D 交接：P0/P1 服务基础阶段
 
+当前集成回执见[四包阶段集成](../acceptance/d-four-package-integration.md)：B #8已合入dev `9cfd186`，统一产物构建和31项合后回归通过；Vision显式日预算已配置，新一次真实请求仍429/1305。以下较早阶段状态保留历史，最终P0/P1尚未通过。
+
 日期：2026-10-17。分支：`codex/d-backend-routing`。独立目录：`/Users/coreyli/.codex/worktrees/d-backend-routing/AccessLoop`。
 
 ## 固定提交与阶段

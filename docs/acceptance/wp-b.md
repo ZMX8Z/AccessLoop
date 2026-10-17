@@ -8,7 +8,7 @@
 | PR / target | #8 / `dev` |
 | baseDevCommit | `d49eef50a59cd3c42b6c6ce3996a075822a68228` |
 | headCommit / 受检产品提交 | `4b642c63dc8cdb3918123934673c3d72e242f646` |
-| integratedDevCommit | 以本文末尾链接的 PR #8 最终合并元数据为准 |
+| integratedDevCommit | `9cfd186a8d2345af9cd970266e22415a9085d2e2`（PR #8） |
 | 运行环境 | Node 22.14.0、pnpm 10.20.0、Next.js 16.3.3 |
 
 本记录在受检产品提交后以仅文档提交补充；代码证据对应上表 head，后续仅文档 dev 同步不改变受检产品。原 `adc4277` 的 P0/P1“通过”结论已撤回。
