@@ -7,7 +7,7 @@
 | branch | `codex/d-backend-routing` |
 | baseDevCommit | `9a514638d74b88e384364c75b0bca87a6e219492` |
 | headCommit / evidenceCommit | `9807ead8f95edfc566673898403d95130915c529` |
-| PR / integratedDevCommit | 未创建 / 未集成 |
+| PR / integratedDevCommit | [#1](https://github.com/ZMX8Z/AccessLoop/pull/1) / `912997dee420e0d2738b56aa0fb58d8965d9f894` |
 | 运行环境 | macOS，Node 22.14.0，pnpm 10.20.0，隔离 PostgreSQL 17.6 |
 
 ## 实际检查
@@ -35,7 +35,8 @@
 ## 阶段结果
 
 - 本地初始化骨架：通过。
-- D0 的 Zenith 探针、共享远端交付：未完成/阻塞。推送被自动审批以可能公开项目资料拒绝，未创建 PR，也未声称进入 `dev`。
+- 共享远端交付：通过 PR #1 合入 `dev`，集成提交 `912997dee420e0d2738b56aa0fb58d8965d9f894` 上再次运行 `pnpm check`，22 项测试及静态检查通过。已核对集成提交与证据提交的运行代码一致，构建与数据库证据复用。
+- D0 的 Zenith 探针：未完成；无真实平台模板或部署连接验证。
 - P0：待交付；当前不具备实时 AI 与个人绕行闭环。
 - P1：待交付；当前不具备真实搜索和公共报告管理闭环。
 - 全包/人工验收：未执行。
