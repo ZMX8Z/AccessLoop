@@ -6,7 +6,7 @@
 
 - baseDevCommit：`1ad24d707370a80fb0dc11da20b7e55be6d310c7`（已成功 fetch；权威文档与四包材料已在 dev）。
 - headCommit / codeEvidenceCommit：`11b70ec667b09dee261d25f1889a9876ab3395cc`；随后执行记录提交不改运行代码，PR 实际 head 见 PR 元数据。
-- 本阶段 PR：待发布，base 必须为 dev；合并后在本记录追加准确 deliveryHead / integratedDevCommit。
+- 服务基础阶段 [PR #4](https://github.com/ZMX8Z/AccessLoop/pull/4) 已合入 dev；deliveryHead=`df3ea0ce5cf588d00d7b61ccdc97adce602ca7fd`，integratedDevCommit=`27c8c8c38cf13634b26fb58dadd5255cd380b993`，合后再次 `pnpm check` 93/93通过。
 - 骨架历史：PR [#1](https://github.com/ZMX8Z/AccessLoop/pull/1)，集成 `912997dee420e0d2738b56aa0fb58d8965d9f894`；记录归档集成基线 `1ad24d707370a80fb0dc11da20b7e55be6d310c7`。
 - 骨架已交接 C：Payload 配置、Collections、迁移、事务及仓储由 C 持有。本阶段 D 没有增加 ORM/应用数据库连接。
 
@@ -48,7 +48,7 @@
 
 ## 验证与恢复证据
 
-- `pnpm check`：ESLint、Next路由类型、TypeScript、93/93测试通过。
+- `pnpm check`：ESLint、Next路由类型、TypeScript、94/94测试通过（最新四字段接线修正）。
 - `pnpm build`：Webpack生产构建成功，包含公众入口、admin、cms-api、health及D六接口。
 - 独立只读审查：本轮报告的错误码、去重空窗、全请求/等待者截止时间、统计写入迟到问题已修复；必要回归19/19通过。
 - [本地恢复证据](../deployment/local-recovery-evidence.json)：独立临时 PostgreSQL 17.6 实测迁移8表、备份校验和、重启保留合成JSON、空库恢复一致及拒绝覆盖非空库；已清理临时集群。这不是照片/真实业务预算恢复证据。
@@ -58,10 +58,19 @@
 
 1. C阶段PR：实现并安装 `RoutingRepository`，尤其持久预算和提交时有效摘要复核；真实供应商调用只能在持久预留后进行。当前远端没有 A/B/C 阶段分支或可集成 PR。
 2. A/B阶段PR：公众地图/上报/报告与正式管理组件挂载。D不以单模块测试替代联调。
-3. 用户已提供ORS及应用秘密，主目录 `.env` 的非空项已同步到忽略的D `.env.local`；用户正在补齐Vision并授权本机专用PG配置。OSS 尚缺 endpoint/bucket/region/凭据。秘密不提交、不写入此记录。
+3. 用户已提供ORS/Vision及应用秘密，主目录 `.env` 已安全同步到忽略的D `.env.local`；独立本机PG已配置、迁移及重启验证，见[本机开发库](../deployment/local-development-db.md)。OSS 尚缺 endpoint/bucket/region/凭据；ADMIN_PASSWORD 不足12字符，管理员尚未初始化。秘密不提交、不写入此记录。
 4. Zenith实际项目/模板、部署连接与端口/出网/秘密注入规范；当前插件搜索未返回Zenith集成，不编造manifest，也不改变私有仓库可见性。
 5. 校园候选的现场/真实ORS核验。线上二维码及演示入口待真实部署后生成。
 
 ## 人工操作
 
 人工按本包 [MANUAL](../work-packages/d-backend-routing/MANUAL.md)与120秒草案操作页面；不要求人工运行命令/查库。当前没有完整在线闭环可供最终验收。数据库与密钥配置由开发代理继续处理，不转为人工技术验收任务。
+
+
+## 仓储接线与本机环境跟进阶段
+
+- baseDevCommit：`27c8c8c38cf13634b26fb58dadd5255cd380b993`。
+- codeEvidenceCommit / headCommit：`58fb0022ce24522545b6ca0555244dafc223e740`；运行代码仅将 routeRef 发布 context 显式限制为仓储声明的四字段，避免严格适配器因额外字段拒绝接线。
+- 新增回归先失败后通过；最新 `pnpm check` 94/94 和生产 `pnpm build` exit0，独立只读复核15/15通过。
+- 本机PG保留运行于127.0.0.1:55437；迁移仅一次、重复迁移无新增、重启保留、密码错误拒绝及SELECT1真实通过。/.local/及全部秘密文件已忽略且权限受限。
+- 本阶段PR/head/integratedDevCommit待平台合并后补充；所有其他P0/P1与真实供应商/四包/Zenith阻塞仍如上。

@@ -403,3 +403,14 @@ test('a deduplicated waiter keeps its own deadline without cancelling the owner'
   assert.ok((await owner).routeRef);
   assert.equal(f.references.length, 1);
 });
+
+test('atomic route reference publication carries exactly the four declared context fields', async () => {
+  const f = fakeRepository();
+  await new RoutingService(f.repo, adapter(), { now }).route('a', routeInput);
+  assert.deepEqual(Object.keys(f.references[0].context).sort(), [
+    'activeDigest',
+    'configVersion',
+    'hazardVersion',
+    'personalVersion',
+  ]);
+});
