@@ -268,3 +268,8 @@ D 优先交付骨架和部署探针，C 同步交付数据契约，A/B 准备公
 - [S22 GLM 视觉模型说明](https://docs.bigmodel.cn/cn/guide/models/free/glm-4.6v-flash)
 
 - [S23 智谱对话补全与工具参数接口](https://docs.bigmodel.cn/api-reference/模型-api/对话补全)
+
+
+## 实施追踪（2026-10-17，D 服务阶段）
+
+FR01/FR02/FR06/FR08/FR11/FR14 及 P1 搜索、配置影响检查、调用摘要的服务实现与测试已开始交付；客户端闭环、管理员正式挂载、真实校园路线与 Zenith 持久化仍需四包集成和外部验证。结果统一记录在 [验收追踪](ACCEPTANCE.md)，不以接口存在或桩测试代替需求通过。
