@@ -22,7 +22,7 @@
 - 只对这个专用新集群执行带日志重定向的 fast restart；同一目录、初始迁移记录与开发库连接均保留。
 - 脱敏部署探针 `--database` 返回 `passed / POSTGRES_SELECT_1`；错误密码被拒绝。
 - 集群进程保持运行，root 与 D 数据库配置相同，根模型密钥与 D 相同；数据目录、两个应用环境文件、维护环境文件、日志权限已核对。
-- 管理员数量为 0。根 ADMIN_PASSWORD 少于现有初始化脚本要求的 12 字符，因此未执行创建；没有修改用户密码或使用样例密码绕过要求。
+- 用户更新密码达到脚本门槛后，受控 `pnpm admin:bootstrap` 已exit0创建首个operator；同一Payload配置的真实Local API密码登录、签名token认证和enabled operator身份验证通过。账号、密码和token均不写入本文；[脱敏证据](admin-verification-evidence.json)。
 - 没有新增应用数据库连接代码、C 报告表或预算表；没有发起 GLM、ORS、Geocoding 业务调用。
 
 ## 安全复用
@@ -54,4 +54,4 @@ lsof -nP -iTCP:55437 -sTCP:LISTEN
 
 不使用 brew services 或系统服务命令。此进程没有注册开机启动；机器重启后按以上状态/端口预检复用原目录。其他包通过受控本地环境文件复用本库，不在聊天或提交中传播凭据。已经运行的应用需由所属负责人重启以读取新环境文件。
 
-在 D 工作目录执行 `pnpm db:migrate:status`、`pnpm exec tsx scripts/deployment-probe.ts --database` 可复验。首次管理员创建仍由受控流程读取根 ADMIN_EMAIL/ADMIN_PASSWORD；密码须先达到现有脚本 12 字符门槛，不把凭据写入文档。
+在 D 工作目录执行 `pnpm db:migrate:status`、`pnpm exec tsx scripts/deployment-probe.ts --database` 可复验。首个管理员已经受控创建；不重复bootstrap重置账号。后续管理通过authenticated operator流程完成，环境秘密仍不写入文档。

@@ -5,6 +5,7 @@
 ## 当前状态
 
 - 已准备：不含秘密值的配置、health、PostgreSQL 和 TLS 出网探针；带 SHA-256 的自定义格式备份、独立空库恢复脚本；发布/恢复步骤与演示草案。
+- 持久本机开发库已配置、迁移/重启/密码认证及SELECT1通过；管理员已受控初始化并通过Local API登录/身份验证，见[本机开发库](local-development-db.md)。这不代表C业务或B后台挂载已通过。
 - 本地数据库实测：见 [local-recovery-evidence.json](local-recovery-evidence.json)。该记录只证明隔离本地 PostgreSQL 的相应步骤，不能替代 Zenith、照片、真实业务预算、会话或到期行为验收。
 - 本机 TLS 实测：2026-10-17，ORS 与 GLM 的 TLS 握手成功；没有发送供应商 API 请求或验证密钥、模型权限、地理覆盖。此结果不能推导 Zenith 出网情况。
 - Zenith、OSS、真实 ORS/Geocoding、GLM 核心链路及真实业务重启恢复：仍需现场配置并执行。没有线上入口，因此尚未生成二维码。
