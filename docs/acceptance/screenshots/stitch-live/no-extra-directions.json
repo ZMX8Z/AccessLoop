@@ -1,0 +1,22 @@
+{
+  "codeEvidenceCommit": "e7ff5e9a3225162a025bb047813886ab2a3ce5fe",
+  "since": "2026-10-17T22:44:58.614Z",
+  "at": "2026-10-17T22:45:30.158Z",
+  "actions": [
+    "close/open layers panel",
+    "keyboard Escape and focus restore",
+    "map zoom",
+    "inspect own report",
+    "stop personal avoidance",
+    "return Route"
+  ],
+  "providerEventsInWindow": {},
+  "reportRowVersion": 3,
+  "personalVersion": 3,
+  "effectivePersonalCount": 0,
+  "secondSession": {
+    "report": 404,
+    "photo": 404,
+    "export": 404
+  }
+}

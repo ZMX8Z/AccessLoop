@@ -1,3 +1,20 @@
+# A 整合后的 B 公众入口补充（2026-10-18）
+
+最终M1采用ReportSummary compact分支的整卡链接、短编号/完整无障碍编号、两行摘要与短有效期；360px卡高158px。完整详情分支不变。不要恢复长详情摘要作为列表，也不要重新建立第二套上报/列表。
+
+本节是本次用户授权 A 跨包视觉/客户端整合的交接，替代下方历史 `/live` 内联向导和旧报告入口事实。B 业务 API、ReportForm/AvoidanceDrawer 的保存/预览/明确确认、权限和幂等语义未另造实现。
+
+- 当前：`/report`→`/report/confirm`→`/report/success/[id]`；`/my-reports`及详情；Route 的 Inspect 使用`/route/barriers/[id]`。旧 reports 路径保留重定向。
+- 父 PublicApp/RoutePlanner 在 layout 持续挂载向导和列表，隐藏时保留草稿/筛选。Wizard 接受 pathname/returnTo/onNavigate；ReportsList 接受 onNavigate/refreshKey；Detail 接受 returnTo/onNavigate/onChanged。
+- P1默认未选外部AI同意；主按钮上传并继续，人工继续同样先真实上传。P2保存事实→服务端预览→明确确认或明确仅保存→P3。更换照片取消旧分析/预览/确认，失败保留输入。
+- Detail 成功修正/启停/续期派发`accessloop:reports-changed`；父立即标路线过时且不请求Directions，列表刷新。复制按点击时刻判断个人有效性，授权打印继续走 C export。
+- P3刷新只恢复本人列表明确包含、当前有效个人确认的服务端PrivateDTO；无草稿覆盖、无公共/管理员兜底、无sessionStorage成功。
+- 本轮真实报告、图像均为明确合成验收材料，GLM与后续ORS超时如实记录；校园与Zenith不作通过声明。
+
+A 固定产品与截图证据见[A交接](wp-a.md)、[A验收](../acceptance/wp-a.md)。此次改动由A阶段PR交付给D，不覆盖B/C后台实现。
+
+---
+
 # 工作包 B 交接：真实报告流程接入
 
 日期：2026-10-17。工作分支：`codex/b-frontend-reports`。PR：#8，base 为 `dev`。

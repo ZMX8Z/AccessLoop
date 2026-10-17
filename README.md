@@ -21,7 +21,7 @@
 
 ## 本地启动
 
-使用 `.nvmrc` 中的 Node.js 和 `package.json` 指定的 pnpm，执行 `pnpm install --frozen-lockfile`、`pnpm dev`。公众入口 `/` 当前进入明确标识的Design Demo（仅本地保存）；`/live` 为真实API客户端联调入口，依赖业务接口完整交付。健康检查 `/api/health`；配置独立 PostgreSQL、应用秘密并执行迁移及受控管理员初始化后使用 `/admin`。
+使用 `.nvmrc` 中的 Node.js 和 `package.json` 指定的 pnpm，执行 `pnpm install --frozen-lockfile`、`pnpm dev`。公众入口 `/` 和兼容入口 `/live` 重定向整合后的真实 `/route`；三主 Tab 为 Route / Report / My Reports。`/preview` 为明确标识的fixture回归入口，`/stitch/` 仅保留静态Design Demo参考。健康检查 `/api/health`；配置独立 PostgreSQL、应用秘密并执行迁移及受控管理员初始化后使用 `/admin`。
 
 完整命令、环境配置、四包接入及检查方式见 [本地开发说明](docs/DEVELOPMENT.md)。本阶段交接与实际证据见 [D 交接](docs/handoffs/wp-d.md) 和 [D 技术验收](docs/acceptance/wp-d.md)。
 
