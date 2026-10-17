@@ -81,6 +81,8 @@ export function RoutePlanner({fixture=false}:{fixture?:boolean}) {
         if(changed){
           // A known change invalidates the route even while replacement data is pending.
           setContextUnavailable(true);setLayersUnavailable(true);
+          routeRequest.current.cancel();setPlanning(false);setInputChanged(true);
+          setNotice('Conditions changed. Please recalculate the route.');
           setReports([]);setMine([]);setPassage(null);
         }
         if(configChanged){

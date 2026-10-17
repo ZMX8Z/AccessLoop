@@ -54,7 +54,7 @@ test('a delayed planning context cannot roll back a newer polled public set',asy
  await app.intervals.find(timer=>timer.ms===5000)!.run();
  release(initial);await flush();
  nodes=app.render();const output=text(nodes[0]);
- assert.match(output,/Conditions changed during planning/);
+ assert.match(output,/Conditions changed/);
  assert.doesNotMatch(output,/Current context/);
 });
 
@@ -68,6 +68,23 @@ test('a route computed under a new configuration waits for matching region param
  nodes=app.render();(nodes.find(node=>'onPlaceSelect' in node.props)!.props.onPlaceSelect as (place:unknown)=>void)(fixturePlaces[1]);
  nodes=app.render();(nodes.find(node=>node.type==='button'&&text(node)==='Plan route →')!.props.onClick as ()=>void)();await flush();
  const output=text(app.render()[0]);
- assert.match(output,/Conditions changed during planning/);
+ assert.match(output,/Conditions changed/);
  assert.doesNotMatch(output,/Current context/);
+});
+
+test('observing a config change cancels an old plan while region refresh is pending',async()=>{
+ const service=createFixtureService();const initial=await service.context();const region=await service.region();let contexts=0,regions=0;
+ let releasePlan!:(value:Context)=>void,releaseRegion!:(value:typeof region)=>void;
+ service.context=async()=>{contexts++;if(contexts===1)return initial;if(contexts===2)return new Promise(resolve=>{releasePlan=resolve});return {...initial,configVersion:2,evaluatedAt:new Date(Date.parse(initial.evaluatedAt)+1000).toISOString()}};
+ service.region=async()=>++regions===1?region:new Promise(resolve=>{releaseRegion=resolve});
+ const app=host(service);app.render();app.effects.forEach(effect=>effect());await flush();
+ let nodes=app.render();(nodes.find(node=>'onPlaceSelect' in node.props)!.props.onPlaceSelect as (place:unknown)=>void)(fixturePlaces[0]);
+ nodes=app.render();(nodes.find(node=>'onPlaceSelect' in node.props)!.props.onPlaceSelect as (place:unknown)=>void)(fixturePlaces[1]);
+ nodes=app.render();(nodes.find(node=>node.type==='button'&&text(node)==='Plan route →')!.props.onClick as ()=>void)();await flush();
+ const poll=app.intervals.find(timer=>timer.ms===5000)!.run();await flush();
+ releasePlan({...initial,evaluatedAt:new Date(Date.parse(initial.evaluatedAt)+2000).toISOString()});await flush();
+ const output=text(app.render()[0]);
+ releaseRegion({...region,configVersion:2});await poll;
+ assert.doesNotMatch(output,/Current context/);
+ assert.match(output,/Conditions changed/);
 });
