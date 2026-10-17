@@ -1,0 +1,718 @@
+{
+  "schemaVersion": 1,
+  "fieldValidated": false,
+  "orsValidated": false,
+  "productionReady": false,
+  "isDemo": true,
+  "idStatus": "candidate-only-not-persisted",
+  "deploymentPolicy": "documentation-only-no-runtime-import",
+  "provenance": {
+    "status": "Source-traceable offline OSM candidate; field access and routing remain unverified.",
+    "attribution": "© OpenStreetMap contributors",
+    "license": "ODbL-1.0",
+    "licenseUrl": "https://www.openstreetmap.org/copyright",
+    "sourceExtract": {
+      "url": "https://api.openstreetmap.org/api/0.6/map?bbox=151.2315,-33.9188,151.2365,-33.9155",
+      "sha256": "3a10ba4627a42096a21d716b25d0990d79ece0ae7ecd275aba8a0b48473fd240",
+      "bytes": 776030,
+      "bbox": [
+        151.2315,
+        -33.9188,
+        151.2365,
+        -33.9155
+      ],
+      "fetchedAt": "2026-10-17T06:33:20.741Z",
+      "fetchedAtBasis": "Reconstructed local acquisition completion from original snapshot filesystem modification time; no HTTP receipt timestamp was retained.",
+      "localFileCreatedAt": "2026-10-17T06:33:19.216Z",
+      "localTemporaryFile": "/private/tmp/accessloop-campus-research/osm-map.xml",
+      "temporaryFileRequiredAtRuntime": false,
+      "selectedEvidence": "sourceNodes and passageSources preserve selected original object coordinates, tags, versions and update timestamps; the full XML is temporary research evidence."
+    },
+    "selection": {
+      "bboxRole": "investigation-window-only",
+      "geometry": "OSM nodes only for POIs; original way vertices only for passages",
+      "nodePoiRules": {
+        "toilet": "amenity=toilets",
+        "entrance": "entrance=yes/main/service/staircase/home/shop/secondary",
+        "rest_area": "amenity=bench or highway=rest_area"
+      },
+      "namePolicy": "Preserve source name when present; otherwise use a controlled English facility description and OSM node ID.",
+      "poiLimit": 100,
+      "eligibleNodeCount": 10,
+      "returnedNodeCount": 10,
+      "coverage": "Only eligible mapped nodes inside the investigation window; not complete facility coverage."
+    },
+    "limitations": [
+      "No AccessLoop field survey: level, steps, incline, width, kerbs, surface, current opening hours and access rights remain unverified.",
+      "No ORS request was made during candidate extraction. A subsequent budgeted connection probe returned HTTP 200 and passed candidate geometry checks; full baseline/avoidance, physical level and field validation remain outstanding. See provider-connection-evidence.json.",
+      "investigationBbox is a candidate viewing window and is not an approved service region.",
+      "Candidate IDs and passageVersion=1 are offline placeholders, are not persisted and cannot be submitted as valid PassageRefs.",
+      "No UNSW building centroid or inferred geometry is presented as an entrance.",
+      "The OSM tag source=survey describes contributor metadata and does not establish an AccessLoop field survey.",
+      "Missing, conflicting and unrecognized accessibility tags remain unknown; a facility label does not validate the route leading to it.",
+      "The surrounding courtyard has a layer=-1 map tag; shared physical level with nearby paths must be checked on site.",
+      "The private-access entrance is retained as source evidence only, without a public-access recommendation.",
+      "Buffering either entire candidate passage covers its shared endpoints; no demonstration obstacle segment or production buffer has been selected."
+    ]
+  },
+  "investigationBbox": [
+    151.2325,
+    -33.9176,
+    151.2332,
+    -33.9168
+  ],
+  "productionAvoidanceBufferM": null,
+  "endpointCandidates": {
+    "start": {
+      "candidateId": "candidate-endpoint-start",
+      "sourceId": "node/8597065685",
+      "location": [
+        151.2327362,
+        -33.9169865
+      ],
+      "isDemo": true
+    },
+    "end": {
+      "candidateId": "candidate-endpoint-end",
+      "sourceId": "node/8597065684",
+      "location": [
+        151.2330348,
+        -33.917431
+      ],
+      "isDemo": true
+    }
+  },
+  "presetPassageCandidates": [
+    {
+      "id": "candidate-passage-osm-way-1100783040",
+      "passageVersion": 1,
+      "name": "Commerce Courtyard diagonal candidate",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            151.2327362,
+            -33.9169865
+          ],
+          [
+            151.2327865,
+            -33.9170295
+          ],
+          [
+            151.2329883,
+            -33.9173558
+          ],
+          [
+            151.2330047,
+            -33.9173824
+          ],
+          [
+            151.2330348,
+            -33.917431
+          ]
+        ]
+      },
+      "isDemo": true
+    },
+    {
+      "id": "candidate-passage-osm-way-1100783041",
+      "passageVersion": 1,
+      "name": "Commerce Courtyard west-south candidate",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            151.2327362,
+            -33.9169865
+          ],
+          [
+            151.2327079,
+            -33.9171655
+          ],
+          [
+            151.232678,
+            -33.9173069
+          ],
+          [
+            151.2326654,
+            -33.9173665
+          ],
+          [
+            151.2328181,
+            -33.9173927
+          ],
+          [
+            151.2329964,
+            -33.9174233
+          ],
+          [
+            151.2330348,
+            -33.917431
+          ]
+        ]
+      },
+      "isDemo": true
+    }
+  ],
+  "passageSources": [
+    {
+      "source": "openstreetmap",
+      "sourceId": "way/1100783040",
+      "sourceVersion": 1,
+      "sourceUpdatedAt": "2022-10-04T07:29:41Z",
+      "sourceUrl": "https://api.openstreetmap.org/api/0.6/way/1100783040/1",
+      "fetchedAt": "2026-10-17T06:33:20.741Z",
+      "isDemo": true,
+      "rawTags": {
+        "highway": "footway"
+      },
+      "candidateId": "candidate-passage-osm-way-1100783040",
+      "sourceNodeIds": [
+        "8597065685",
+        "10074506254",
+        "10074506253",
+        "10074506258",
+        "8597065684"
+      ],
+      "coordinateOrder": "forward",
+      "accessibility": "unknown",
+      "rawAccessibility": {
+        "wheelchair": null,
+        "toiletWheelchair": null
+      }
+    },
+    {
+      "source": "openstreetmap",
+      "sourceId": "way/1100783041",
+      "sourceVersion": 3,
+      "sourceUpdatedAt": "2025-06-12T06:58:52Z",
+      "sourceUrl": "https://api.openstreetmap.org/api/0.6/way/1100783041/3",
+      "fetchedAt": "2026-10-17T06:33:20.741Z",
+      "isDemo": true,
+      "rawTags": {
+        "highway": "footway"
+      },
+      "candidateId": "candidate-passage-osm-way-1100783041",
+      "sourceNodeIds": [
+        "8597065684",
+        "10074506255",
+        "12908888234",
+        "2763366434",
+        "12908952919",
+        "12908888232",
+        "8597065685"
+      ],
+      "coordinateOrder": "reverse",
+      "accessibility": "unknown",
+      "rawAccessibility": {
+        "wheelchair": null,
+        "toiletWheelchair": null
+      }
+    }
+  ],
+  "places": {
+    "items": [
+      {
+        "id": "candidate-place-osm-node-977369817",
+        "name": "Entrance (OSM node 977369817)",
+        "category": "entrance",
+        "location": [
+          151.2326284,
+          -33.9172492
+        ],
+        "accessibility": "unknown",
+        "accessibilityNote": "OSM facility tags do not establish wheelchair access or a reachable route; field validation is pending.",
+        "source": "openstreetmap",
+        "sourceId": "node/977369817",
+        "fetchedAt": "2026-10-17T06:33:20.741Z",
+        "isDemo": true,
+        "rawAccessibility": {
+          "wheelchair": null,
+          "toiletWheelchair": null
+        }
+      },
+      {
+        "id": "candidate-place-osm-node-977369838",
+        "name": "Entrance (OSM node 977369838)",
+        "category": "entrance",
+        "location": [
+          151.2327029,
+          -33.9174221
+        ],
+        "accessibility": "unknown",
+        "accessibilityNote": "OSM facility tags do not establish wheelchair access or a reachable route; field validation is pending.",
+        "source": "openstreetmap",
+        "sourceId": "node/977369838",
+        "fetchedAt": "2026-10-17T06:33:20.741Z",
+        "isDemo": true,
+        "rawAccessibility": {
+          "wheelchair": null,
+          "toiletWheelchair": null
+        }
+      },
+      {
+        "id": "candidate-place-osm-node-2471034601",
+        "name": "Bench (OSM node 2471034601)",
+        "category": "rest_area",
+        "location": [
+          151.23251,
+          -33.9174056
+        ],
+        "accessibility": "unknown",
+        "accessibilityNote": "OSM facility tags do not establish wheelchair access or a reachable route; field validation is pending.",
+        "source": "openstreetmap",
+        "sourceId": "node/2471034601",
+        "fetchedAt": "2026-10-17T06:33:20.741Z",
+        "isDemo": true,
+        "rawAccessibility": {
+          "wheelchair": null,
+          "toiletWheelchair": null
+        }
+      },
+      {
+        "id": "candidate-place-osm-node-2763398962",
+        "name": "Toilets (OSM node 2763398962)",
+        "category": "toilet",
+        "location": [
+          151.2326938,
+          -33.9170841
+        ],
+        "accessibility": "unknown",
+        "accessibilityNote": "OSM facility tags do not establish wheelchair access or a reachable route; field validation is pending.",
+        "source": "openstreetmap",
+        "sourceId": "node/2763398962",
+        "fetchedAt": "2026-10-17T06:33:20.741Z",
+        "isDemo": true,
+        "rawAccessibility": {
+          "wheelchair": null,
+          "toiletWheelchair": null
+        }
+      },
+      {
+        "id": "candidate-place-osm-node-2763398963",
+        "name": "Toilets (OSM node 2763398963)",
+        "category": "toilet",
+        "location": [
+          151.2326683,
+          -33.9172145
+        ],
+        "accessibility": "unknown",
+        "accessibilityNote": "OSM facility tags do not establish wheelchair access or a reachable route; field validation is pending.",
+        "source": "openstreetmap",
+        "sourceId": "node/2763398963",
+        "fetchedAt": "2026-10-17T06:33:20.741Z",
+        "isDemo": true,
+        "rawAccessibility": {
+          "wheelchair": null,
+          "toiletWheelchair": null
+        }
+      },
+      {
+        "id": "candidate-place-osm-node-4867512905",
+        "name": "Bench (OSM node 4867512905)",
+        "category": "rest_area",
+        "location": [
+          151.2328882,
+          -33.9168383
+        ],
+        "accessibility": "unknown",
+        "accessibilityNote": "OSM facility tags do not establish wheelchair access or a reachable route; field validation is pending.",
+        "source": "openstreetmap",
+        "sourceId": "node/4867512905",
+        "fetchedAt": "2026-10-17T06:33:20.741Z",
+        "isDemo": true,
+        "rawAccessibility": {
+          "wheelchair": null,
+          "toiletWheelchair": null
+        }
+      },
+      {
+        "id": "candidate-place-osm-node-5565631599",
+        "name": "Entrance (private access) (OSM node 5565631599)",
+        "category": "entrance",
+        "location": [
+          151.2328543,
+          -33.9175396
+        ],
+        "accessibility": "unknown",
+        "accessibilityNote": "OSM facility tags do not establish wheelchair access or a reachable route; field validation is pending. OSM access=private; this is not a public access recommendation.",
+        "source": "openstreetmap",
+        "sourceId": "node/5565631599",
+        "fetchedAt": "2026-10-17T06:33:20.741Z",
+        "isDemo": true,
+        "rawAccessibility": {
+          "wheelchair": null,
+          "toiletWheelchair": null
+        }
+      },
+      {
+        "id": "candidate-place-osm-node-12908888233",
+        "name": "Main entrance (OSM node 12908888233)",
+        "category": "entrance",
+        "location": [
+          151.2326793,
+          -33.9171582
+        ],
+        "accessibility": "unknown",
+        "accessibilityNote": "OSM facility tags do not establish wheelchair access or a reachable route; field validation is pending.",
+        "source": "openstreetmap",
+        "sourceId": "node/12908888233",
+        "fetchedAt": "2026-10-17T06:33:20.741Z",
+        "isDemo": true,
+        "rawAccessibility": {
+          "wheelchair": null,
+          "toiletWheelchair": null
+        }
+      },
+      {
+        "id": "candidate-place-osm-node-12908888235",
+        "name": "Main entrance (OSM node 12908888235)",
+        "category": "entrance",
+        "location": [
+          151.2328074,
+          -33.9174376
+        ],
+        "accessibility": "unknown",
+        "accessibilityNote": "OSM facility tags do not establish wheelchair access or a reachable route; field validation is pending.",
+        "source": "openstreetmap",
+        "sourceId": "node/12908888235",
+        "fetchedAt": "2026-10-17T06:33:20.741Z",
+        "isDemo": true,
+        "rawAccessibility": {
+          "wheelchair": null,
+          "toiletWheelchair": null
+        }
+      },
+      {
+        "id": "candidate-place-osm-node-12908952918",
+        "name": "Main entrance (OSM node 12908952918)",
+        "category": "entrance",
+        "location": [
+          151.2326528,
+          -33.9169469
+        ],
+        "accessibility": "unknown",
+        "accessibilityNote": "OSM facility tags do not establish wheelchair access or a reachable route; field validation is pending.",
+        "source": "openstreetmap",
+        "sourceId": "node/12908952918",
+        "fetchedAt": "2026-10-17T06:33:20.741Z",
+        "isDemo": true,
+        "rawAccessibility": {
+          "wheelchair": null,
+          "toiletWheelchair": null
+        }
+      }
+    ],
+    "truncated": false
+  },
+  "sourceNodes": [
+    {
+      "source": "openstreetmap",
+      "sourceId": "node/977369817",
+      "sourceVersion": 4,
+      "sourceUpdatedAt": "2021-04-06T00:35:12Z",
+      "sourceUrl": "https://api.openstreetmap.org/api/0.6/node/977369817/4",
+      "fetchedAt": "2026-10-17T06:33:20.741Z",
+      "isDemo": true,
+      "rawTags": {
+        "entrance": "yes"
+      },
+      "location": [
+        151.2326284,
+        -33.9172492
+      ]
+    },
+    {
+      "source": "openstreetmap",
+      "sourceId": "node/977369838",
+      "sourceVersion": 5,
+      "sourceUpdatedAt": "2021-04-06T00:35:12Z",
+      "sourceUrl": "https://api.openstreetmap.org/api/0.6/node/977369838/5",
+      "fetchedAt": "2026-10-17T06:33:20.741Z",
+      "isDemo": true,
+      "rawTags": {
+        "entrance": "yes"
+      },
+      "location": [
+        151.2327029,
+        -33.9174221
+      ]
+    },
+    {
+      "source": "openstreetmap",
+      "sourceId": "node/2471034601",
+      "sourceVersion": 1,
+      "sourceUpdatedAt": "2013-09-25T12:22:45Z",
+      "sourceUrl": "https://api.openstreetmap.org/api/0.6/node/2471034601/1",
+      "fetchedAt": "2026-10-17T06:33:20.741Z",
+      "isDemo": true,
+      "rawTags": {
+        "amenity": "bench"
+      },
+      "location": [
+        151.23251,
+        -33.9174056
+      ]
+    },
+    {
+      "source": "openstreetmap",
+      "sourceId": "node/2763366434",
+      "sourceVersion": 2,
+      "sourceUpdatedAt": "2025-06-12T06:40:38Z",
+      "sourceUrl": "https://api.openstreetmap.org/api/0.6/node/2763366434/2",
+      "fetchedAt": "2026-10-17T06:33:20.741Z",
+      "isDemo": true,
+      "rawTags": {},
+      "location": [
+        151.2326654,
+        -33.9173665
+      ]
+    },
+    {
+      "source": "openstreetmap",
+      "sourceId": "node/2763398962",
+      "sourceVersion": 5,
+      "sourceUpdatedAt": "2022-06-15T06:26:01Z",
+      "sourceUrl": "https://api.openstreetmap.org/api/0.6/node/2763398962/5",
+      "fetchedAt": "2026-10-17T06:33:20.741Z",
+      "isDemo": true,
+      "rawTags": {
+        "amenity": "toilets",
+        "fee": "no",
+        "female": "yes",
+        "source": "survey"
+      },
+      "location": [
+        151.2326938,
+        -33.9170841
+      ]
+    },
+    {
+      "source": "openstreetmap",
+      "sourceId": "node/2763398963",
+      "sourceVersion": 4,
+      "sourceUpdatedAt": "2021-04-06T00:35:12Z",
+      "sourceUrl": "https://api.openstreetmap.org/api/0.6/node/2763398963/4",
+      "fetchedAt": "2026-10-17T06:33:20.741Z",
+      "isDemo": true,
+      "rawTags": {
+        "amenity": "toilets",
+        "male": "yes",
+        "source": "survey"
+      },
+      "location": [
+        151.2326683,
+        -33.9172145
+      ]
+    },
+    {
+      "source": "openstreetmap",
+      "sourceId": "node/4867512905",
+      "sourceVersion": 4,
+      "sourceUpdatedAt": "2024-07-24T12:09:17Z",
+      "sourceUrl": "https://api.openstreetmap.org/api/0.6/node/4867512905/4",
+      "fetchedAt": "2026-10-17T06:33:20.741Z",
+      "isDemo": true,
+      "rawTags": {
+        "amenity": "bench",
+        "backrest": "yes"
+      },
+      "location": [
+        151.2328882,
+        -33.9168383
+      ]
+    },
+    {
+      "source": "openstreetmap",
+      "sourceId": "node/5565631599",
+      "sourceVersion": 3,
+      "sourceUpdatedAt": "2021-04-06T00:35:12Z",
+      "sourceUrl": "https://api.openstreetmap.org/api/0.6/node/5565631599/3",
+      "fetchedAt": "2026-10-17T06:33:20.741Z",
+      "isDemo": true,
+      "rawTags": {
+        "access": "private",
+        "entrance": "yes"
+      },
+      "location": [
+        151.2328543,
+        -33.9175396
+      ]
+    },
+    {
+      "source": "openstreetmap",
+      "sourceId": "node/8597065684",
+      "sourceVersion": 1,
+      "sourceUpdatedAt": "2021-04-06T00:35:12Z",
+      "sourceUrl": "https://api.openstreetmap.org/api/0.6/node/8597065684/1",
+      "fetchedAt": "2026-10-17T06:33:20.741Z",
+      "isDemo": true,
+      "rawTags": {},
+      "location": [
+        151.2330348,
+        -33.917431
+      ]
+    },
+    {
+      "source": "openstreetmap",
+      "sourceId": "node/8597065685",
+      "sourceVersion": 2,
+      "sourceUpdatedAt": "2025-06-12T06:53:52Z",
+      "sourceUrl": "https://api.openstreetmap.org/api/0.6/node/8597065685/2",
+      "fetchedAt": "2026-10-17T06:33:20.741Z",
+      "isDemo": true,
+      "rawTags": {},
+      "location": [
+        151.2327362,
+        -33.9169865
+      ]
+    },
+    {
+      "source": "openstreetmap",
+      "sourceId": "node/10074506253",
+      "sourceVersion": 1,
+      "sourceUpdatedAt": "2022-10-04T07:29:41Z",
+      "sourceUrl": "https://api.openstreetmap.org/api/0.6/node/10074506253/1",
+      "fetchedAt": "2026-10-17T06:33:20.741Z",
+      "isDemo": true,
+      "rawTags": {},
+      "location": [
+        151.2329883,
+        -33.9173558
+      ]
+    },
+    {
+      "source": "openstreetmap",
+      "sourceId": "node/10074506254",
+      "sourceVersion": 1,
+      "sourceUpdatedAt": "2022-10-04T07:29:41Z",
+      "sourceUrl": "https://api.openstreetmap.org/api/0.6/node/10074506254/1",
+      "fetchedAt": "2026-10-17T06:33:20.741Z",
+      "isDemo": true,
+      "rawTags": {},
+      "location": [
+        151.2327865,
+        -33.9170295
+      ]
+    },
+    {
+      "source": "openstreetmap",
+      "sourceId": "node/10074506255",
+      "sourceVersion": 1,
+      "sourceUpdatedAt": "2022-10-04T07:29:41Z",
+      "sourceUrl": "https://api.openstreetmap.org/api/0.6/node/10074506255/1",
+      "fetchedAt": "2026-10-17T06:33:20.741Z",
+      "isDemo": true,
+      "rawTags": {},
+      "location": [
+        151.2329964,
+        -33.9174233
+      ]
+    },
+    {
+      "source": "openstreetmap",
+      "sourceId": "node/10074506258",
+      "sourceVersion": 1,
+      "sourceUpdatedAt": "2022-10-04T07:29:41Z",
+      "sourceUrl": "https://api.openstreetmap.org/api/0.6/node/10074506258/1",
+      "fetchedAt": "2026-10-17T06:33:20.741Z",
+      "isDemo": true,
+      "rawTags": {},
+      "location": [
+        151.2330047,
+        -33.9173824
+      ]
+    },
+    {
+      "source": "openstreetmap",
+      "sourceId": "node/12908888232",
+      "sourceVersion": 2,
+      "sourceUpdatedAt": "2025-06-12T06:54:24Z",
+      "sourceUrl": "https://api.openstreetmap.org/api/0.6/node/12908888232/2",
+      "fetchedAt": "2026-10-17T06:33:20.741Z",
+      "isDemo": true,
+      "rawTags": {},
+      "location": [
+        151.2327079,
+        -33.9171655
+      ]
+    },
+    {
+      "source": "openstreetmap",
+      "sourceId": "node/12908888233",
+      "sourceVersion": 3,
+      "sourceUpdatedAt": "2025-06-12T06:56:33Z",
+      "sourceUrl": "https://api.openstreetmap.org/api/0.6/node/12908888233/3",
+      "fetchedAt": "2026-10-17T06:33:20.741Z",
+      "isDemo": true,
+      "rawTags": {
+        "entrance": "main"
+      },
+      "location": [
+        151.2326793,
+        -33.9171582
+      ]
+    },
+    {
+      "source": "openstreetmap",
+      "sourceId": "node/12908888234",
+      "sourceVersion": 1,
+      "sourceUpdatedAt": "2025-06-12T06:53:52Z",
+      "sourceUrl": "https://api.openstreetmap.org/api/0.6/node/12908888234/1",
+      "fetchedAt": "2026-10-17T06:33:20.741Z",
+      "isDemo": true,
+      "rawTags": {},
+      "location": [
+        151.2328181,
+        -33.9173927
+      ]
+    },
+    {
+      "source": "openstreetmap",
+      "sourceId": "node/12908888235",
+      "sourceVersion": 2,
+      "sourceUpdatedAt": "2025-06-12T06:56:33Z",
+      "sourceUrl": "https://api.openstreetmap.org/api/0.6/node/12908888235/2",
+      "fetchedAt": "2026-10-17T06:33:20.741Z",
+      "isDemo": true,
+      "rawTags": {
+        "entrance": "main"
+      },
+      "location": [
+        151.2328074,
+        -33.9174376
+      ]
+    },
+    {
+      "source": "openstreetmap",
+      "sourceId": "node/12908952918",
+      "sourceVersion": 1,
+      "sourceUpdatedAt": "2025-06-12T06:58:52Z",
+      "sourceUrl": "https://api.openstreetmap.org/api/0.6/node/12908952918/1",
+      "fetchedAt": "2026-10-17T06:33:20.741Z",
+      "isDemo": true,
+      "rawTags": {
+        "entrance": "main"
+      },
+      "location": [
+        151.2326528,
+        -33.9169469
+      ]
+    },
+    {
+      "source": "openstreetmap",
+      "sourceId": "node/12908952919",
+      "sourceVersion": 1,
+      "sourceUpdatedAt": "2025-06-12T06:58:52Z",
+      "sourceUrl": "https://api.openstreetmap.org/api/0.6/node/12908952919/1",
+      "fetchedAt": "2026-10-17T06:33:20.741Z",
+      "isDemo": true,
+      "rawTags": {},
+      "location": [
+        151.232678,
+        -33.9173069
+      ]
+    }
+  ],
+  "validationGateMeaning": "orsValidated refers to the complete approved-region baseline/avoidance and session workflow; a successful provider connection probe alone does not satisfy it."
+}
