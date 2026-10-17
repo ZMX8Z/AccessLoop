@@ -1,6 +1,6 @@
 # D 交接：P0/P1 服务基础阶段
 
-当前集成回执见[四包阶段集成](../acceptance/d-four-package-integration.md)：B #8已合入dev `9cfd186`，统一产物构建和31项合后回归通过；Vision显式日预算已配置，新一次真实请求仍429/1305。以下较早阶段状态保留历史，最终P0/P1尚未通过。
+当前模型阶段见[付费GLM验收](../acceptance/d-paid-vision.md)：用户指定glm-4.6v并确认充值，本机真实私有照片分析/重放/缓存通过；全量check220通过/11跳过，build exit0。前次[四包集成](../acceptance/d-four-package-integration.md)及以下旧模型失败均保留历史。地点源、校园实测、Zenith与最终P0/P1尚未通过。
 
 日期：2026-10-17。分支：`codex/d-backend-routing`。独立目录：`/Users/coreyli/.codex/worktrees/d-backend-routing/AccessLoop`。
 
@@ -148,3 +148,5 @@ D PR #16已合入dev 0da6e8fa9cb473c10cc359d5316e57f4f2aacafb（deliveryHead c5b
 D协助B在其独立固定分支保留历史同步dev d49eef50a59cd3c42b6c6ce3996a075822a68228，修复产品4b642c63dc8cdb3918123934673c3d72e242f646。五项独立发现均修复；两轴各31/31（重叠）无剩余工程阻塞，全量check219通过/11默认集成跳过/0失败，D最终生产build exit0。真实C/OSS、明确合成区域的浏览器人工上传→报告→自动预览→确认/续期/描述修正/停用、授权导出/复制及第二会话404通过；360px无横向溢出。[B验收](../acceptance/wp-b.md)含截图与JSON，原生打印预览仍人工待验。新head交付/集成SHA见PR #8元数据。
 
 D17恢复证据阶段实际集成SHA为d49eef50a59cd3c42b6c6ce3996a075822a68228；配套对象回填缺项已在本机解除。其后本次B浏览器无模型/ORS/搜索/地点调用。四包已有阶段成果共享，但P0/P1总验收仍须在最终集成提交完成真实GLM、地点、ORS/搜索公众闭环、校园实测和Zenith；未将本机人工路径算作最终完成。
+
+付费模型阶段：baseDevCommit=7da9f32fe62b2916de038b949db3a28f5a351af2，codeEvidenceCommit=f7357ac14d7123e3ff394e4073d269d07365580f。运行默认值、当前fixture/调用方和authority同步，沿用原key持久账本；首次1113后用户确认充值才解除该上游封锁，3条原预留保留。后续生成图连通5121ms与真实私有照片HTTP分析7508ms成功，原键重放及新键缓存不新增请求；自建数据/OSS对象已清理。两轴独立vision各19/19（重叠）无发现。最终deliveryHead/集成SHA见本阶段PR元数据，完整范围见上述付费验收。
