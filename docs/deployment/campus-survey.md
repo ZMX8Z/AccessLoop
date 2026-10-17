@@ -1,6 +1,6 @@
 # UNSW Kensington 小区域路线候选与核验清单
 
-记录日期：2026-10-17（Australia/Sydney）。负责人：D。状态：**公开来源调查完成；现场、真实 ORS 和生产演示配置仍未验证**。
+记录日期：2026-10-17（Australia/Sydney）。负责人：D。状态：**公开来源调查完成；现场、完整ORS避让闭环和生产演示配置仍未验证**。后续单次供应商连接与候选几何检查已通过，见[连接证据](provider-connection-evidence.json)；不替代本文完整实测清单。
 
 本文是部署准备记录，不替代 [PROJECT](../authority/PROJECT.md)、[API 契约](../authority/API_CONTRACTS.md) 或实测交接。以下坐标来自 UNSW 官方 GIS 与 OpenStreetMap 原始对象，未由截图估读，未种入生产数据库。没有将公众足迹标签推断为轮椅可通行。
 

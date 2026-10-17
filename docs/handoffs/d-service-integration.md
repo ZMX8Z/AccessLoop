@@ -4,7 +4,7 @@
 
 ## C：唯一持久化仓储
 
-实现 `src/features/routing/server/repository.ts` 的 `RoutingRepository`，在 Node 服务初始化中调用 `installRoutingRepository(async () => repository)`（`runtime.ts`）。可通过 Next `instrumentation.ts` 的 Node register 加载；禁止在浏览器注册。每个 Node 进程必须接入同一 Payload 管理连接；本阶段没有生产内存替代。
+实现 `src/features/routing/server/repository.ts` 的 `RoutingRepository`，在 Node 服务初始化中调用 `installRoutingRepository(async () => repository)`（`runtime.ts`）。可通过 Next `instrumentation.ts` 的 Node register 加载；禁止在浏览器注册。每个 Node 进程必须接入同一 Payload 管理连接；本阶段没有生产内存替代。C0已通过PR #7集成，实际状态和证据见[C0集成验收](../acceptance/c0-integration.md)。
 
 - `resolveSession` 只解析已验证 Cookie，返回内部会话命名空间，不从 URL/body 信任会话身份。
 - `readSnapshot` 在同一快照中返回区域、该会话版本、公共发布快照与本人确认；不得以私有 rowVersion 拼公共快照。
@@ -19,7 +19,7 @@ Vision 调用可复用 `ProviderGate.run({service:'vision', keyFingerprint, poli
 
 ## A/B：可消费接口
 
-六个 D 端点已挂载到同一个应用。C 仓储尚未安装时明确返回 503；不会返回合成区域或空避让成功。A 使用 region 的白名单、context 轮询及真实 search；B 的路线选择用服务返回的本会话 routeRef 或持久化 preset ID/version，不自行提交个人多边形。最终 UI 和 C 后台挂载仍须真实联调。
+六个 D 端点已挂载到同一个应用。C0已在Node初始化安装真实仓储；已批准区域/地点未导入时仍明确返回503，不会返回合成区域或空避让成功。A 使用 region 的白名单、context 轮询及真实 search；B 的路线选择用服务返回的本会话 routeRef 或持久化 preset ID/version，不自行提交个人多边形。最终 UI 和 C 后台挂载仍须真实联调。
 
 ## Fixture 与固定路线
 

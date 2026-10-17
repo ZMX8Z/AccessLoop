@@ -25,7 +25,7 @@
 | 隔离本地PG备份恢复 | 通过（真实PG） | [JSON](../deployment/local-recovery-evidence.json)；迁移8表、备份、重启、空库恢复及拒绝非空覆盖；合成sentinel不等于业务记录 |
 | 用户本地配置探针 | 部分通过/阻塞 | 专用本机PG迁移/重启/密码认证/SELECT1通过；ORS/GLM仅TLS通过，秘密已同步；OSS缺失，用户更新密码后管理员已受控创建并验证Local API登录/令牌身份 |
 | 真实ORS/Geocoding/GLM、OSS、Zenith | 未验证/外部条件阻塞 | 未绕过C持久预算直接调用；无真实部署/线上二维码 |
-| A/B/C集成与管理正式挂载 | 未通过（依赖未交付） | 当前远端无对应分支/可合入PR；未声称四包已合入 |
+| A/B/C集成与管理正式挂载 | 未通过（依赖未交付） | C0随后已集成，A/B和C1/P1仍待交付；未声称四包已合入 |
 
 ## 独立审查
 
@@ -56,3 +56,14 @@
 ## 受控管理员与生产门禁
 
 用户更新密码后，`pnpm admin:bootstrap`退出0；同一Payload配置的真实密码登录、签名token认证与enabled operator校验通过，见[脱敏证据](../deployment/admin-verification-evidence.json)。没有在提交或记录中保存用户名/密码/token。`pnpm start`因明确缺少OSS五项配置在prestart退出1，符合生产门禁；不会因此声称生产启动或照片功能通过。
+
+
+## C0 合入后的依赖与真实连接验收
+
+C0 [PR #7](https://github.com/ZMX8Z/AccessLoop/pull/7) deliveryHead=`8c8526cdfb6bbab078b10ac08b0d02b51d465b75` 已串行合入dev，integratedDevCommit=`5e4867d8b6141aacbc8fc4988f4aa41287bd370a`；该head与集成树一致。完整证据见[C0集成验收](c0-integration.md)。Unix真实数据库套件121通过/0失败/1HTTP待单独执行；HTTP随后1/1通过；lint/typecheck/build exit0。C0工程准入通过，C整包并未通过。
+
+D同步该base并加入离线校园交接后，`pnpm check` exit0：108通过、0失败、3默认跳过；新增候选5项全过。原始XML与20个node/两条way坐标及标签核对一致。数据与测试不改变运行代码，复用上述同树构建证据。
+
+[真实连接记录](../deployment/provider-connection-evidence.json)：ORS一次HTTP200、Geocoding一次HTTP200，均先由C持久原子仓储预留。专用PG重启保留管理员、迁移、预算和脱敏事件。之前本地探针的零HTTP输入错误已明确披露；不以其call事件证明上游调用。Vision/OSS/Zenith、现场和四包UI总闭环仍未通过。
+
+[B阶段审查](../handoffs/b-integration-review.md)未通过准入：正常业务路径桩回退掩盖真实失败等问题待B修复。D P0/P1整体判定保持未完成。
