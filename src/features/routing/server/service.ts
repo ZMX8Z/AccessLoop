@@ -265,7 +265,12 @@ export class RoutingService {
             regionId: region.id,
             geometry: selected.geometry,
             expiresAt: routeRefExpiresAt,
-            context: latest.context,
+            context: {
+              hazardVersion: latest.context.hazardVersion,
+              personalVersion: latest.context.personalVersion,
+              configVersion: latest.context.configVersion,
+              activeDigest: latest.context.activeDigest,
+            },
           }),
         );
         if (!ref) {
