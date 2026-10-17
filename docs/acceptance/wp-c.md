@@ -1,4 +1,59 @@
-# C 技术验收：C1 人工报告阶段
+# C 技术验收：C1–C3
+
+## 当前结果：C2/C3 本地阶段，2026-10-17
+
+本阶段通过本机技术验收。范围包含真实 Payload 管理页面、C2 review 命令、C3 区域/通道配置和调用摘要。完整 P0 仍为真实 GLM 外部条件阻塞；P1 管理阶段通过不代表四包公共路线闭环已验收；完整 C 包及 Zenith 总验收未通过。本轮无新增真实 GLM 调用。
+
+| 字段 | 当前值 |
+| --- | --- |
+| branch | codex/c-backend-data-ai |
+| baseDevCommit | 1d2cd2b9b3420a9b0c072a3b54ec258839a95b19 |
+| codeEvidenceCommit / 运行代码 head | 12ae37cb4e7f431b76c23765b210adff03ee3084 |
+| PR | [#15](https://github.com/ZMX8Z/AccessLoop/pull/15)，base=dev，复用既有 C1 阶段 PR，由 D 集成 |
+| integratedDevCommit | 未集成，不将本机结果当作 dev/Zenith 验收 |
+| 本机 | Windows、Node 22.14.0、pnpm 10.20.0、Payload 3.91.0、PostgreSQL 17.10 |
+
+| 实际检查 | 结果与适用范围 |
+| --- | --- |
+| `pnpm lint`、`pnpm exec tsc --noEmit`、`pnpm build` | 最终运行代码通过；生产构建包含三组新增管理接口和真实 `/admin` |
+| Windows 兼容回归 | 160 通过、10 跳过、0 失败；显式排除五项平台用例，跳过的集成场景另行执行，不计作通过 |
+| 真实 PostgreSQL 回归 | 32/32：C1 hazards 11、C2 review 9、C3 region 12，计数含父测试。隔离测试库、同一真实 Payload 连接；元数据证据为合成，不请求 OSS/模型 |
+| 最终生产 HTTP | 1 个综合场景通过，无跳过。自启随机回环端口服务器，真实登录与 SSR、双角色界面、原生只读边界、跨区域拒绝、独立证据核实、公共白名单、重放、冲突、配置、摘要、禁用账号、解除/重开/驳回及精确清理 |
+| 浏览器 C2 | 合成报告 pending v3→verified v4→resolved v5→pending v6，实际审计六条；原图经授权读取，未请求模型 |
+| 浏览器 C3 | 名称保存使 configVersion 1→2、hazardVersion 保持 3；排除现有通道的 bbox 返回 409，无部分保存；摘要 Vision 仍为历史 3 次调用/3 次错误 |
+| 生产重启 | 最终构建重新启动后，报告 pending v6、两个作用域均停用；配置 v2/hazard v3、通道 ID/版本不变，数据库持久化通过 |
+| 独立审查 | 服务、组件、HTTP/集合权限由独立子 agent 只读交叉检查，已知历史几何与旧 C0 配置兼容问题已修复并实库回归；不冒充独立最终整包验收 |
+| 数据迁移 | 无新增持久字段或迁移；保留 C0/C1 现有表、字符串 ID 和升级历史 |
+| 暂存秘密扫描 | 数据库、Payload、会话、管理员密码、GLM、OSS 共七项本机秘密检查未命中；环境文件未提交 |
+
+五项平台用例为 D 的四项 Unix 备份/恢复脚本检查和 A 的 python3 生成检查。因此没有声称完整 `pnpm check` 在 Windows 全绿。下述命令固定代码相同；后续仅交接文档提交不改变其适用性。
+
+### 可复现命令
+
+在 C 工作目录、锁定 Node/pnpm 下运行：
+
+```powershell
+pnpm lint
+pnpm exec tsc --noEmit
+pnpm build
+pnpm exec tsx --test --test-skip-pattern='backup refuses|restore requires|restore rejects|database connection options are translated|generated Stitch page roots' tests/*.test.ts
+node --env-file=.env.c0-test --import tsx --test --test-force-exit tests/hazards.integration.test.ts tests/review.integration.test.ts tests/admin-region.integration.test.ts
+$env:ACCESSLOOP_ADMIN_HTTP_TESTS='1'
+node --env-file=.env.c0-test --import tsx --test --test-force-exit tests/admin-http.integration.test.ts
+```
+
+测试数据库先完成现有迁移，`.env.c0-test` 设置 ACCESSLOOP_STORAGE_TESTS=1、APP_MODE=demo、DISABLE_PAYLOAD_HMR=true。生产 HTTP 测试拒绝非本机/非 `_test` 数据库，自行启动和停止本次服务器，只清理随机前缀记录；其请求带浏览器 Sec-Fetch-Site，同源保护保持启用。不要同时运行会改写 `.next` 的 dev/build。
+
+真实数据库检查包含独立证据资格、首次/重复核实、全部状态机、发布白名单、个人确认失效/版本绑定、过期历史、失败回滚、跨区域/角色/禁用账号、全部会话有效数据影响检查、旧 C0 记录兼容、通道替换和版本。未用合成证据证明真实校园通行。
+
+### 可见证据与剩余条件
+
+- [C2 重启后报告](screenshots/c2-admin-reopened.png)、[C2 审计](screenshots/c2-admin-audit.png)。
+- [C3 保存并重启后的配置](screenshots/c3-admin-config-saved.png)、[C3 配置冲突](screenshots/c3-admin-config-conflict.png)。
+- 实际入口 `http://localhost:3100/admin`。报告管理员可审阅及读摘要，运营者另可配置区域；底层业务字段和审计只读。
+- D 尚需在明确的 dev 集成 SHA 上验收正式前端、公共/个人效果到实际路线的传播和 Zenith。区域与照片仍是明确标识的合成数据，UNSW 实测导入待完成。真实 GLM 按用户要求暂缓，本轮没有请求模型。
+
+## 历史：C1 人工报告阶段
 
 ## 当前结果，2026-10-17
 
