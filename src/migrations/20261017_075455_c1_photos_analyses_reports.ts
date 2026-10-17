@@ -7,67 +7,67 @@ export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
   CREATE TYPE "public"."enum_photos_purpose" AS ENUM('report', 'review_evidence');
   CREATE TYPE "public"."enum_photos_upload_state" AS ENUM('staging', 'ready');
   CREATE TABLE "photo_upload_operations" (
-  	"id" varchar PRIMARY KEY NOT NULL,
-  	"request_fingerprint" varchar NOT NULL,
-  	"photo_id" varchar NOT NULL,
-  	"filename" varchar NOT NULL,
-  	"state" "enum_photo_upload_operations_state" NOT NULL,
-  	"lease_token" varchar NOT NULL,
-  	"lease_expires_at" timestamp(3) with time zone NOT NULL,
-  	"result" jsonb,
-  	"updated_at" timestamp(3) with time zone DEFAULT now() NOT NULL,
-  	"created_at" timestamp(3) with time zone DEFAULT now() NOT NULL
+    "id" varchar PRIMARY KEY NOT NULL,
+    "request_fingerprint" varchar NOT NULL,
+    "photo_id" varchar NOT NULL,
+    "filename" varchar NOT NULL,
+    "state" "enum_photo_upload_operations_state" NOT NULL,
+    "lease_token" varchar NOT NULL,
+    "lease_expires_at" timestamp(3) with time zone NOT NULL,
+    "result" jsonb,
+    "updated_at" timestamp(3) with time zone DEFAULT now() NOT NULL,
+    "created_at" timestamp(3) with time zone DEFAULT now() NOT NULL
   );
-  
+
   CREATE TABLE "external_operations" (
-  	"id" varchar PRIMARY KEY NOT NULL,
-  	"region_id" varchar NOT NULL,
-  	"owner_session_hash" varchar NOT NULL,
-  	"request_fingerprint" varchar NOT NULL,
-  	"status" "enum_external_operations_status" NOT NULL,
-  	"lease_token" varchar,
-  	"lease_expires_at" timestamp(3) with time zone,
-  	"expires_at" timestamp(3) with time zone NOT NULL,
-  	"result" jsonb,
-  	"updated_at" timestamp(3) with time zone DEFAULT now() NOT NULL,
-  	"created_at" timestamp(3) with time zone DEFAULT now() NOT NULL
+    "id" varchar PRIMARY KEY NOT NULL,
+    "region_id" varchar NOT NULL,
+    "owner_session_hash" varchar NOT NULL,
+    "request_fingerprint" varchar NOT NULL,
+    "status" "enum_external_operations_status" NOT NULL,
+    "lease_token" varchar,
+    "lease_expires_at" timestamp(3) with time zone,
+    "expires_at" timestamp(3) with time zone NOT NULL,
+    "result" jsonb,
+    "updated_at" timestamp(3) with time zone DEFAULT now() NOT NULL,
+    "created_at" timestamp(3) with time zone DEFAULT now() NOT NULL
   );
-  
+
   CREATE TABLE "ai_analyses" (
-  	"id" varchar PRIMARY KEY NOT NULL,
-  	"region_id" varchar NOT NULL,
-  	"owner_session_hash" varchar NOT NULL,
-  	"photo_id" varchar NOT NULL,
-  	"image_hash" varchar NOT NULL,
-  	"cache_key" varchar NOT NULL,
-  	"analysis" jsonb NOT NULL,
-  	"updated_at" timestamp(3) with time zone DEFAULT now() NOT NULL,
-  	"created_at" timestamp(3) with time zone DEFAULT now() NOT NULL
+    "id" varchar PRIMARY KEY NOT NULL,
+    "region_id" varchar NOT NULL,
+    "owner_session_hash" varchar NOT NULL,
+    "photo_id" varchar NOT NULL,
+    "image_hash" varchar NOT NULL,
+    "cache_key" varchar NOT NULL,
+    "analysis" jsonb NOT NULL,
+    "updated_at" timestamp(3) with time zone DEFAULT now() NOT NULL,
+    "created_at" timestamp(3) with time zone DEFAULT now() NOT NULL
   );
-  
+
   CREATE TABLE "photos" (
-  	"id" varchar PRIMARY KEY NOT NULL,
-  	"region_id" varchar NOT NULL,
-  	"purpose" "enum_photos_purpose" NOT NULL,
-  	"owner_session_hash" varchar,
-  	"owner_admin_id" varchar,
-  	"image_hash" varchar NOT NULL,
-  	"upload_state" "enum_photos_upload_state" DEFAULT 'staging' NOT NULL,
-  	"prefix" varchar DEFAULT 'accessloop/photos',
-  	"_objectkey" varchar,
-  	"updated_at" timestamp(3) with time zone DEFAULT now() NOT NULL,
-  	"created_at" timestamp(3) with time zone DEFAULT now() NOT NULL,
-  	"url" varchar,
-  	"thumbnail_u_r_l" varchar,
-  	"filename" varchar,
-  	"mime_type" varchar,
-  	"filesize" numeric,
-  	"width" numeric,
-  	"height" numeric,
-  	"focal_x" numeric,
-  	"focal_y" numeric
+    "id" varchar PRIMARY KEY NOT NULL,
+    "region_id" varchar NOT NULL,
+    "purpose" "enum_photos_purpose" NOT NULL,
+    "owner_session_hash" varchar,
+    "owner_admin_id" varchar,
+    "image_hash" varchar NOT NULL,
+    "upload_state" "enum_photos_upload_state" DEFAULT 'staging' NOT NULL,
+    "prefix" varchar DEFAULT 'accessloop/photos',
+    "_objectkey" varchar,
+    "updated_at" timestamp(3) with time zone DEFAULT now() NOT NULL,
+    "created_at" timestamp(3) with time zone DEFAULT now() NOT NULL,
+    "url" varchar,
+    "thumbnail_u_r_l" varchar,
+    "filename" varchar,
+    "mime_type" varchar,
+    "filesize" numeric,
+    "width" numeric,
+    "height" numeric,
+    "focal_x" numeric,
+    "focal_y" numeric
   );
-  
+
   ALTER TABLE "hazard_reports" ADD COLUMN "facts" jsonb;
   ALTER TABLE "payload_locked_documents_rels" ADD COLUMN "photo_upload_operations_id" varchar;
   ALTER TABLE "payload_locked_documents_rels" ADD COLUMN "external_operations_id" varchar;
@@ -111,17 +111,17 @@ export async function down({ db, payload, req }: MigrateDownArgs): Promise<void>
   ALTER TABLE "ai_analyses" DISABLE ROW LEVEL SECURITY;
   ALTER TABLE "photos" DISABLE ROW LEVEL SECURITY;
   ALTER TABLE "payload_locked_documents_rels" DROP CONSTRAINT "payload_locked_documents_rels_photo_upload_operations_fk";
-  
+
   ALTER TABLE "payload_locked_documents_rels" DROP CONSTRAINT "payload_locked_documents_rels_external_operations_fk";
-  
+
   ALTER TABLE "payload_locked_documents_rels" DROP CONSTRAINT "payload_locked_documents_rels_ai_analyses_fk";
-  
+
   ALTER TABLE "payload_locked_documents_rels" DROP CONSTRAINT "payload_locked_documents_rels_photos_fk";
   DROP TABLE "photo_upload_operations" CASCADE;
   DROP TABLE "external_operations" CASCADE;
   DROP TABLE "ai_analyses" CASCADE;
   DROP TABLE "photos" CASCADE;
-  
+
   DROP INDEX "payload_locked_documents_rels_photo_upload_operations_id_idx";
   DROP INDEX "payload_locked_documents_rels_external_operations_id_idx";
   DROP INDEX "payload_locked_documents_rels_ai_analyses_id_idx";

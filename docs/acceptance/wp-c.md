@@ -1,4 +1,70 @@
-# C 技术验收：C0 工程基础与 D 接线
+# C 技术验收：C1 人工报告阶段
+
+## 当前结果，2026-10-17
+
+本次按 Gavin“GLM不管了，直接推吧”交付 C1 人工流程。私有 OSS、应用权限和手动报告闭环通过本机技术验证；真实 GLM 仍为外部条件阻塞，完整 P0、P1、前端总联调及 Zenith 未通过。以下历史记录保留原阶段事实，当前状态以本节为准。
+
+| 字段 | 当前值 |
+| --- | --- |
+| branch | codex/c-backend-data-ai |
+| baseDevCommit | 1d2cd2b9b3420a9b0c072a3b54ec258839a95b19 |
+| codeEvidenceCommit | efe3269e0832f96e949786ac03120dbd5ee29813 |
+| 本机环境 | Windows、Node 22.14.0、pnpm 10.20.0、Payload 3.91.0、PostgreSQL 17.10 |
+| 开发演示 | http://localhost:3100/c1-demo；development 且 APP_MODE=demo 才启用 |
+
+| 实际检查 | 结果与边界 |
+| --- | --- |
+| `pnpm lint`、`pnpm typecheck`、`pnpm build` | 同步最新 dev 后通过；生产构建包含 C1 八组接口，模板使用已转义纯 HTML |
+| Windows 兼容测试 | 152 通过、7 跳过、0 失败；命令显式排除五项平台测试，未将排除项或跳过项写成通过 |
+| 五份真实 PostgreSQL 集成 | 共 53 通过：基础与路由 19、报告 11、分析 11、照片 12；计数包含父测试。照片二进制 I/O 和模型响应使用替身，事务与持久化使用真实测试库 |
+| 真实生产 HTTP 与 OSS | 最终构建综合场景 1/1 通过，无跳过：双会话、上传重放及内容冲突、照片归属和 CMS 旁路、私有报告、预览不生效、明确同意、版本冲突、授权导出及转义、停用、生产演示 404；只清理本次测试记录及对象 |
+| 增量迁移 | 开发库与测试库 up 通过；可丢弃测试库 C1 down/up 通过，外键先于表撤销；未撤销开发库 |
+| 独立只读审查 | HTTP、身份、上传配置、导出、demo 与清理范围未发现高优先级缺陷；独立边界/契约/管理员单测 13/13 通过 |
+| 浏览器演示 | 私有上传→人工报告→预览→明确确认→授权导出及文本复制→停用通过；截图保存确认时状态；没有点击 AI 调用 |
+| 秘密检查 | 暂存内容检查本地数据库、Payload、会话、管理员密码、GLM 和 OSS 秘密值，未发现泄露；环境文件未提交 |
+
+分析集成覆盖 completed、uncertain、unavailable、无尝试门禁、过期租约、会话/区域隔离、缓存和迟到结果；新增正式接线测试证明 HTTP 200 但模型输出无效仍计 error，合法 uncertain 不计 error，幂等重放不重复调用。这些是确定性验证，不能算真实 GLM 通过。
+
+报告集成覆盖私有/公共隔离、两种通道引用、预览/确认、幂等冲突、旧版本、确认依据变化、最终期限跨越后的事务回滚及审计一致性。公共完整快照通过路由投影读取，`visible=false` 不进入有效集。
+
+### 本阶段可复现命令
+
+普通检查和 Windows 兼容测试：
+
+```sh
+pnpm lint
+pnpm typecheck
+pnpm build
+pnpm exec tsx --test --test-skip-pattern='backup refuses|restore requires|restore rejects|database connection options are translated|generated Stitch page roots' tests/*.test.ts
+```
+
+真实测试库检查，先应用迁移，PowerShell 设置照片测试门禁：
+
+```powershell
+$env:ACCESSLOOP_PHOTO_TESTS='1'
+node --env-file=.env.c0-test --import tsx --test --test-force-exit tests/storage.integration.test.ts tests/storage-routing.integration.test.ts tests/hazards.integration.test.ts tests/analysis.integration.test.ts tests/photo-service.integration.test.ts
+```
+
+实际结果由四份套件联跑及照片单独门禁执行组成，分析在 dev 的 Gate 更新后单独复验为 11/11。没有通过强制退出跳过断言或 finally 清理。
+
+真实生产 HTTP，先在另一终端执行 `pnpm start --port 3100`：
+
+```powershell
+$env:ACCESSLOOP_C1_HTTP_TESTS='1'
+$env:ACCESSLOOP_PRODUCTION_HTTP='1'
+node --env-file=.env.local --import tsx --test --test-force-exit tests/c1-http.integration.test.ts
+```
+
+此命令仅接受 localhost/127.0.0.1、demo 配置及持久化的合成区域，会写入和删除本次测试记录与 OSS 对象，绝不调用 `/api/analyze`。线上环境不要运行这份本地清理测试。
+
+### 未计通过的项目
+
+- 四项原有 Unix bash/fake psql 测试，以及最新 A 测试调用 `python3` 生成页面的场景，在本机原生 Windows 未通过。C 未改写其他包脚本；完整 `pnpm check` 不是全绿。首次受沙箱限制的健康检查已在允许本机网络的环境单独复验通过。
+- 首次开发启动生成 import map 时，一次上传返回通用 500，稳定后重试成功。生成 map 已随配置交付，未知错误日志只含请求 ID、类型、函数名和验证路径，不输出原始 SQL、消息或秘密。最终生产闭环已复验通过。
+- 真实 GLM 探针三次均失败；当前阶段没有追加模型请求，D 后续探针记录不混入 C 的请求次数。人工降级不代替模型验收。
+- 本地数据为 synthetic，未核实 UNSW 校园通行；B 正式报告前端、完整路线重规划、P1 后台/公共核实/区域配置、Zenith 都待后续交付。
+
+## 历史：C0 工程基础与 D 接线
 
 日期：2026-10-17，Australia/Sydney。仅验收本次声明的工程阶段，未把合成数据或测试替身计作真实校园/外部服务成果。
 

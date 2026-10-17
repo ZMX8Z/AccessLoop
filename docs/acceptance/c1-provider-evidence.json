@@ -7,6 +7,13 @@
   "deliveryBaseAssessment": "New dev commits changed documentation and review evidence only; src, scripts and tests remain identical to codeEvidenceCommit. No extra model requests were made.",
   "codeEvidenceCommit": "0a971d4fda31bf00a39695fbd97a69001037dc90",
   "scope": "Local provider connectivity and integration preparation only. C1 business endpoints and Zenith have not been verified.",
+  "subsequentUserInstruction": {
+    "original": "GLM不管了，直接推吧",
+    "effect": "The successful-GLM-probe prerequisite was waived for the manual C1 stage. The historical connectivity results below remain unchanged.",
+    "currentEvidence": "wp-c.md",
+    "additionalRealGlmRequestsInC1Stage": 0,
+    "realGlmPassed": false
+  },
   "configuration": {
     "source": "existing developer configuration in the old AccessLoop directory",
     "target": "ignored AccessLoop-c/.env.local",
