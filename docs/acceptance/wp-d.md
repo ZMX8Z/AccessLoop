@@ -23,7 +23,7 @@
 | 搜索/地点/usage | 通过（仓储/供应商桩） | 空结果与失败、区域/数量、配置变化失效、unknown标签、真实事件聚合语义 |
 | `bash -n scripts/backup-restore.sh` | 通过 | 单独脚本语法及10项部署脚本用例 |
 | 隔离本地PG备份恢复 | 通过（真实PG） | [JSON](../deployment/local-recovery-evidence.json)；迁移8表、备份、重启、空库恢复及拒绝非空覆盖；合成sentinel不等于业务记录 |
-| 用户本地配置探针 | 部分通过/阻塞 | 专用本机PG迁移/重启/密码认证/SELECT1通过；ORS/GLM仅TLS通过，秘密已同步；OSS缺失，管理员密码不足12字符尚未初始化 |
+| 用户本地配置探针 | 部分通过/阻塞 | 专用本机PG迁移/重启/密码认证/SELECT1通过；ORS/GLM仅TLS通过，秘密已同步；OSS缺失，用户更新密码后管理员已受控创建并验证Local API登录/令牌身份 |
 | 真实ORS/Geocoding/GLM、OSS、Zenith | 未验证/外部条件阻塞 | 未绕过C持久预算直接调用；无真实部署/线上二维码 |
 | A/B/C集成与管理正式挂载 | 未通过（依赖未交付） | 当前远端无对应分支/可合入PR；未声称四包已合入 |
 
@@ -49,5 +49,10 @@
 - `pnpm check`：exit0，94/94；`pnpm build`：exit0，所有既有动态入口。
 - `pnpm deploy:probe --database`：exit0，POSTGRES_SELECT_1；数据库/两项应用秘密/ORS/Vision配置存在（不输出值），OSS缺失。
 - [持久本机PG证据](../deployment/local-development-db.md)：初始迁移/status及重复执行、只执行一次记录、专用集群重启保留、非超级应用角色、错误密码拒绝、私有文件权限与忽略规则。
-- 服务基础集成`27c8c8c`上再次`pnpm check` 93/93通过，且整个提交树与已构建PR head一致。跟进阶段合并SHA后续补充。
+- 服务基础集成`27c8c8c`上再次`pnpm check` 93/93通过，且整个提交树与已构建PR head一致。跟进[PR #5](https://github.com/ZMX8Z/AccessLoop/pull/5) deliveryHead=`bd09cce8b023e5b380e5f9b05fddeb25ba145b52`，integratedDevCommit=`ca342d38db01fd2fcd88ba6b2cba0c48b3018ba8`，合后`pnpm check`94/94通过，完整树与已构建head一致。
 - P0/P1/总验收判定仍为外部/跨包依赖阻塞，没有把新本地库当作C业务事务/真实外部能力通过。
+
+
+## 受控管理员与生产门禁
+
+用户更新密码后，`pnpm admin:bootstrap`退出0；同一Payload配置的真实密码登录、签名token认证与enabled operator校验通过，见[脱敏证据](../deployment/admin-verification-evidence.json)。没有在提交或记录中保存用户名/密码/token。`pnpm start`因明确缺少OSS五项配置在prestart退出1，符合生产门禁；不会因此声称生产启动或照片功能通过。

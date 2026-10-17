@@ -72,4 +72,4 @@ pnpm start
 
 ## 本机已配置的开发库
 
-本次D执行会话已在专用目录/端口配置本机PostgreSQL，并安全同步根`.env`与D`.env.local`。复用、启动停止和验证记录见[本机开发库](deployment/local-development-db.md)。这不是Zenith资源；无需另开应用数据库连接。首次管理员初始化仍要求现有脚本的12字符密码门槛，当前用户配置未满足，尚未创建账号。
+本次D执行会话已在专用目录/端口配置本机PostgreSQL，并安全同步根`.env`与D`.env.local`。复用、启动停止和验证记录见[本机开发库](deployment/local-development-db.md)。这不是Zenith资源；无需另开应用数据库连接。用户更新密码达到现有脚本门槛后，首个operator已受控创建，并通过真实Local API登录与令牌身份验证；账号秘密只在本地配置中。

@@ -1,0 +1,24 @@
+{
+  "date": "2026-10-17",
+  "environment": "dedicated local PostgreSQL, shared Payload configuration; not Zenith",
+  "codeEvidenceCommit": "58fb0022ce24522545b6ca0555244dafc223e740",
+  "integratedDevCommit": "ca342d38db01fd2fcd88ba6b2cba0c48b3018ba8",
+  "bootstrapCommand": "pnpm admin:bootstrap",
+  "bootstrapExitCode": 0,
+  "verificationMethod": "Payload Local API credential login and signed-token authentication through shared config",
+  "checks": {
+    "credentialLogin": "passed",
+    "signedTokenAuthentication": "passed",
+    "enabledOperator": "passed"
+  },
+  "privateValuesPrinted": false,
+  "limitations": [
+    "No username, password, cookie or token stored in this record.",
+    "Does not verify custom Payload Admin UI, photo/report workflow, C repository or real external providers."
+  ],
+  "productionStartupCheck": {
+    "command": "pnpm start",
+    "exitCode": 1,
+    "expectedFailure": "prestart requires five missing OSS settings; no temporary storage fallback"
+  }
+}
