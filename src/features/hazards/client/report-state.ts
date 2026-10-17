@@ -76,3 +76,10 @@ export function isPersonalEffective(report: PrivateReportDTO, now: number): bool
     && avoidance.confirmationReportVersion === report.rowVersion
     && Date.parse(avoidance.validUntil) > now;
 }
+
+export type MyReportsFilter = 'all' | 'active' | 'resolved';
+export function filterMyReports(items: PrivateReportDTO[], filter: MyReportsFilter, now: number): PrivateReportDTO[] {
+  if (filter === 'active') return items.filter((report) => isPersonalEffective(report, now));
+  if (filter === 'resolved') return items.filter((report) => report.status === 'resolved');
+  return items;
+}

@@ -12,7 +12,7 @@ export function contextCanReplace(current: Context | null, next: Context) {
     (nextTime !== currentTime || contextKey(next) === contextKey(current));
 }
 export function routeOutdated(route: Route, context: Context | null, now: number) {
-  return !context || contextKey(route)!==contextKey(context) || (context.nextExpiryAt !== null && Date.parse(context.nextExpiryAt)<=now) || (route.personalValidUntil !== null && Date.parse(route.personalValidUntil)<=now);
+  return Date.parse(route.routeRefExpiresAt)<=now || !context || contextKey(route)!==contextKey(context) || (context.nextExpiryAt !== null && Date.parse(context.nextExpiryAt)<=now) || (route.personalValidUntil !== null && Date.parse(route.personalValidUntil)<=now);
 }
 export function publicStatus(report: PublicReport, now: number) {
   if (report.status==='resolved') return 'Resolved · publicly confirmed';

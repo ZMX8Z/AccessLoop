@@ -1,2 +1,2 @@
-import { ReportsList } from '@/features/hazards/client/ReportsList'
-export default function ReportsPage() { return <ReportsList /> }
+import {redirect} from 'next/navigation';
+export default function ReportsPage(){redirect('/my-reports')}

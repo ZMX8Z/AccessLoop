@@ -20,15 +20,15 @@ function host(service: ReturnType<typeof createFixtureService>) {
   useMemo:(factory:()=>unknown)=>{const index=cursor++;return values[index]??=factory()},
   useEffect:(effect:()=>unknown)=>{const index=cursor++;if(!(index in values)){values[index]=true;effects.push(effect)}},
  };
- const imports:Record<string,unknown>={'react/jsx-runtime':{jsx:element,jsxs:element},react,'next/link':{default:()=>null},'@/shared/client/api':api,'@/components/map/MapView':{MapView:()=>null},'@/components/map/PassagePicker':{PassagePicker:()=>null},'@/features/hazards/client/ReportWizard':{ReportWizard:()=>null},'./service':{liveService:service},'./fixtures':{createFixtureService:()=>service},'./state':state};
+ const imports:Record<string,unknown>={'react/jsx-runtime':{jsx:element,jsxs:element},react,'next/link':{default:()=>null},'@/shared/client/api':api,'@/components/map/MapView':{MapView:()=>null},'@/components/map/PassagePicker':{PassagePicker:()=>null},'@/features/hazards/client/ReportWizard':{ReportWizard:()=>null},'@/features/hazards/client/ReportsList':{ReportsList:()=>null},'./service':{liveService:service},'./fixtures':{createFixtureService:()=>service},'./state':state};
  const source=readFileSync(new URL('../src/features/routing/client/RoutePlanner.tsx',import.meta.url),'utf8');
  const code=ts.transpileModule(source,{compilerOptions:{jsx:ts.JsxEmit.ReactJSX,module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
  const loaded={exports:{} as {RoutePlanner:(props:object)=>Element}};
  vm.runInNewContext(code,{exports:loaded.exports,require:(name:string)=>{assert.ok(name in imports,`Unexpected import ${name}`);return imports[name]},Date,AbortController,setTimeout:()=>0,clearTimeout:()=>{},setInterval:(run:()=>unknown,ms:number)=>{intervals.push({run,ms});return intervals.length},clearInterval:()=>{}});
- const render=()=>{
+ const render=(props:object={})=>{
   cursor=0;const nodes:Element[]=[];
   const visit=(value:unknown):void=>{if(Array.isArray(value)){value.forEach(visit);return}if(!value||typeof value!=='object')return;const node=value as Element;nodes.push(node);visit(node.props?.children)};
-  visit(loaded.exports.RoutePlanner({}));return nodes;
+  visit(loaded.exports.RoutePlanner(props));return nodes;
  };
  return {render,effects,intervals};
 }
@@ -150,4 +150,20 @@ test('a failed facility refresh for new region config clears old data and retrie
  await poll.run();nodes=app.render();
  assert.equal(reads,3,'New config facilities must retry instead of marking an old snapshot current.');
  assert.equal((nodes.find(node=>'onPlaceSelect' in node.props)!.props.places as unknown[]).length,0);
+});
+
+
+test('journey action requires a current route and tabs preserve inputs without directions',async()=>{
+ const service=createFixtureService();const original=service.route;let calls=0;
+ service.route=async input=>{calls++;return original(input)};
+ const app=host(service);app.render();app.effects.forEach(effect=>effect());await flush();
+ assert.doesNotMatch(text(app.render()[0]),/Start Journey/);
+ let nodes=app.render();(nodes.find(node=>'onPlaceSelect' in node.props)!.props.onPlaceSelect as (place:unknown)=>void)(fixturePlaces[0]);
+ nodes=app.render();(nodes.find(node=>'onPlaceSelect' in node.props)!.props.onPlaceSelect as (place:unknown)=>void)(fixturePlaces[1]);
+ nodes=app.render();(nodes.find(node=>node.type==='button'&&text(node)==='Plan route →')!.props.onClick as ()=>void)();await flush();
+ assert.match(text(app.render()[0]),/Start Journey/);
+ app.render({pathname:'/my-reports'});app.render({pathname:'/route/journey'});
+ assert.equal(calls,1);
+ nodes=app.render();(nodes.find(node=>'onPlaceSelect' in node.props)!.props.onPlaceSelect as (place:unknown)=>void)(fixturePlaces[2]);
+ assert.doesNotMatch(text(app.render()[0]),/Start Journey/);
 });

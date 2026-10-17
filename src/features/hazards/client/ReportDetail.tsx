@@ -15,7 +15,9 @@ import { ReportSummary } from './ReportsList'
 import type { ReportCategory } from './report-state'
 import './report.css'
 
-export function ReportDetail({ id }: { id: string }) {
+export function ReportDetail({ id, returnTo = '/my-reports', onNavigate, onChanged }: {
+  id: string; returnTo?: string; onNavigate?: (path: string) => void; onChanged?: () => void
+}) {
   const [report, setReport] = useState<PrivateReportDTO | PublicReportDTO | null>(null)
   const [config, setConfig] = useState<{ region: RegionDTO; passages: PresetPassageDTO[] } | null>(null)
   const [mineTruncated, setMineTruncated] = useState(false)
@@ -25,6 +27,7 @@ export function ReportDetail({ id }: { id: string }) {
   const [photoId, setPhotoId] = useState<string | null>(null), [analysisId, setAnalysisId] = useState<string | undefined>()
   const [analysis, setAnalysis] = useState<AnalysisDTO | null>(null), [analyzing, setAnalyzing] = useState(false)
   const [saving, setSaving] = useState(false), [editorEpoch, setEditorEpoch] = useState(0)
+  const [copyState, setCopyState] = useState('')
   const editorGeneration = useRef(0)
   const analysisRequests = useRef(new LatestRequest())
   useEffect(() => {
@@ -35,7 +38,7 @@ export function ReportDetail({ id }: { id: string }) {
     return () => controller.abort()
   }, [id, reload])
   useEffect(() => { const timer = setInterval(() => setNow(Date.now()), 1000); const requests = analysisRequests.current; return () => { clearInterval(timer); requests.cancel() } }, [])
-  const privateReport = report && 'rowVersion' in report ? report : null
+  const privateReport = report?.id === id && 'rowVersion' in report ? report : null
   const authorActions = owner || mineTruncated
   const editable = authorActions && privateReport && privateReport.publicRevision === null && ['pending', 'ai_assessed'].includes(privateReport.status)
   function nextEditor() { editorGeneration.current++; setEditorEpoch(editorGeneration.current) }
@@ -44,10 +47,27 @@ export function ReportDetail({ id }: { id: string }) {
     nextEditor(); setCategory(privateReport.category); setDescription(privateReport.description); setPhotoId(privateReport.photoId)
     setAnalysis(privateReport.analysis); setAnalysisId(privateReport.analysis?.analysisId); setEditing(true); setError('')
   }
-  return <main className="report-flow"><nav><Link href="/reports">All reports</Link><Link href="/live">Plan a route</Link><Link href="/reports/new">New report</Link></nav><h1>Report details</h1>
+  function notifyChanged() {
+    onChanged?.()
+    if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('accessloop:reports-changed'))
+  }
+  function navigate(event: React.MouseEvent<HTMLAnchorElement>, path: string) {
+    if (onNavigate && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey) { event.preventDefault(); onNavigate(path) }
+  }
+  async function copyReport() {
+    if (!report || report.id !== id) return
+    const text = [`AccessLoop report #${report.id}`, report.description, `Category: ${report.category}`, `Observed: ${report.observedAt}`,
+      `Location: ${report.location[1]}, ${report.location[0]}`, `Lifecycle: ${report.status}`, `Public activity: ${report.publicActivity}`,
+      ...(privateReport ? [`AI: ${privateReport.analysis?.aiStatus ?? 'manual report'}`, `Personal avoidance: ${privateReport.personalAvoidance?.effective ? 'effective for this session' : 'not effective'}`] : []),
+      'Expiry does not confirm clear passage. No facilities dispatch is claimed.'].join('\n')
+    try { await navigator.clipboard.writeText(text); setCopyState('Report text copied.') }
+    catch { setCopyState('Copy is unavailable. Open the authorized printable report to select and copy the text.') }
+  }
+  return <main className="report-flow report-detail" data-report-page="detail"><nav aria-label="Report detail navigation"><Link href={returnTo} onClick={(event) => navigate(event, returnTo)}>← {returnTo === '/route' ? 'Back to Route' : 'Back to My Reports'}</Link><Link href="/report" onClick={(event) => navigate(event, '/report')}>New report</Link></nav><h1>Report details</h1>
     {error && <p className="report-error" role="alert">{error} No unavailable report is replaced with an example.</p>}
-    {!report && !error && <p role="status">Loading this report…</p>}
-    {report && <><ReportSummary report={report} now={now} />
+    {(!report || report.id !== id) && !error && <p role="status">Loading this report…</p>}
+    {report?.id === id && <><ReportSummary report={report} now={now} onNavigate={onNavigate} />
+      <div className="report-actions"><button type="button" className="report-secondary" onClick={() => void copyReport()}>Copy report text</button><a className="report-link report-secondary" href={`/api/reports/${encodeURIComponent(report.id)}/export`} target="_blank" rel="noreferrer">Open authorized print view</a><Link className="report-link report-secondary" href="/route" onClick={(event) => navigate(event, '/route')}>View Route</Link></div>{copyState && <p role="status">{copyState}</p>}
       <button type="button" className="report-secondary" disabled={editing} onClick={() => setReload((value) => value + 1)}>Reload latest report</button>
       {privateReport && <section><h2>Private evidence</h2><img src={`/api/photos/${encodeURIComponent(privateReport.photoId)}`} alt="Photo attached by this report's author; authorized access only" />
         <p>AI state: {privateReport.analysis?.aiStatus ?? 'manual report'}. Original AI evidence is preserved separately from the facts.</p>
@@ -69,6 +89,7 @@ export function ReportDetail({ id }: { id: string }) {
         <ReportForm photoId={photoId ?? ''} analysisId={analysisId} category={category} description={description} disabled={!photoId || analyzing}
           region={config.region} passages={config.passages} initialReport={privateReport} onFactsChange={(value, text) => { setCategory(value); setDescription(text) }}
           onSavingChange={setSaving} onReportCreated={(updated) => {
+            notifyChanged()
             setReport((current) => current && 'rowVersion' in current && current.rowVersion > updated.rowVersion ? current : updated)
             if (editorGeneration.current !== editorEpoch) {
               setError(`The earlier correction was saved as version ${updated.rowVersion}. Your replacement draft remains open; review it before saving.`)
@@ -81,7 +102,7 @@ export function ReportDetail({ id }: { id: string }) {
           catch (failure) { setError(errorMessage(failure)) }
         }}>Load current version after a conflict · retain facts</button>
       </>}
-      {authorActions && privateReport && config && !editing && <AvoidanceDrawer report={privateReport} region={config.region} passages={config.passages} onUpdated={setReport} />}
+      {authorActions && privateReport && config && !editing && <AvoidanceDrawer report={privateReport} region={config.region} passages={config.passages} onUpdated={(updated) => { setReport(updated); notifyChanged() }} />}
       {!owner && privateReport && <p className="report-note">{mineTruncated ? 'Ownership could not be confirmed from the limited report list. Author actions require the original session; the server checks ownership for every change.' : 'You have authorized read access. Author controls require the original anonymous browser session.'}</p>}
     </>}
   </main>
