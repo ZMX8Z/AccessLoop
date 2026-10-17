@@ -68,3 +68,8 @@ pnpm start
 - 所有人安装相同 lockfile；依赖变更由 D 统一整合。共享契约仅实现了坐标、通道引用、路线输入和健康响应的最小结构，其余按唯一 [API 契约](authority/API_CONTRACTS.md) 增补。
 
 初始化阶段的实际验证与剩余事项见 [D 交接](handoffs/wp-d.md) 和 [D 验收](acceptance/wp-d.md)。
+
+
+## 本机已配置的开发库
+
+本次D执行会话已在专用目录/端口配置本机PostgreSQL，并安全同步根`.env`与D`.env.local`。复用、启动停止和验证记录见[本机开发库](deployment/local-development-db.md)。这不是Zenith资源；无需另开应用数据库连接。首次管理员初始化仍要求现有脚本的12字符密码门槛，当前用户配置未满足，尚未创建账号。
