@@ -2,7 +2,8 @@
 
 import React from 'react';
 
-import type { AnalysisDTO, ReportCategory } from '../../../shared/contracts';
+import type { AnalysisDTO } from '@/shared/contracts/vision';
+import type { ReportCategory } from './report-state';
 
 interface AIAnalysisFeedbackProps {
   analysis: AnalysisDTO | null;

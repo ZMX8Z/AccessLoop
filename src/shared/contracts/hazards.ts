@@ -1,189 +1,104 @@
-import { z } from 'zod';
+import { z } from 'zod'
 
-import {
-  BBoxSchema,
-  IdSchema,
-  PositionSchema,
-  VersionSchema,
-} from './common';
-import { PassageRefSchema } from './routing';
+import { BBoxSchema, IdSchema, PositionSchema, VersionSchema } from './common'
+import { AvoidGeometrySchema } from './geo'
+import { InstantSchema } from './region'
+import { PassageRefSchema } from './routing'
+import { AnalysisDTOSchema } from './vision'
+import { ReportStatusSchema } from './storage'
 
-// ISO 8601 UTC Instant Schema
-export const InstantSchema = z.string().datetime();
+export { ReportStatusSchema } from './storage'
 
-// Geometry schemas
-export const PolygonGeometrySchema = z.strictObject({
-  type: z.literal('Polygon'),
-  coordinates: z.array(z.array(PositionSchema)).min(1),
-});
+const ReportInstantSchema = InstantSchema.transform((value) => new Date(value).toISOString())
+const DescriptionSchema = z.string().trim().refine((value) => {
+  const length = Array.from(value).length
+  return length >= 1 && length <= 1000
+}, 'A description of 1 to 1000 characters is required.')
 
-export const MultiPolygonGeometrySchema = z.strictObject({
-  type: z.literal('MultiPolygon'),
-  coordinates: z.array(z.array(z.array(PositionSchema))).min(1),
-});
+export const ReportCategorySchema = z.enum(['construction', 'steps_or_kerb', 'surface_damage', 'obstruction', 'other'])
 
-export const AvoidGeometrySchema = z.union([
-  PolygonGeometrySchema,
-  MultiPolygonGeometrySchema,
-]);
-
-// 1. Uploads
-export const UploadPurposeSchema = z.enum(['report', 'review_evidence']);
-
-export const UploadResponseDataSchema = z.strictObject({
+const EditableFacts = {
   photoId: IdSchema,
-  purpose: UploadPurposeSchema,
-  mime: z.string().min(1),
-  bytes: z.number().int().positive(),
-  width: z.number().int().positive(),
-  height: z.number().int().positive(),
-});
-
-// 2. Vision & AI Analysis
-export const AIStatusSchema = z.enum(['completed', 'uncertain', 'unavailable']);
-
-export const VisionCategorySchema = z.enum([
-  'construction',
-  'steps_or_kerb',
-  'surface_damage',
-  'obstruction',
-  'other',
-  'uncertain',
-]);
-
-export const VisiblePassageSchema = z.enum([
-  'blocked',
-  'partially_blocked',
-  'clear',
-  'unknown',
-]);
-
-export const VisionResultSchema = z.strictObject({
-  image_quality: z.enum(['usable', 'poor', 'unusable']),
-  hazard_present: z.boolean().nullable(),
-  category: VisionCategorySchema,
-  visible_passage: VisiblePassageSchema,
-  description: z.string().min(1).max(1000),
-  evidence: z.array(z.string().min(1).max(300)).max(10),
-  uncertainties: z.array(z.string().min(1).max(300)).max(10),
-});
-
-export const UnavailableReasonSchema = z.enum([
-  'no_valid_tool_result',
-  'invalid_output',
-  'refused',
-  'provider_timeout',
-  'provider_unavailable',
-]).nullable();
-
-export const AnalysisDTOSchema = z.strictObject({
-  analysisId: IdSchema,
-  photoId: IdSchema,
-  aiStatus: AIStatusSchema,
-  result: VisionResultSchema.nullable(),
-  unavailableReason: UnavailableReasonSchema,
-  model: z.string().min(1),
-  promptVersion: z.string().min(1),
-  schemaVersion: z.string().min(1),
-  createdAt: InstantSchema,
-  cacheHit: z.boolean(),
-});
-
-export const AnalyzeInputSchema = z.strictObject({
-  photoId: IdSchema,
-  consent: z.literal(true),
-});
-
-// 3. Hazard Reports
-export const ReportCategorySchema = z.enum([
-  'construction',
-  'steps_or_kerb',
-  'surface_damage',
-  'obstruction',
-  'other',
-]);
-
-export const ReportStatusSchema = z.enum([
-  'pending',
-  'ai_assessed',
-  'verified',
-  'resolved',
-  'rejected',
-]);
-
-export const CreateReportInputSchema = z.strictObject({
-  photoId: IdSchema,
-  analysisId: IdSchema.optional(),
   location: PositionSchema,
   category: ReportCategorySchema,
-  description: z.string().trim().min(1).max(1000),
-  observedAt: InstantSchema,
-  passage: PassageRefSchema.optional(),
-});
+  description: DescriptionSchema,
+  observedAt: ReportInstantSchema,
+}
 
-export const PatchReportInputSchema = z.strictObject({
+export const CreateReportInputSchema = z.strictObject({
+  ...EditableFacts,
+  analysisId: IdSchema.optional(),
+  passage: PassageRefSchema.optional(),
+})
+export const UpdateReportInputSchema = z.strictObject({
   expectedVersion: VersionSchema,
   photoId: IdSchema.optional(),
-  analysisId: IdSchema.nullable().optional(),
   location: PositionSchema.optional(),
   category: ReportCategorySchema.optional(),
-  description: z.string().trim().min(1).max(1000).optional(),
-  observedAt: InstantSchema.optional(),
+  description: DescriptionSchema.optional(),
+  observedAt: ReportInstantSchema.optional(),
+  analysisId: IdSchema.nullable().optional(),
   passage: PassageRefSchema.nullable().optional(),
-});
+}).refine((input) => Object.keys(input).some((key) => key !== 'expectedVersion'), 'Change at least one report field.')
 
-// 4. Personal Avoidance & Preview
-export const AvoidancePreviewInputSchema = z.strictObject({
+export const ReportFactsSchema = z.strictObject({
+  ...EditableFacts,
+  analysisId: IdSchema.nullable(),
+  passage: PassageRefSchema.nullable(),
+})
+export const PreviewInputSchema = z.strictObject({
   expectedVersion: VersionSchema,
-  observedAt: InstantSchema,
+  observedAt: ReportInstantSchema,
   passage: PassageRefSchema,
-});
-
-export const AvoidancePreviewDTOSchema = z.strictObject({
-  expectedVersion: VersionSchema,
-  observedAt: InstantSchema,
-  passage: PassageRefSchema,
-  configVersion: VersionSchema,
-  avoidGeometry: AvoidGeometrySchema,
-  validUntil: InstantSchema,
-  previewDigest: z.string().min(1),
-  expiresAt: InstantSchema,
-});
-
-export const AvoidanceConfirmInputSchema = z.strictObject({
-  expectedVersion: VersionSchema,
-  observedAt: InstantSchema,
-  passage: PassageRefSchema,
-  previewDigest: z.string().min(1),
+})
+export const ConfirmAvoidanceInputSchema = PreviewInputSchema.extend({
+  previewDigest: z.string().min(1).max(4096),
   consent: z.literal(true),
-});
+})
+export const DeactivateAvoidanceInputSchema = z.strictObject({ expectedVersion: VersionSchema })
 
-export const AvoidanceDeleteInputSchema = z.strictObject({
-  expectedVersion: VersionSchema,
-});
-
-// 5. Output DTOs
 export const PersonalAvoidanceDTOSchema = z.strictObject({
   active: z.boolean(),
   effective: z.boolean(),
   passage: PassageRefSchema,
   avoidGeometry: AvoidGeometrySchema,
   decisionSource: z.enum(['ai_user_confirmed', 'user_manual']),
-  observedAt: InstantSchema,
-  confirmedAt: InstantSchema,
-  validUntil: InstantSchema,
+  observedAt: ReportInstantSchema,
+  confirmedAt: ReportInstantSchema,
+  validUntil: ReportInstantSchema,
   confirmationReportVersion: VersionSchema,
-});
-
+})
 export const PublicVerificationDTOSchema = z.strictObject({
   source: z.enum(['admin_field_check', 'trusted_maintainer']),
-  verifiedAt: InstantSchema,
-  validUntil: InstantSchema,
-  resolvedAt: InstantSchema.nullable(),
-});
+  verifiedAt: ReportInstantSchema,
+  validUntil: ReportInstantSchema,
+  resolvedAt: ReportInstantSchema.nullable(),
+})
+const PublicFacts = {
+  status: z.enum(['verified', 'resolved', 'rejected']),
+  publicRevision: VersionSchema,
+  location: PositionSchema,
+  category: ReportCategorySchema,
+  description: DescriptionSchema,
+  observedAt: ReportInstantSchema,
+  publicAvoidGeometry: AvoidGeometrySchema,
+  publicVerification: PublicVerificationDTOSchema,
+}
 
-export const PublicActivitySchema = z.enum(['active', 'expired', 'inactive']);
+// This is a published snapshot, never a projection assembled from the author's current facts.
+export const PublishedReportSnapshotSchema = z.strictObject({
+  ...PublicFacts,
+  validUntil: ReportInstantSchema,
+  visible: z.boolean(),
+}).refine((value) => value.validUntil === value.publicVerification.validUntil, 'Publication validity must match its verification.')
 
+export const PublicReportDTOSchema = z.strictObject({
+  id: IdSchema,
+  regionId: IdSchema,
+  ...PublicFacts,
+  publicActivity: z.enum(['active', 'expired', 'inactive']),
+  isDemo: z.boolean(),
+})
 export const PrivateReportDTOSchema = z.strictObject({
   id: IdSchema,
   regionId: IdSchema,
@@ -194,219 +109,36 @@ export const PrivateReportDTOSchema = z.strictObject({
   analysis: AnalysisDTOSchema.nullable(),
   location: PositionSchema,
   category: ReportCategorySchema,
-  description: z.string(),
-  observedAt: InstantSchema,
+  description: DescriptionSchema,
+  observedAt: ReportInstantSchema,
   passage: PassageRefSchema.nullable(),
   personalAvoidance: PersonalAvoidanceDTOSchema.nullable(),
   publicAvoidGeometry: AvoidGeometrySchema.nullable(),
   publicVerification: PublicVerificationDTOSchema.nullable(),
-  publicActivity: PublicActivitySchema,
-  createdAt: InstantSchema,
-  updatedAt: InstantSchema,
+  publicActivity: z.enum(['active', 'expired', 'inactive']),
+  createdAt: ReportInstantSchema,
+  updatedAt: ReportInstantSchema,
   isDemo: z.boolean(),
-});
-
-// Whitelist-only schema for PublicReportDTO
-export const PublicReportDTOSchema = z.strictObject({
-  id: IdSchema,
-  regionId: IdSchema,
-  publicRevision: VersionSchema,
-  status: z.enum(['verified', 'resolved', 'rejected']),
-  location: PositionSchema,
-  category: ReportCategorySchema,
-  description: z.string(),
-  observedAt: InstantSchema,
-  publicAvoidGeometry: AvoidGeometrySchema,
-  publicVerification: PublicVerificationDTOSchema,
-  publicActivity: PublicActivitySchema,
-  isDemo: z.boolean(),
-});
-
-export const ReportsQuerySchema = z.strictObject({
-  bbox: BBoxSchema.optional(),
-  scope: z.enum(['public', 'mine']).default('public'),
-});
-
-// 6. Admin Actions (Review)
-export const ExtraEvidenceFieldObservationSchema = z.strictObject({
-  kind: z.literal('field_observation'),
-  observedAt: InstantSchema,
-  summary: z.string().trim().min(1).max(1000),
-  photoId: IdSchema.optional(),
-});
-
-export const ExtraEvidenceTrustedMaintainerSchema = z.strictObject({
-  kind: z.literal('trusted_maintainer'),
-  observedAt: InstantSchema,
-  summary: z.string().trim().min(1).max(1000),
-  sourceReference: z.string().trim().min(1).max(500),
-});
-
-export const ExtraEvidenceSchema = z.union([
-  ExtraEvidenceFieldObservationSchema,
-  ExtraEvidenceTrustedMaintainerSchema,
-]);
-
-export const CorrectedFieldsSchema = z.strictObject({
-  location: PositionSchema.optional(),
-  category: ReportCategorySchema.optional(),
-  description: z.string().trim().min(1).max(1000).optional(),
-  observedAt: InstantSchema.optional(),
-});
-
-export const ReviewVerifyInputSchema = z.strictObject({
-  action: z.literal('verify'),
-  expectedVersion: VersionSchema,
-  reason: z.string().trim().min(1).max(1000),
-  extraEvidence: ExtraEvidenceSchema,
-  publicAvoidGeometry: AvoidGeometrySchema,
-  validUntil: InstantSchema.optional(),
-});
-
-export const ReviewCorrectInputSchema = z.strictObject({
-  action: z.literal('correct'),
-  expectedVersion: VersionSchema,
-  reason: z.string().trim().min(1).max(1000),
-  corrections: CorrectedFieldsSchema.optional(),
-  extraEvidence: ExtraEvidenceSchema.optional(),
-  publicAvoidGeometry: AvoidGeometrySchema.optional(),
-  validUntil: InstantSchema.optional(),
-});
-
-export const ReviewRejectInputSchema = z.strictObject({
-  action: z.literal('reject'),
-  expectedVersion: VersionSchema,
-  reason: z.string().trim().min(1).max(1000),
-});
-
-export const ReviewResolveInputSchema = z.strictObject({
-  action: z.literal('resolve'),
-  expectedVersion: VersionSchema,
-  reason: z.string().trim().min(1).max(1000),
-  extraEvidence: ExtraEvidenceSchema,
-});
-
-export const ReviewReopenInputSchema = z.strictObject({
-  action: z.literal('reopen'),
-  expectedVersion: VersionSchema,
-  reason: z.string().trim().min(1).max(1000),
-});
-
-export const ReviewInputSchema = z.discriminatedUnion('action', [
-  ReviewVerifyInputSchema,
-  ReviewCorrectInputSchema,
-  ReviewRejectInputSchema,
-  ReviewResolveInputSchema,
-  ReviewReopenInputSchema,
-]);
-
-// 7. Admin Usage Metrics
-export const ServiceUsageMetricsSchema = z.strictObject({
-  calls: z.number().int().nonnegative(),
-  waits: z.number().int().nonnegative(),
-  errors: z.number().int().nonnegative(),
-  cacheHits: z.number().int().nonnegative(),
-});
-
-export const UsageSummaryDataSchema = z.strictObject({
-  windowStart: InstantSchema,
-  windowEnd: InstantSchema,
-  services: z.strictObject({
-    ors: ServiceUsageMetricsSchema,
-    vision: ServiceUsageMetricsSchema,
-  }),
-});
-
-// 8. Admin Region Configuration
-export const LineStringGeometrySchema = z.strictObject({
-  type: z.literal('LineString'),
-  coordinates: z.array(PositionSchema).min(2),
-});
-
-export const PresetPassageItemSchema = z.strictObject({
-  id: IdSchema.optional(),
-  name: z.string().trim().min(1).max(120),
-  geometry: LineStringGeometrySchema,
-});
-
-export const RegionChangesSchema = z.strictObject({
-  name: z.string().trim().min(1).max(120).optional(),
-  timezone: z.string().min(1).optional(),
-  bbox: BBoxSchema.optional(),
-  isDemo: z.boolean().optional(),
-  avoidanceBufferM: z.number().min(0.5).max(5.0).optional(),
-  presetPassages: z.array(PresetPassageItemSchema).optional(),
-});
-
-export const RegionPatchInputSchema = z.strictObject({
-  expectedVersion: VersionSchema,
-  reason: z.string().trim().min(1).max(1000),
-  changes: RegionChangesSchema,
-});
-
-export const RegionDTOSchema = z.strictObject({
-  id: IdSchema,
-  name: z.string(),
-  bbox: BBoxSchema,
-  timezone: z.string(),
-  isDemo: z.boolean(),
-  hazardVersion: z.number().int().nonnegative(),
+})
+export const PreviewDTOSchema = PreviewInputSchema.extend({
   configVersion: VersionSchema,
-  personalValiditySec: z.number().int().positive(),
-  publicValiditySec: z.number().int().positive(),
-  avoidanceBufferM: z.number().min(0.5).max(5.0),
-});
+  avoidGeometry: AvoidGeometrySchema,
+  validUntil: ReportInstantSchema,
+  previewDigest: z.string().min(1),
+  expiresAt: ReportInstantSchema,
+})
+export const ReportListInputSchema = z.strictObject({
+  scope: z.enum(['public', 'mine']).default('public'),
+  bbox: BBoxSchema.optional(),
+})
 
-export const PresetPassageDTOSchema = z.strictObject({
-  id: IdSchema,
-  name: z.string(),
-  passageVersion: VersionSchema,
-  geometry: LineStringGeometrySchema,
-});
-
-export const AdminRegionConfigResponseSchema = z.strictObject({
-  region: RegionDTOSchema,
-  presetPassages: z.array(PresetPassageDTOSchema),
-});
-
-// Infer TypeScript types
-export type Instant = z.infer<typeof InstantSchema>;
-export type PolygonGeometry = z.infer<typeof PolygonGeometrySchema>;
-export type MultiPolygonGeometry = z.infer<typeof MultiPolygonGeometrySchema>;
-export type AvoidGeometry = z.infer<typeof AvoidGeometrySchema>;
-export type UploadPurpose = z.infer<typeof UploadPurposeSchema>;
-export type UploadResponseData = z.infer<typeof UploadResponseDataSchema>;
-export type AIStatus = z.infer<typeof AIStatusSchema>;
-export type VisionCategory = z.infer<typeof VisionCategorySchema>;
-export type VisiblePassage = z.infer<typeof VisiblePassageSchema>;
-export type VisionResult = z.infer<typeof VisionResultSchema>;
-export type UnavailableReason = z.infer<typeof UnavailableReasonSchema>;
-export type AnalysisDTO = z.infer<typeof AnalysisDTOSchema>;
-export type AnalyzeInput = z.infer<typeof AnalyzeInputSchema>;
-export type ReportCategory = z.infer<typeof ReportCategorySchema>;
-export type ReportStatus = z.infer<typeof ReportStatusSchema>;
-export type CreateReportInput = z.infer<typeof CreateReportInputSchema>;
-export type PatchReportInput = z.infer<typeof PatchReportInputSchema>;
-export type AvoidancePreviewInput = z.infer<typeof AvoidancePreviewInputSchema>;
-export type AvoidancePreviewDTO = z.infer<typeof AvoidancePreviewDTOSchema>;
-export type AvoidanceConfirmInput = z.infer<typeof AvoidanceConfirmInputSchema>;
-export type AvoidanceDeleteInput = z.infer<typeof AvoidanceDeleteInputSchema>;
-export type PersonalAvoidanceDTO = z.infer<typeof PersonalAvoidanceDTOSchema>;
-export type PublicVerificationDTO = z.infer<typeof PublicVerificationDTOSchema>;
-export type PublicActivity = z.infer<typeof PublicActivitySchema>;
-export type PrivateReportDTO = z.infer<typeof PrivateReportDTOSchema>;
-export type PublicReportDTO = z.infer<typeof PublicReportDTOSchema>;
-export type ReportsQuery = z.infer<typeof ReportsQuerySchema>;
-export type ExtraEvidence = z.infer<typeof ExtraEvidenceSchema>;
-export type CorrectedFields = z.infer<typeof CorrectedFieldsSchema>;
-export type ReviewInput = z.infer<typeof ReviewInputSchema>;
-export type ServiceUsageMetrics = z.infer<typeof ServiceUsageMetricsSchema>;
-export type UsageSummaryData = z.infer<typeof UsageSummaryDataSchema>;
-export type LineStringGeometry = z.infer<typeof LineStringGeometrySchema>;
-export type PresetPassageItem = z.infer<typeof PresetPassageItemSchema>;
-export type RegionChanges = z.infer<typeof RegionChangesSchema>;
-export type RegionPatchInput = z.infer<typeof RegionPatchInputSchema>;
-export type RegionDTO = z.infer<typeof RegionDTOSchema>;
-export type PresetPassageDTO = z.infer<typeof PresetPassageDTOSchema>;
-export type AdminRegionConfigResponse = z.infer<typeof AdminRegionConfigResponseSchema>;
-
+export type CreateReportInput = z.infer<typeof CreateReportInputSchema>
+export type UpdateReportInput = z.infer<typeof UpdateReportInputSchema>
+export type ReportFacts = z.infer<typeof ReportFactsSchema>
+export type PreviewInput = z.infer<typeof PreviewInputSchema>
+export type ConfirmAvoidanceInput = z.infer<typeof ConfirmAvoidanceInputSchema>
+export type PrivateReportDTO = z.infer<typeof PrivateReportDTOSchema>
+export type PublicReportDTO = z.infer<typeof PublicReportDTOSchema>
+export type PublishedReportSnapshot = z.infer<typeof PublishedReportSnapshotSchema>
+export type PersonalAvoidanceDTO = z.infer<typeof PersonalAvoidanceDTOSchema>
+export type PreviewDTO = z.infer<typeof PreviewDTOSchema>

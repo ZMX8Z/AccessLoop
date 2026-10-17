@@ -1,168 +1,58 @@
-'use client';
+'use client'
+import Link from 'next/link'
+import { useEffect, useRef, useState } from 'react'
+import type { PrivateReportDTO, PublicReportDTO } from '@/shared/contracts/hazards'
+import { errorMessage, LatestRequest } from '@/shared/client/api'
+import { publicStatus } from '@/features/routing/client/state'
+import { fetchReports } from './api'
+import { isPersonalEffective } from './report-state'
+import './report.css'
 
-import Link from 'next/link';
-import React, { useEffect, useState } from 'react';
-
-import type { PrivateReportDTO, PublicReportDTO } from '../../../shared/contracts';
-import { fetchReports } from './api';
-
+export function ReportSummary({ report, now }: { report: PrivateReportDTO | PublicReportDTO; now: number }) {
+  const privateReport = 'rowVersion' in report ? report : null
+  return <article><h2>{report.id}</h2><p className="report-status">{privateReport ? `${report.status} · private record v${privateReport.rowVersion}` : publicStatus(report as PublicReportDTO, now)}</p>
+    {report.isDemo && <p className="report-note">Demonstration record · not a surveyed campus result.</p>}
+    <p>{report.description}</p><p>Category: {report.category.replaceAll('_', ' ')}. Observed {report.observedAt}.</p>
+    {privateReport && <p>Personal avoidance: {isPersonalEffective(privateReport, now) ? 'effective for your session' : privateReport.personalAvoidance?.active ? 'expired or confirmation invalidated' : 'not enabled'}. This is separate from public verification.</p>}
+    {report.publicVerification && <p className="report-note">Public revision {report.publicRevision} · {report.publicActivity}. Source: {report.publicVerification.source === 'admin_field_check' ? 'independent administrator field check' : 'trusted maintainer'}. Verified {report.publicVerification.verifiedAt}; valid until {report.publicVerification.validUntil}.
+      {report.publicVerification.resolvedAt && ` Resolved ${report.publicVerification.resolvedAt}.`} Expiry does not mean the passage is clear.</p>}
+    <div className="report-actions"><Link className="report-link" href={`/reports/${encodeURIComponent(report.id)}`}>Open report</Link><a className="report-link" href={`/api/reports/${encodeURIComponent(report.id)}/export`} target="_blank" rel="noreferrer">Copy / print</a></div>
+  </article>
+}
 export function ReportsList() {
-  const [scope, setScope] = useState<'mine' | 'public'>('mine');
-  const [items, setItems] = useState<(PrivateReportDTO | PublicReportDTO)[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
+  const [scope, setScope] = useState<'mine' | 'public'>('mine')
+  const [items, setItems] = useState<(PrivateReportDTO | PublicReportDTO)[]>([])
+  const [loading, setLoading] = useState(true), [error, setError] = useState(''), [truncated, setTruncated] = useState(false)
+  const [now, setNow] = useState(0), [reload, setReload] = useState(0)
+  const latest = useRef(new LatestRequest())
   useEffect(() => {
-    let ignore = false;
+    const requests = latest.current
+    let pending = false
     async function load() {
+      if (pending) return
+      pending = true
+      const task = requests.begin()
       try {
-        let data;
-        try {
-          data = await fetchReports({ scope }, false);
-        } catch {
-          data = await fetchReports({ scope }, true);
-        }
-        if (!ignore) {
-          setItems(data.items);
-        }
-      } catch (err: unknown) {
-        if (!ignore) {
-          setError(err instanceof Error ? err.message : 'Failed to load reports.');
-        }
-      } finally {
-        if (!ignore) {
-          setIsLoading(false);
-        }
-      }
+        const result = await fetchReports(scope, task.signal)
+        if (task.current()) { setItems(result.items); setTruncated(result.truncated); setError('') }
+      } catch (failure) { if (task.current()) setError(errorMessage(failure)) }
+      finally { pending = false; if (task.current()) setLoading(false) }
     }
-    load();
-    return () => {
-      ignore = true;
-    };
-  }, [scope]);
-
-  return (
-    <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-        <h2 style={{ fontSize: '1.8rem', color: '#163d36', margin: 0 }}>Obstacle Reports</h2>
-        <Link
-          href="/reports/new"
-          style={{
-            padding: '0.6rem 1.2rem',
-            background: '#006b50',
-            color: 'white',
-            borderRadius: '0.5rem',
-            textDecoration: 'none',
-            fontWeight: 600,
-          }}
-        >
-          + Report Obstacle
-        </Link>
-      </div>
-
-      <div style={{ display: 'flex', gap: '0.5rem', borderBottom: '1px solid #d9e4de', marginBottom: '1.25rem' }}>
-        <button
-          type="button"
-          onClick={() => {
-            setIsLoading(true);
-            setScope('mine');
-          }}
-          style={{
-            padding: '0.6rem 1rem',
-            background: 'none',
-            border: 'none',
-            borderBottom: scope === 'mine' ? '3px solid #006b50' : '3px solid transparent',
-            color: scope === 'mine' ? '#006b50' : '#4e6961',
-            fontWeight: 700,
-            cursor: 'pointer',
-          }}
-        >
-          My Session Reports
-        </button>
-        <button
-          type="button"
-          onClick={() => {
-            setIsLoading(true);
-            setScope('public');
-          }}
-          style={{
-            padding: '0.6rem 1rem',
-            background: 'none',
-            border: 'none',
-            borderBottom: scope === 'public' ? '3px solid #006b50' : '3px solid transparent',
-            color: scope === 'public' ? '#006b50' : '#4e6961',
-            fontWeight: 700,
-            cursor: 'pointer',
-          }}
-        >
-          Public Verified Reports
-        </button>
-      </div>
-
-      {isLoading && <p style={{ color: '#4e6961' }}>Loading reports...</p>}
-      {error && <p style={{ color: '#b91c1c' }}>{error}</p>}
-
-      {!isLoading && items.length === 0 && (
-        <div style={{ padding: '2rem', textAlign: 'center', color: '#4e6961', background: '#fafcfb', borderRadius: '0.75rem' }}>
-          No obstacle reports found in this view.
-        </div>
-      )}
-
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-        {items.map((report) => {
-          const isPrivate = 'rowVersion' in report;
-          const privateReport = isPrivate ? (report as PrivateReportDTO) : null;
-          return (
-            <div
-              key={report.id}
-              style={{
-                border: '1px solid #d9e4de',
-                borderRadius: '0.75rem',
-                padding: '1.25rem',
-                background: '#ffffff',
-              }}
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
-                <div>
-                  <span style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', color: '#4e6961', marginRight: '0.5rem' }}>
-                    {report.category}
-                  </span>
-                  <strong style={{ fontSize: '1.05rem', color: '#163d36' }}>{report.id}</strong>
-                </div>
-                <span
-                  style={{
-                    fontSize: '0.75rem',
-                    fontWeight: 700,
-                    textTransform: 'uppercase',
-                    padding: '0.2rem 0.6rem',
-                    borderRadius: '1rem',
-                    background: report.status === 'verified' ? '#e6f4ea' : '#fef3c7',
-                    color: report.status === 'verified' ? '#137333' : '#92400e',
-                  }}
-                >
-                  {report.status}
-                </span>
-              </div>
-
-              <p style={{ margin: '0 0 0.75rem', fontSize: '0.9rem', color: '#333333' }}>{report.description}</p>
-
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.8rem', color: '#707d77' }}>
-                <span>Observed: {new Date(report.observedAt).toLocaleString()}</span>
-                {privateReport?.personalAvoidance?.active && (
-                  <span style={{ color: '#006b50', fontWeight: 600 }}>● Avoidance Active</span>
-                )}
-                <Link
-                  href={`/reports/${encodeURIComponent(report.id)}/export`}
-                  target="_blank"
-                  style={{ color: '#006b50', fontWeight: 600, textDecoration: 'none' }}
-                >
-                  Export / Print ↗
-                </Link>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
+    void load()
+    const timer = setInterval(() => void load(), 5000)
+    return () => { clearInterval(timer); requests.cancel() }
+  }, [scope, reload])
+  useEffect(() => { const timer = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(timer) }, [])
+  return <main className="report-flow"><nav><Link href="/live">Plan a route</Link><Link href="/reports/new">Report an obstacle</Link></nav><h1>Obstacle reports</h1>
+    <p>Your reports belong to this browser session. Public reports show the separately approved publication. Private evidence is not published.</p>
+    <div className="report-actions">{(['mine', 'public'] as const).map((value) => <button type="button" key={value} aria-pressed={scope === value} className={scope === value ? '' : 'report-secondary'} onClick={() => {
+      if (value !== scope) { latest.current.cancel(); setItems([]); setLoading(true); setError(''); setScope(value) }
+    }}>{value === 'mine' ? 'My session reports' : 'Public reports and history'}</button>)}
+      <button type="button" className="report-secondary" onClick={() => { setLoading(true); setReload((value) => value + 1) }}>Refresh</button></div>
+    {loading && <p role="status">Loading reports…</p>}
+    {error && <p role="alert" className="report-error">{error} Current reports could not be verified. Previously loaded records may be outdated.</p>}
+    {!loading && !error && !items.length && <p>No reports were returned. This does not confirm clear passage.</p>}
+    {truncated && <p className="report-note">This list is limited; it is not a complete inventory.</p>}
+    {items.map((report) => <ReportSummary report={report} now={now} key={report.id} />)}
+  </main>
 }

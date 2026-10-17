@@ -377,7 +377,7 @@ P0 不做完整公众账号，以服务器生成的不可预测匿名会话标�
 | ORS_RPM / ORS_DAILY_BUDGET | 建议 30 与 1800，共享门禁预算 | 服务端可配置 |
 | VISION_PROVIDER / VISION_MODEL / VISION_API_KEY | 默认 glm / glm-4.6v-flash，原生图片和工具参数提取，后端严格校验；密钥 | 服务端；缺省可启动和人工降级，不计 AI 验收完成 |
 | VISION_SCHEMA_VERSION / VISION_PROMPT_VERSION | 输出契约与提示词版本，参与分析缓存键和审计 | 服务端固定配置 |
-| VISION_TIMEOUT_MS / VISION_DAILY_BUDGET | 建议 8000 毫秒超时及模型每日调用预算 | 服务端；与 ORS 预算分开 |
+| VISION_TIMEOUT_MS / VISION_RPM / VISION_DAILY_BUDGET | 建议 8000 毫秒超时、默认 10 次/分钟；日预算须显式正整数，或显式 unlimited 仅关闭应用日上限 | 服务端；与 ORS 预算分开，unlimited 不绕过分钟门禁或上游配额 |
 | PERSONAL_AVOIDANCE_TTL_SECONDS / PUBLIC_HAZARD_TTL_SECONDS | 建议个人 3600 秒、公共 86400 秒 | 服务端可配置运营值 |
 | MAP_TILE_URL / MAP_ATTRIBUTION | 底图地址与署名 | 允许公开 |
 | SESSION_SECRET | 匿名会话签名或加密 | 服务端秘密；每实例独立 |
@@ -479,3 +479,8 @@ P0 不做完整公众账号，以服务器生成的不可预测匿名会话标�
 - [S20 阿里云 OSS 的 S3 API 兼容范围与寻址差异](https://www.alibabacloud.com/help/en/oss/developer-reference/compatibility-with-amazon-s3)
 
 - [S21 阿里云 OSS Node.js SDK 与私有对象签名下载](https://www.alibabacloud.com/help/en/oss/developer-reference/download-objects-using-a-presigned-url-generated-with-oss-sdk-for-node-js)
+
+
+## 15 D 服务实现接线记录（2026-10-17）
+
+实现沿用本文单应用/单仓储架构：地理函数与路线服务位于 `src/features/routing/server`，ORS/Pelias/预算门禁及脱敏摘要位于 `src/server/providers`，真实搜索位于 `src/features/places/server`。`RoutingRepository` 由 C 实现并在 Node 初始化中安装；D 不新建数据库连接，不以进程内 Map 保存生产预算。Map 只用于同键进行中请求去重。详细接线见 [D 服务交接](../handoffs/d-service-integration.md)，实际验证结果见 [D 技术验收](../acceptance/wp-d.md)。未配置仓储或密钥时不把未知有效集当空集；不会提供合成校园成功数据。

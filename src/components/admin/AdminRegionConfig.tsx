@@ -1,245 +1,114 @@
-'use client';
+'use client'
 
-import React, { useCallback, useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation'
+import { useId, useRef, useState } from 'react'
 
-import type { AdminRegionConfigResponse, RegionPatchInput } from '../../shared/contracts';
-import { fetchAdminRegionConfig, patchAdminRegionConfig } from '../../features/hazards/client/api';
+import { ApiError, createIdempotencyKey, errorMessage, request } from '@/shared/client/api'
+import { RegionAdminDTOSchema, RegionPatchInputSchema, type RegionAdminDTO } from '@/shared/contracts/admin-region'
+import { BBoxSchema } from '@/shared/contracts/common'
+import { LineStringSchema } from '@/shared/contracts/geo'
+import type { PresetPassageDTO } from '@/shared/contracts/region'
 
-export function AdminRegionConfig() {
-  const [config, setConfig] = useState<AdminRegionConfigResponse | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
+import './admin.css'
 
-  // Form editable fields
-  const [bufferMeters, setBufferMeters] = useState(2.0);
-  const [isDemo, setIsDemo] = useState(true);
-  const [reason, setReason] = useState('');
+type PassageDraft = { key: string; id?: string; name: string; coordinates: string }
+function passageDrafts(passages: PresetPassageDTO[]): PassageDraft[] {
+  return passages.map((passage) => ({ key: passage.id, id: passage.id, name: passage.name, coordinates: JSON.stringify(passage.geometry.coordinates, null, 2) }))
+}
+function coordinates(value: string): unknown {
+  try { return JSON.parse(value) }
+  catch { throw new Error('Each passage needs a valid JSON coordinate array: [[longitude, latitude], …].') }
+}
 
-  const loadConfig = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
+// Retains B's region/status layout while replacing fixture fallbacks with the operator API.
+export function AdminRegionConfig({ initialData }: { initialData: RegionAdminDTO }) {
+  const router = useRouter()
+  const id = useId()
+  const [saved, setSaved] = useState(initialData)
+  const [name, setName] = useState(initialData.region.name)
+  const [timezone, setTimezone] = useState(initialData.region.timezone)
+  const [bbox, setBbox] = useState(initialData.region.bbox.join(', '))
+  const [buffer, setBuffer] = useState(String(initialData.region.avoidanceBufferM))
+  const [isDemo, setIsDemo] = useState(initialData.region.isDemo)
+  const [passages, setPassages] = useState(() => passageDrafts(initialData.presetPassages))
+  const [reason, setReason] = useState('')
+  const [pending, setPending] = useState(false)
+  const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
+  const command = useRef<{ body: string; key: string } | null>(null)
+  function apply(data: RegionAdminDTO) {
+    setSaved(data); setName(data.region.name); setTimezone(data.region.timezone)
+    setBbox(data.region.bbox.join(', ')); setBuffer(String(data.region.avoidanceBufferM)); setIsDemo(data.region.isDemo)
+    setPassages(passageDrafts(data.presetPassages)); setReason('')
+  }
+  function updatePassage(key: string, change: Partial<Pick<PassageDraft, 'name' | 'coordinates'>>) {
+    setPassages((current) => current.map((passage) => passage.key === key ? { ...passage, ...change } : passage))
+  }
+  async function save() {
+    setPending(true); setError(''); setSuccess('')
     try {
-      let res: AdminRegionConfigResponse;
-      try {
-        res = await fetchAdminRegionConfig(false);
-      } catch {
-        res = await fetchAdminRegionConfig(true);
+      const parsedBBox = BBoxSchema.parse(bbox.split(',').map((value) => value.trim() ? Number(value) : NaN))
+      const parsedPassages = passages.map((passage) => ({
+        ...(passage.id ? { id: passage.id } : {}), name: passage.name,
+        geometry: LineStringSchema.parse({ type: 'LineString', coordinates: coordinates(passage.coordinates) }),
+      }))
+      const originalPassages = saved.presetPassages.map((passage) => ({ id: passage.id, name: passage.name, geometry: passage.geometry }))
+      const numericBuffer = buffer.trim() ? Number(buffer) : NaN
+      const changes = {
+        ...(name.trim() !== saved.region.name ? { name } : {}),
+        ...(timezone !== saved.region.timezone ? { timezone } : {}),
+        ...(JSON.stringify(parsedBBox) !== JSON.stringify(saved.region.bbox) ? { bbox: parsedBBox } : {}),
+        ...(numericBuffer !== saved.region.avoidanceBufferM ? { avoidanceBufferM: numericBuffer } : {}),
+        ...(isDemo !== saved.region.isDemo ? { isDemo } : {}),
+        ...(JSON.stringify(parsedPassages) !== JSON.stringify(originalPassages) ? { presetPassages: parsedPassages } : {}),
       }
-      setConfig(res);
-      setBufferMeters(res.region.avoidanceBufferM);
-      setIsDemo(res.region.isDemo);
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to load region configuration.');
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    let ignore = false;
-    async function init() {
-      try {
-        let res: AdminRegionConfigResponse;
-        try {
-          res = await fetchAdminRegionConfig(false);
-        } catch {
-          res = await fetchAdminRegionConfig(true);
-        }
-        if (!ignore) {
-          setConfig(res);
-          setBufferMeters(res.region.avoidanceBufferM);
-          setIsDemo(res.region.isDemo);
-        }
-      } catch (err: unknown) {
-        if (!ignore) {
-          setError(err instanceof Error ? err.message : 'Failed to load configuration.');
-        }
-      } finally {
-        if (!ignore) {
-          setIsLoading(false);
-        }
-      }
-    }
-    init();
-    return () => {
-      ignore = true;
-    };
-  }, []);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!config) return;
-    if (!reason.trim()) {
-      setError('An operator reason is required to update region configuration.');
-      return;
-    }
-
-    setIsSubmitting(true);
-    setError(null);
-    setSuccess(null);
-
-    const patchInput: RegionPatchInput = {
-      expectedVersion: config.region.configVersion,
-      reason: reason.trim(),
-      changes: {
-        avoidanceBufferM: bufferMeters,
-        isDemo,
-      },
-    };
-
-    try {
-      let updated: AdminRegionConfigResponse;
-      try {
-        updated = await patchAdminRegionConfig(patchInput, false);
-      } catch {
-        updated = await patchAdminRegionConfig(patchInput, true);
-      }
-      setConfig(updated);
-      setSuccess(`Region configuration updated to version ${updated.region.configVersion}.`);
-      setReason('');
-    } catch (err: unknown) {
-      // Retain inputs on conflict or error
-      setError(err instanceof Error ? err.message : 'Failed to update configuration. Inputs retained.');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  if (isLoading) {
-    return <p style={{ color: '#4e6961' }}>Loading region configuration...</p>;
+      const parsed = RegionPatchInputSchema.safeParse({ expectedVersion: saved.region.configVersion, reason, changes })
+      if (!parsed.success) throw new Error(parsed.error.issues.map((issue) => `${issue.path.join('.')}: ${issue.message}`).join(' '))
+      const body = JSON.stringify(parsed.data)
+      if (command.current?.body !== body) command.current = { body, key: createIdempotencyKey() }
+      const updated = await request('/api/admin/region', RegionAdminDTOSchema, {
+        method: 'PATCH', headers: { 'Idempotency-Key': command.current.key }, body,
+      })
+      apply(updated)
+      setSuccess(`Region saved at configuration version ${updated.region.configVersion}. Passage versions were assigned by the server.`)
+      router.refresh()
+    } catch (failure) {
+      setError(failure instanceof ApiError ? `${failure.code}: ${failure.message}${failure.requestId ? ` Request ID: ${failure.requestId}` : ''}` : errorMessage(failure))
+    } finally { setPending(false) }
+  }
+  async function reload() {
+    setPending(true); setError(''); setSuccess('')
+    try { apply(await request('/api/admin/region', RegionAdminDTOSchema)); router.refresh() }
+    catch (failure) { setError(errorMessage(failure)) }
+    finally { setPending(false) }
   }
 
-  if (!config) {
-    return <p style={{ color: '#b91c1c' }}>No region configuration available.</p>;
-  }
-
-  const { region, presetPassages } = config;
-
-  return (
-    <div style={{ border: '1px solid #d9e4de', borderRadius: '0.75rem', padding: '1.25rem', background: '#ffffff', maxWidth: '44rem', marginBottom: '1.5rem' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-        <div>
-          <h3 style={{ margin: '0 0 0.25rem', fontSize: '1.2rem', color: '#163d36' }}>
-            Region Operation & Passages
-          </h3>
-          <p style={{ margin: 0, fontSize: '0.85rem', color: '#4e6961' }}>
-            Operator parameters for <strong>{region.name}</strong> ({region.id})
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={() => void loadConfig()}
-          disabled={isSubmitting}
-          style={{ fontSize: '0.75rem', padding: '0.3rem 0.6rem', background: '#f1f3f4', border: '1px solid #ced4da', borderRadius: '0.25rem', cursor: 'pointer' }}
-        >
-          ↻ Refresh
-        </button>
+  return <section className="accessloop-admin" aria-label="Region configuration"><div className="al-admin-card">
+    <div className="al-admin-heading"><div><h2>Region and preset passages</h2><p>{saved.region.id}</p></div><span className="al-admin-badge">Config v{saved.region.configVersion} · hazards v{saved.region.hazardVersion}</span></div>
+    <p>Operator changes are validated against active reports and confirmations. Draft edits do not change the live configuration.</p>
+    <fieldset disabled={pending}>
+      <div className="al-admin-grid">
+        <label htmlFor={`${id}-name`}>Region name<input id={`${id}-name`} maxLength={120} value={name} onChange={(event) => setName(event.target.value)} /></label>
+        <label htmlFor={`${id}-timezone`}>IANA timezone<input id={`${id}-timezone`} value={timezone} placeholder="Australia/Sydney" onChange={(event) => setTimezone(event.target.value)} /></label>
+        <label htmlFor={`${id}-bbox`}>Bounding box · west, south, east, north<input id={`${id}-bbox`} value={bbox} onChange={(event) => setBbox(event.target.value)} /></label>
+        <label htmlFor={`${id}-buffer`}>Future passage buffer · 0.5–5 metres<input id={`${id}-buffer`} type="number" min="0.5" max="5" step="0.1" value={buffer} onChange={(event) => setBuffer(event.target.value)} /></label>
       </div>
-
-      {/* Region Status summary */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.5rem', background: '#fafcfb', padding: '0.75rem', borderRadius: '0.5rem', fontSize: '0.8rem', marginBottom: '1rem' }}>
-        <div>Config Version: <strong>{region.configVersion}</strong></div>
-        <div>Hazard Version: <strong>{region.hazardVersion}</strong></div>
-        <div>Timezone: <strong>{region.timezone}</strong></div>
-        <div>Demo Flag: <strong>{region.isDemo ? 'Yes' : 'No'}</strong></div>
-      </div>
-
-      <div style={{ marginBottom: '1rem', fontSize: '0.85rem' }}>
-        <strong style={{ color: '#163d36' }}>Operational BBox (WGS84 [West, South, East, North]):</strong>
-        <div style={{ fontFamily: 'monospace', color: '#4e6961', marginTop: '0.2rem' }}>
-          [{region.bbox.map((n) => n.toFixed(5)).join(', ')}]
-        </div>
-      </div>
-
-      {/* Preset passages */}
-      <div style={{ marginBottom: '1rem' }}>
-        <strong style={{ fontSize: '0.85rem', color: '#163d36' }}>
-          Registered Preset Passages ({presetPassages.length}):
-        </strong>
-        <ul style={{ margin: '0.25rem 0 0', paddingLeft: '1.2rem', fontSize: '0.85rem', color: '#4e6961' }}>
-          {presetPassages.map((p) => (
-            <li key={p.id}>
-              <strong>{p.name}</strong> (<code>{p.id}</code>, v{p.passageVersion})
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      {/* Update Form */}
-      <form onSubmit={handleSubmit} style={{ borderTop: '1px solid #e2e8f0', paddingTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-        <h4 style={{ margin: 0, fontSize: '0.95rem', color: '#163d36' }}>Update Region Parameters</h4>
-
-        <div>
-          <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.25rem', color: '#163d36' }}>
-            Obstacle Avoidance Buffer: {bufferMeters.toFixed(1)} meters (Allowed: 0.5m – 5.0m)
-          </label>
-          <input
-            type="range"
-            min="0.5"
-            max="5.0"
-            step="0.1"
-            value={bufferMeters}
-            onChange={(e) => setBufferMeters(parseFloat(e.target.value))}
-            disabled={isSubmitting}
-            style={{ width: '100%' }}
-          />
-        </div>
-
-        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', cursor: 'pointer' }}>
-          <input
-            type="checkbox"
-            checked={isDemo}
-            onChange={(e) => setIsDemo(e.target.checked)}
-            disabled={isSubmitting}
-          />
-          <span><strong>Enable Demo Mode</strong> (Allows rapid simulation on Kensington campus)</span>
-        </label>
-
-        <div>
-          <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.25rem', color: '#163d36' }}>
-            Operator Reason (Required, 1-1000 characters)
-          </label>
-          <input
-            type="text"
-            value={reason}
-            onChange={(e) => setReason(e.target.value)}
-            disabled={isSubmitting}
-            placeholder="Reason for modifying region parameters or buffer..."
-            style={{ width: '100%', padding: '0.4rem', borderRadius: '0.375rem', border: '1px solid #ced4da', fontSize: '0.85rem' }}
-          />
-        </div>
-
-        {error && (
-          <div style={{ color: '#b91c1c', background: '#fef2f2', padding: '0.5rem', borderRadius: '0.375rem', fontSize: '0.85rem' }}>
-            {error}
-          </div>
-        )}
-
-        {success && (
-          <div style={{ color: '#137333', background: '#e6f4ea', padding: '0.5rem', borderRadius: '0.375rem', fontSize: '0.85rem' }}>
-            {success}
-          </div>
-        )}
-
-        <button
-          type="submit"
-          disabled={isSubmitting || !reason.trim()}
-          style={{
-            alignSelf: 'flex-start',
-            padding: '0.5rem 1.2rem',
-            background: '#006b50',
-            color: 'white',
-            border: 'none',
-            borderRadius: '0.375rem',
-            fontWeight: 600,
-            cursor: isSubmitting || !reason.trim() ? 'not-allowed' : 'pointer',
-          }}
-        >
-          {isSubmitting ? 'Updating...' : 'Save Region Configuration'}
-        </button>
-      </form>
-    </div>
-  );
+      <label className="al-admin-check"><input type="checkbox" checked={isDemo} onChange={(event) => setIsDemo(event.target.checked)} />Mark the region and its returned passage data as a demonstration.</label>
+      <fieldset className="al-admin-subsection"><legend>Complete preset passage list · {passages.length}</legend>
+        <p className="al-admin-note">Existing IDs stay fixed. Saving a changed list replaces the full list, including removals; the server assigns IDs to new passages and versions to changes.</p>
+        {passages.map((passage, index) => <div className="al-admin-passage" key={passage.key}>
+          <div className="al-admin-heading"><strong>Passage {index + 1}</strong><button type="button" onClick={() => setPassages((current) => current.filter((item) => item.key !== passage.key))}>Remove from draft</button></div>
+          <p className="al-admin-note">{passage.id ? `Existing ID: ${passage.id} · version ${saved.presetPassages.find((item) => item.id === passage.id)?.passageVersion ?? '—'}` : 'New passage · server assigns its ID when saved'}</p>
+          <label htmlFor={`${id}-passage-name-${index}`}>Passage name<input id={`${id}-passage-name-${index}`} maxLength={120} value={passage.name} onChange={(event) => updatePassage(passage.key, { name: event.target.value })} /></label>
+          <label htmlFor={`${id}-passage-points-${index}`}>LineString coordinates · JSON array of [longitude, latitude]<textarea id={`${id}-passage-points-${index}`} className="al-admin-code" rows={4} value={passage.coordinates} onChange={(event) => updatePassage(passage.key, { coordinates: event.target.value })} /></label>
+        </div>)}
+        <button type="button" onClick={() => setPassages((current) => [...current, { key: createIdempotencyKey(), name: '', coordinates: '' }])}>Add passage to draft</button>
+      </fieldset>
+      <label htmlFor={`${id}-reason`}>Operator reason · required<textarea id={`${id}-reason`} maxLength={1000} rows={2} value={reason} onChange={(event) => setReason(event.target.value)} /></label>
+      <div className="al-admin-actions"><button type="button" className="al-admin-primary" disabled={!reason.trim()} onClick={() => void save()}>{pending ? 'Saving…' : 'Save region configuration'}</button>
+        <button type="button" onClick={() => void reload()}>Reload saved settings · discard draft</button></div>
+    </fieldset>
+    {error && <p className="al-admin-error" role="alert">{error} Your inputs are retained. On a version conflict, reload only when you are ready to discard the draft.</p>}
+    {success && <p className="al-admin-success" role="status">{success}</p>}
+  </div></section>
 }

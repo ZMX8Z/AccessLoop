@@ -1,0 +1,90 @@
+{
+  "priorLocalProbe": {
+    "service": "ors",
+    "errorCode": "INVALID_INPUT",
+    "httpAttempts": 0,
+    "cause": "Verification script omitted required profile; corrected before any ORS HTTP attempt.",
+    "persistedEvents": [
+      {
+        "service": "ors_directions",
+        "kind": "error",
+        "occurredAt": "2026-10-17T07:27:58.171Z",
+        "category": "INVALID_INPUT"
+      },
+      {
+        "service": "ors_directions",
+        "kind": "call",
+        "occurredAt": "2026-10-17T07:27:58.160Z"
+      }
+    ]
+  },
+  "recordedAt": "2026-10-17T07:28:41.774Z",
+  "codeEvidenceCommit": "5e4867d8b6141aacbc8fc4988f4aa41287bd370a",
+  "database": "dedicated-local-development",
+  "budget": "C persistent atomic repository through D ProviderGate",
+  "scope": "Provider connectivity only; no persisted candidate region, no personal routeRef, no field validation, no public UI acceptance",
+  "startedAt": "2026-10-17T07:28:40.076Z",
+  "results": {
+    "geocoding": {
+      "passed": true,
+      "attempts": 1,
+      "httpStatuses": [
+        200
+      ],
+      "elapsedMs": 1140,
+      "details": {
+        "queryPurpose": "fixed public-campus connection probe",
+        "resultCount": 5,
+        "sources": [
+          "openstreetmap"
+        ],
+        "emptyResultIsValid": true
+      }
+    },
+    "ors": {
+      "passed": true,
+      "attempts": 1,
+      "httpStatuses": [
+        200
+      ],
+      "elapsedMs": 1576,
+      "details": {
+        "responseShape": "LineString",
+        "vertices": 5,
+        "distanceM": 56.8,
+        "durationS": 40.9,
+        "candidateGeometryPassed": true,
+        "fieldValidated": false,
+        "productionReady": false
+      }
+    }
+  },
+  "persistedEvents": [
+    {
+      "service": "geocoding",
+      "kind": "call",
+      "occurredAt": "2026-10-17T07:27:58.185Z"
+    },
+    {
+      "service": "ors_directions",
+      "kind": "call",
+      "occurredAt": "2026-10-17T07:28:40.568Z"
+    }
+  ],
+  "databaseRestart": {
+    "passed": true,
+    "scope": "dedicated local cluster; counts retained, not photo/confirmation restoration",
+    "before": {
+      "admins": 1,
+      "migrations": 4,
+      "providerReservations": 3,
+      "providerEvents": 4
+    },
+    "after": {
+      "admins": 1,
+      "migrations": 4,
+      "providerReservations": 3,
+      "providerEvents": 4
+    }
+  }
+}

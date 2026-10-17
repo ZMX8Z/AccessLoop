@@ -1,352 +1,88 @@
-import type {
-  AdminRegionConfigResponse,
-  AnalysisDTO,
-  AvoidanceConfirmInput,
-  AvoidancePreviewDTO,
-  AvoidancePreviewInput,
-  CreateReportInput,
-  PatchReportInput,
-  PrivateReportDTO,
-  PublicReportDTO,
-  RegionPatchInput,
-  ReportsQuery,
-  ReviewInput,
-  UploadPurpose,
-  UploadResponseData,
-  UsageSummaryData,
-} from '../../../shared/contracts';
+import { z } from 'zod';
+import { ApiError, ensureSession, request, resetSession } from '../../../shared/client/api';
 import {
-  fixtureAdminRegionConfig,
-  fixtureAvoidancePreview,
-  fixtureCompletedAnalysis,
-  fixturePrivateReport,
-  fixturePublicReport,
-  fixtureUploadResponse,
-  fixtureUsageSummary,
-} from '../../../shared/fixtures/hazard-fixtures';
+  ConfirmAvoidanceInputSchema, CreateReportInputSchema, DeactivateAvoidanceInputSchema,
+  PreviewDTOSchema, PreviewInputSchema, PrivateReportDTOSchema, PublicReportDTOSchema,
+  UpdateReportInputSchema,
+  type ConfirmAvoidanceInput, type CreateReportInput, type PreviewInput,
+  type PrivateReportDTO, type PublicReportDTO, type UpdateReportInput,
+} from '../../../shared/contracts/hazards';
+import { UploadDTOSchema, type PhotoPurpose } from '../../../shared/contracts/photos';
+import { PresetPassageSchema, RegionSchema } from '../../../shared/contracts/region';
+import { VersionSchema } from '../../../shared/contracts/common';
+import { AnalysisDTOSchema } from '../../../shared/contracts/vision';
 
-export class ApiError extends Error {
-  constructor(
-    public readonly status: number,
-    public readonly code: string,
-    message: string,
-    public readonly requestId?: string,
-    public readonly details?: Record<string, unknown>,
-  ) {
-    super(message);
-    this.name = 'ApiError';
+export { ApiError, createIdempotencyKey, errorMessage, LatestRequest } from '../../../shared/client/api';
+
+// Expired identities are cleared for the next user action. A write is never replayed.
+async function businessRequest<T>(path: string, schema: z.ZodType<T>, options: RequestInit = {}) {
+  try { return await request(path, schema, options); }
+  catch (error) {
+    if (error instanceof ApiError && error.code === 'UNAUTHENTICATED') resetSession();
+    throw error;
   }
 }
+const reportPath = (id: string) => `/api/reports/${encodeURIComponent(id)}`;
+const writeOptions = (method: string, input: unknown, key: string): RequestInit => ({
+  method, headers: { 'Idempotency-Key': key }, body: JSON.stringify(input),
+});
 
-function getBaseHeaders(idempotent = false): HeadersInit {
-  const headers: Record<string, string> = {
-    Accept: 'application/json',
-  };
-  if (idempotent) {
-    headers['Idempotency-Key'] = `idem-${crypto.randomUUID()}`;
-  }
-  return headers;
-}
-
-async function handleResponse<T>(res: Response): Promise<T> {
-  const isJson = res.headers.get('content-type')?.includes('application/json');
-  if (!res.ok) {
-    if (isJson) {
-      const errorBody = await res.json();
-      throw new ApiError(
-        res.status,
-        errorBody.error?.code || 'UNKNOWN_ERROR',
-        errorBody.error?.message || res.statusText,
-        errorBody.requestId,
-        errorBody.error?.details,
-      );
-    }
-    throw new ApiError(res.status, 'HTTP_ERROR', res.statusText);
-  }
-  const body = await res.json();
-  return (body.data !== undefined ? body.data : body) as T;
-}
-
-export async function uploadPhoto(
-  file: File,
-  purpose: UploadPurpose = 'report',
-  useMock = false,
-): Promise<UploadResponseData> {
-  if (useMock) {
-    return fixtureUploadResponse;
-  }
-  const formData = new FormData();
-  formData.append('file', file);
-  formData.append('purpose', purpose);
-
-  const res = await fetch('/api/uploads', {
-    method: 'POST',
-    headers: {
-      'Idempotency-Key': `idem-${crypto.randomUUID()}`,
-    },
-    body: formData,
+export async function uploadPhoto(file: File, purpose: PhotoPurpose, key: string, signal?: AbortSignal) {
+  await ensureSession();
+  const form = new FormData();
+  form.append('file', file);
+  form.append('purpose', purpose);
+  return businessRequest('/api/uploads', UploadDTOSchema, {
+    method: 'POST', headers: { 'Idempotency-Key': key }, body: form, signal,
   });
-  return handleResponse<UploadResponseData>(res);
 }
-
-export async function analyzePhoto(
-  photoId: string,
-  consent = true,
-  useMock = false,
-): Promise<AnalysisDTO> {
-  if (useMock) {
-    return fixtureCompletedAnalysis;
-  }
-  const res = await fetch('/api/analyze', {
-    method: 'POST',
-    headers: {
-      ...getBaseHeaders(true),
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ photoId, consent }),
+export function analyzePhoto(photoId: string, key: string, signal?: AbortSignal) {
+  return businessRequest('/api/analyze', AnalysisDTOSchema, {
+    ...writeOptions('POST', { photoId, consent: true }, key), signal,
   });
-  return handleResponse<AnalysisDTO>(res);
 }
-
-export async function createReport(
-  input: CreateReportInput,
-  useMock = false,
-): Promise<PrivateReportDTO> {
-  if (useMock) {
-    return {
-      ...fixturePrivateReport,
-      description: input.description,
-      category: input.category,
-      location: input.location,
-      observedAt: input.observedAt,
-    };
-  }
-  const res = await fetch('/api/reports', {
-    method: 'POST',
-    headers: {
-      ...getBaseHeaders(true),
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(input),
+export function createReport(input: CreateReportInput, key: string) {
+  return businessRequest('/api/reports', PrivateReportDTOSchema, writeOptions('POST', CreateReportInputSchema.parse(input), key));
+}
+export function patchReport(id: string, input: UpdateReportInput, key: string) {
+  return businessRequest(reportPath(id), PrivateReportDTOSchema, writeOptions('PATCH', UpdateReportInputSchema.parse(input), key));
+}
+export function previewAvoidance(id: string, input: PreviewInput, signal?: AbortSignal) {
+  return businessRequest(`${reportPath(id)}/avoidance-preview`, PreviewDTOSchema, {
+    method: 'POST', body: JSON.stringify(PreviewInputSchema.parse(input)), signal,
   });
-  return handleResponse<PrivateReportDTO>(res);
+}
+export function confirmAvoidance(id: string, input: ConfirmAvoidanceInput, key: string) {
+  return businessRequest(`${reportPath(id)}/avoidance`, PrivateReportDTOSchema, writeOptions('POST', ConfirmAvoidanceInputSchema.parse(input), key));
+}
+export function deleteAvoidance(id: string, expectedVersion: number, key: string) {
+  return businessRequest(`${reportPath(id)}/avoidance`, PrivateReportDTOSchema, writeOptions('DELETE', DeactivateAvoidanceInputSchema.parse({ expectedVersion }), key));
 }
 
-export async function patchReport(
-  reportId: string,
-  input: PatchReportInput,
-  useMock = false,
-): Promise<PrivateReportDTO> {
-  if (useMock) {
-    return {
-      ...fixturePrivateReport,
-      id: reportId,
-      rowVersion: input.expectedVersion + 1,
-      description: input.description ?? fixturePrivateReport.description,
-    };
+type ReportList<T> = { items: T[]; truncated: boolean };
+const publicListSchema = z.strictObject({ items: z.array(PublicReportDTOSchema), truncated: z.boolean() });
+const privateListSchema = z.strictObject({ items: z.array(PrivateReportDTOSchema), truncated: z.boolean() });
+export function fetchReports(scope: 'mine', signal?: AbortSignal): Promise<ReportList<PrivateReportDTO>>;
+export function fetchReports(scope: 'public', signal?: AbortSignal): Promise<ReportList<PublicReportDTO>>;
+export function fetchReports(scope: 'mine' | 'public', signal?: AbortSignal): Promise<ReportList<PrivateReportDTO | PublicReportDTO>>;
+export async function fetchReports(scope: 'mine' | 'public', signal?: AbortSignal): Promise<ReportList<PrivateReportDTO | PublicReportDTO>> {
+  if (scope === 'mine') {
+    await ensureSession();
+    return businessRequest('/api/reports?scope=mine', privateListSchema, { signal });
   }
-  const res = await fetch(`/api/reports/${encodeURIComponent(reportId)}`, {
-    method: 'PATCH',
-    headers: {
-      ...getBaseHeaders(true),
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(input),
-  });
-  return handleResponse<PrivateReportDTO>(res);
+  return businessRequest('/api/reports?scope=public', publicListSchema, { signal });
 }
-
-export async function previewAvoidance(
-  reportId: string,
-  input: AvoidancePreviewInput,
-  useMock = false,
-): Promise<AvoidancePreviewDTO> {
-  if (useMock) {
-    return {
-      ...fixtureAvoidancePreview,
-      expectedVersion: input.expectedVersion,
-      observedAt: input.observedAt,
-      passage: input.passage,
-    };
+export function fetchReport(id: string, signal?: AbortSignal) {
+  return businessRequest(reportPath(id), z.union([PrivateReportDTOSchema, PublicReportDTOSchema]), { signal });
+}
+export async function loadReportConfig(signal?: AbortSignal) {
+  await ensureSession();
+  const [region, passages] = await Promise.all([
+    businessRequest('/api/region', RegionSchema, { signal }),
+    businessRequest('/api/passages', z.strictObject({ configVersion: VersionSchema, items: z.array(PresetPassageSchema) }), { signal }),
+  ]);
+  if (region.configVersion !== passages.configVersion) {
+    throw new ApiError('CONFIG_CONFLICT', 'The region changed while loading. Reload the available passages.');
   }
-  const res = await fetch(
-    `/api/reports/${encodeURIComponent(reportId)}/avoidance-preview`,
-    {
-      method: 'POST',
-      headers: {
-        ...getBaseHeaders(false),
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(input),
-    },
-  );
-  return handleResponse<AvoidancePreviewDTO>(res);
+  return { region, passages: passages.items };
 }
-
-export async function confirmAvoidance(
-  reportId: string,
-  input: AvoidanceConfirmInput,
-  useMock = false,
-): Promise<PrivateReportDTO> {
-  if (useMock) {
-    return {
-      ...fixturePrivateReport,
-      id: reportId,
-      rowVersion: input.expectedVersion + 1,
-      personalAvoidance: {
-        active: true,
-        effective: true,
-        passage: input.passage,
-        avoidGeometry: fixtureAvoidancePreview.avoidGeometry,
-        decisionSource: 'ai_user_confirmed',
-        observedAt: input.observedAt,
-        confirmedAt: new Date().toISOString(),
-        validUntil: new Date(Date.now() + 3600 * 1000).toISOString(),
-        confirmationReportVersion: input.expectedVersion + 1,
-      },
-    };
-  }
-  const res = await fetch(
-    `/api/reports/${encodeURIComponent(reportId)}/avoidance`,
-    {
-      method: 'POST',
-      headers: {
-        ...getBaseHeaders(true),
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(input),
-    },
-  );
-  return handleResponse<PrivateReportDTO>(res);
-}
-
-export async function deleteAvoidance(
-  reportId: string,
-  expectedVersion: number,
-  useMock = false,
-): Promise<PrivateReportDTO> {
-  if (useMock) {
-    return {
-      ...fixturePrivateReport,
-      id: reportId,
-      rowVersion: expectedVersion + 1,
-      personalAvoidance: null,
-    };
-  }
-  const res = await fetch(
-    `/api/reports/${encodeURIComponent(reportId)}/avoidance`,
-    {
-      method: 'DELETE',
-      headers: {
-        ...getBaseHeaders(true),
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ expectedVersion }),
-    },
-  );
-  return handleResponse<PrivateReportDTO>(res);
-}
-
-export async function fetchReports(
-  query: ReportsQuery = { scope: 'public' },
-  useMock = false,
-): Promise<{ items: (PublicReportDTO | PrivateReportDTO)[]; truncated: boolean }> {
-  if (useMock) {
-    return {
-      items: query.scope === 'mine' ? [fixturePrivateReport] : [fixturePublicReport],
-      truncated: false,
-    };
-  }
-  const params = new URLSearchParams();
-  if (query.scope) params.set('scope', query.scope);
-  if (query.bbox) params.set('bbox', query.bbox.join(','));
-
-  const res = await fetch(`/api/reports?${params.toString()}`, {
-    headers: getBaseHeaders(false),
-  });
-  return handleResponse<{ items: (PublicReportDTO | PrivateReportDTO)[]; truncated: boolean }>(res);
-}
-
-export async function fetchReport(
-  id: string,
-  useMock = false,
-): Promise<PrivateReportDTO | PublicReportDTO> {
-  if (useMock) {
-    return fixturePrivateReport;
-  }
-  const res = await fetch(`/api/reports/${encodeURIComponent(id)}`, {
-    headers: getBaseHeaders(false),
-  });
-  return handleResponse<PrivateReportDTO | PublicReportDTO>(res);
-}
-
-export async function reviewReport(
-  reportId: string,
-  input: ReviewInput,
-  useMock = false,
-): Promise<PrivateReportDTO> {
-  if (useMock) {
-    return {
-      ...fixturePrivateReport,
-      id: reportId,
-      rowVersion: input.expectedVersion + 1,
-      status: input.action === 'reject' ? 'rejected' : input.action === 'resolve' ? 'resolved' : 'verified',
-    };
-  }
-  const res = await fetch(`/api/reports/${encodeURIComponent(reportId)}/review`, {
-    method: 'PATCH',
-    headers: {
-      ...getBaseHeaders(true),
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(input),
-  });
-  return handleResponse<PrivateReportDTO>(res);
-}
-
-export async function fetchUsageSummary(useMock = false): Promise<UsageSummaryData> {
-  if (useMock) {
-    return fixtureUsageSummary;
-  }
-  const res = await fetch('/api/admin/usage-summary', {
-    headers: getBaseHeaders(false),
-  });
-  return handleResponse<UsageSummaryData>(res);
-}
-
-export async function fetchAdminRegionConfig(useMock = false): Promise<AdminRegionConfigResponse> {
-  if (useMock) {
-    return fixtureAdminRegionConfig;
-  }
-  const res = await fetch('/api/admin/region', {
-    headers: getBaseHeaders(false),
-  });
-  return handleResponse<AdminRegionConfigResponse>(res);
-}
-
-export async function patchAdminRegionConfig(
-  input: RegionPatchInput,
-  useMock = false,
-): Promise<AdminRegionConfigResponse> {
-  if (useMock) {
-    return {
-      ...fixtureAdminRegionConfig,
-      region: {
-        ...fixtureAdminRegionConfig.region,
-        configVersion: input.expectedVersion + 1,
-        avoidanceBufferM: input.changes.avoidanceBufferM ?? fixtureAdminRegionConfig.region.avoidanceBufferM,
-        isDemo: input.changes.isDemo ?? fixtureAdminRegionConfig.region.isDemo,
-      },
-    };
-  }
-  const res = await fetch('/api/admin/region', {
-    method: 'PATCH',
-    headers: {
-      ...getBaseHeaders(true),
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(input),
-  });
-  return handleResponse<AdminRegionConfigResponse>(res);
-}
-

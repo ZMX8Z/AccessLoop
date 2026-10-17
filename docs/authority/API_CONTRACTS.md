@@ -2,7 +2,7 @@
 
 版本：v1.0；日期：2026-10-17；适用范围：完整 P0/P1 MVP。
 
-**本文是待实现契约，不表示接口、Payload 配置、外部服务或数据库已经存在或通过验收。** 初始化骨架仅提供 `/api/health`，其余业务接口由对应工作包继续实现。缺少原始字段定义的地方，本文给出一致的 MVP 默认值；实现时不得由各工作包另定同义字段。
+**本文是待实现契约，不表示接口、Payload 配置、外部服务或数据库已经存在或通过验收。** 骨架提供 `/api/health`；D 已实现 region/places/passages/routing-context/routes/search 的严格处理器与供应商服务，但在 C 的真实仓储安装前这些端点明确返回 503。其余接口与完整联调仍由对应工作包继续实现。缺少原始字段定义的地方，本文给出一致的 MVP 默认值；实现时不得由各工作包另定同义字段。
 
 本文件是业务 API、共享 DTO、状态、权限和版本语义的唯一维护位置。项目范围见 [PROJECT.md](PROJECT.md)，阅读入口见 [权威文档索引](README.md)与[仓库 README](../../README.md)，需求和架构分别见[需求文档](AccessLoop_需求文档_v1.0.md)与[技术文档](AccessLoop_技术文档_v1.0.md)。分支、合并目标及接口变更交接统一遵循 [COLLABORATION.md](COLLABORATION.md)，本文不另列分支表。验收口径见 [ACCEPTANCE.md](ACCEPTANCE.md)。
 
@@ -419,7 +419,7 @@ type CreateReportInput = {
 
 仅作者可修正 status 为 pending/ai_assessed 且从未公共发布的报告。已发布、已驳回或已解决的记录通过管理命令处理，返回 `409 INVALID_TRANSITION`。请求含 `expectedVersion`，其余可修改字段为 CreateReportInput 的字段；至少实际修改一项，`analysisId:null` 可解除分析关联，`passage:null` 可清除通道。
 
-换照片必须同请求提供匹配新照片的 analysisId 或显式 `analysisId:null`，不能保留旧分析。变更照片或分析关联后，后端按创建报告相同规则重新确定 pending/ai_assessed；未变更关联时不让迟到 AI 改写状态。更换照片/位置/观察时间/通道保存时，清除旧确认、停用个人避让；未改变确认依据的修正按 §3 保持绑定。成功 200 返回新 PrivateReportDTO，rowVersion 与本人 personalVersion 增版。不能借 PATCH 修改原始分析、公共状态或几何。
+换照片必须同请求提供匹配新照片的 analysisId 或显式 `analysisId:null`，不能保留旧分析。变更照片或分析关联后，后端按创建报告相同规则重新确定 pending/ai_assessed；未变更关联时不让迟到 AI 改写状态。更换照片/分析关联/位置/观察时间/通道保存时，清除旧确认、停用个人避让；未改变确认依据的修正按 §3 保持绑定。成功 200 返回新 PrivateReportDTO，rowVersion 与本人 personalVersion 增版。不能借 PATCH 修改原始分析、公共状态或几何。
 
 ### 7.3 `POST /api/reports/{id}/avoidance-preview`
 
@@ -512,6 +512,8 @@ type ReviewInput = ReviewBase & (
 ```
 
 `sourceReference` 是 1–500 字符的可信维护方记录标识或 HTTPS 来源，仅存私有证据，不作为服务器自动抓取 URL。field_observation 必须是管理员独立观察记录；可选 photoId 必须为 purpose=review_evidence、由管理身份授权读取的证据照片，且不能是原报告照片；不能复用匿名 report 上传冒充独立补证。trusted_maintainer 必须是运营确认的可信来源。服务端校验来源资格、时间、归属与完整性；同一匿名会话重复报告、原照片、AI 自评或原有个人确认不满足额外核实。证据内容保存为私有记录；公共 source 分别映射 admin_field_check/trusted_maintainer。
+
+运营通过服务端环境变量 `TRUSTED_MAINTAINER_REFERENCES` 配置获准的 `sourceReference`，格式为 JSON 字符串数组，最多 100 项。接口按完整字符串精确匹配，不按域名或前缀放行，也不抓取 URL。未配置时名单为空，trusted_maintainer 核实返回 `EVIDENCE_REQUIRED`；独立实地观察方式仍可使用。
 
 | action | 允许起始状态 | 最小行为与条件 |
 | --- | --- | --- |
@@ -705,3 +707,8 @@ ORS、Vision、Geocoding 的原子预算按服务与密钥共享持久化；重�
 组件、后台挂载、导出模板、仓储、地理与预算的跨包交接在 [COLLABORATION.md 的内部交接约定](COLLABORATION.md#4-最小内部交接)单一维护，本文只定义它们使用的 DTO 与接口语义。
 
 实现后 `src/shared/contracts/` 的运行时 Schema 是字段定义的执行来源，本文保留对外语义和例子；DTO 白名单、所有枚举、错误、fixture、调用方和本文必须在同一接口交接中同步。只按本文最小 P0/P1 输入输出实施，不新增公众账号、任意个人多边形、公共原图、自动公共核实或通用管理 CRUD。
+
+
+## 13 D 服务阶段接入状态（2026-10-17）
+
+D 的可执行 DTO 现位于 `src/shared/contracts/{geo,region,route-result,routing}.ts`，实现记录见 [D 服务交接](../handoffs/d-service-integration.md)。该交接只描述接线；HTTP 语义仍由本文维护。`RoutingRepository` 是 C 单一 Payload 仓储的内部端口，预算和 routeRef 原子提交必须由真实持久化实现满足；只有接口和测试替身不计持久化通过。供应商请求固定在官方 HeiGIT HTTPS 路径，搜索按来源白名单和 bbox 二次过滤；没有结果与上游失败保持不同语义。

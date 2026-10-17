@@ -1,3 +1,3 @@
-export * from './AdminHazardReview';
-export * from './AdminRegionConfig';
-export * from './AdminUsageSummary';
+export { AdminHazardReview, type AdminHazardReviewProps } from './AdminHazardReview'
+export { AdminRegionConfig } from './AdminRegionConfig'
+export { AdminUsageSummary } from './AdminUsageSummary'

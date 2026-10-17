@@ -4,7 +4,7 @@
 
 已确定技术栈：**Next.js + Payload + PostgreSQL + 阿里云 OSS 私有对象存储**。照片由阿里云托管，应用通过服务端存储适配器访问 OSS。Payload 提供数据管理、管理员认证及 Payload Admin；AI 识别、用户确认、个人避让与 ORS 路线由 AccessLoop 业务服务实现。
 
-本轮交付完整 P0 与 P1：个人绕行闭环、地点搜索和 Payload Admin 公共核实/纠错。四人共用同一仓库，分别使用固定开发分支及独立工作目录，所有阶段成果合入 dev。统一 Next.js + Payload 骨架已初始化，后续业务功能和 Zenith 部署仍待各包实现与验证。
+本轮交付完整 P0 与 P1：个人绕行闭环、地点搜索和 Payload Admin 公共核实/纠错。四人共用同一仓库，分别使用固定开发分支及独立工作目录，所有阶段成果合入 dev。统一 Next.js + Payload 骨架已初始化；D 的地理、路由、预算门禁、搜索与调用摘要服务已实现并进入阶段验证。C0真实仓储/匿名会话/持久预算已合入，ORS/Geocoding和本机OSS连接已验证；A0设计演示/公共客户端与C1图片/供应商准备模块已合入；GLM最新实测仍429/1305，正式C1照片/AI/报告、A/B真实页面联调及Zenith部署尚未完成，不代表完整 P0/P1 已通过。
 
 先阅读 [AI 协作入口](AGENTS.md)，再进入 [四人工作包目录](docs/work-packages/README.md)，选择自己的 START.md 执行。
 
@@ -21,6 +21,10 @@
 
 ## 本地启动
 
-使用 `.nvmrc` 中的 Node.js 和 `package.json` 指定的 pnpm，执行 `pnpm install --frozen-lockfile`、`pnpm dev`。公众入口 `/`、健康检查 `/api/health`；配置独立 PostgreSQL、应用秘密并执行迁移及受控管理员初始化后使用 `/admin`。
+使用 `.nvmrc` 中的 Node.js 和 `package.json` 指定的 pnpm，执行 `pnpm install --frozen-lockfile`、`pnpm dev`。公众入口 `/` 当前进入明确标识的Design Demo（仅本地保存）；`/live` 为真实API客户端联调入口，依赖业务接口完整交付。健康检查 `/api/health`；配置独立 PostgreSQL、应用秘密并执行迁移及受控管理员初始化后使用 `/admin`。
 
 完整命令、环境配置、四包接入及检查方式见 [本地开发说明](docs/DEVELOPMENT.md)。本阶段交接与实际证据见 [D 交接](docs/handoffs/wp-d.md) 和 [D 技术验收](docs/acceptance/wp-d.md)。
+
+D 服务接线见 [仓储与前端交接](docs/handoffs/d-service-integration.md)。部署探针执行 `pnpm deploy:probe`，仅打印配置存在性；额外探测和恢复步骤见 [部署说明](docs/deployment/README.md)。秘密放独立工作目录的 `.env.local`，该文件不提交。
+
+本机联调库已按用户授权独立配置，路径、端口和安全复用方式见 [本机 PostgreSQL](docs/deployment/local-development-db.md)；数据库与秘密留在本地忽略文件中。

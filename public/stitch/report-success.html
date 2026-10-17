@@ -1,0 +1,64 @@
+<!DOCTYPE html><html lang="en" style=""><head><title>AccessLoop · Report Success</title><meta charset="utf-8"><meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"><meta content="mobile_stack" name="shell-type"><style>@layer base{html,body{width:100vw;margin:0;padding:0;}body{overscroll-behavior:none;}.pb-safe{padding-bottom:env(safe-area-inset-bottom,0px);}.pt-safe{padding-top:env(safe-area-inset-top,0px);}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style>
+
+<link rel="stylesheet" href="styles.css"><link rel="stylesheet" href="app.css"><script src="app.js" defer></script></head><body data-page="report-success" class="bg-surface text-on-surface font-body-md text-body-md flex flex-col min-h-screen selection:bg-secondary-container selection:text-on-secondary-container"><header class="fixed top-0 inset-x-0 z-50 bg-surface/80 backdrop-blur-xl pt-safe shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="h-16 px-margin flex items-center justify-between"><div class="flex items-center gap-space-sm"><button aria-label="Go back" class="min-w-[44px] min-h-[44px] -ml-2 flex items-center justify-center rounded-lg text-on-surface hover:bg-surface-container transition-colors focus:outline-none focus:ring-2 focus:ring-primary"><span class="material-symbols-outlined text-[24px]">arrow_back</span></button><h1 class="font-headline-sm text-headline-sm tracking-tight text-on-surface line-clamp-1">New Barrier Report</h1></div><div class="flex items-center gap-space-sm"><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center shadow-sm"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><main class="flex flex-col relative w-full pt-16 pb-safe bg-surface flex-1 min-h-[calc(100vh-4rem)]"><div class="flex flex-col w-full flex-1 pb-20 justify-between">
+<!-- Interactive Confetti Canvas (Delight Element) -->
+<canvas class="pointer-events-none fixed inset-0 z-40 w-full h-full" id="confetti-canvas" width="451" height="933"></canvas>
+<!-- Flowchart Progress Stepper -->
+<div class="px-margin pt-4 pb-2">
+<div class="bg-surface-container-low rounded-xl p-space-sm shadow-sm flex items-center justify-between gap-1 sm:gap-2">
+<!-- Step 1: Photo (Completed) -->
+<div class="flex-1 flex items-center gap-1.5 py-1 px-2 rounded-lg bg-surface-container-lowest shadow-sm min-w-0">
+<span class="w-5 h-5 rounded-full bg-secondary-container text-on-secondary-container flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[13px]" style="font-variation-settings: &quot;FILL&quot; 1;">check</span>
+</span>
+<span class="font-label-sm text-label-sm text-on-surface truncate">1. Photo</span>
+</div>
+<!-- Arrow Separator -->
+<span class="material-symbols-outlined text-outline-variant text-[14px] shrink-0">chevron_right</span>
+<!-- Step 2: AI Scan (Completed) -->
+<div class="flex-1 flex items-center gap-1.5 py-1 px-2 rounded-lg bg-surface-container-lowest shadow-sm min-w-0">
+<span class="w-5 h-5 rounded-full bg-secondary-container text-on-secondary-container flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[13px]" style="font-variation-settings: &quot;FILL&quot; 1;">check</span>
+</span>
+<span class="font-label-sm text-label-sm text-on-surface truncate">2. AI Scan</span>
+</div>
+<!-- Arrow Separator -->
+<span class="material-symbols-outlined text-outline-variant text-[14px] shrink-0">chevron_right</span>
+<!-- Step 3: Submitted (Active Highlight Pill) -->
+<div class="flex-1 flex items-center gap-1.5 py-1 px-2 rounded-lg bg-primary text-on-primary shadow-sm min-w-0">
+<span class="w-5 h-5 rounded-full bg-on-primary/20 text-on-primary flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[13px]" style="font-variation-settings: &quot;FILL&quot; 1;">check</span>
+</span>
+<span class="font-label-sm text-label-sm text-on-primary font-bold truncate">3. Done</span>
+</div>
+</div>
+</div>
+<!-- Hero Joyful Success Badge & Heading -->
+<div class="flex-1 flex flex-col items-center justify-center text-center px-margin py-8">
+  <div class="relative flex items-center justify-center mb-6">
+    <div class="absolute w-24 h-24 rounded-full bg-secondary-container/30 animate-ping opacity-50"></div>
+    <div class="w-20 h-20 rounded-full bg-secondary-container flex items-center justify-center shadow-sm">
+      <div class="w-14 h-14 rounded-full bg-primary flex items-center justify-center shadow-md">
+        <span class="material-symbols-outlined text-on-primary text-[32px] font-bold">check</span>
+      </div>
+    </div>
+  </div>
+  <h2 class="font-headline-lg-mobile text-headline-lg-mobile text-on-surface font-bold tracking-tight mb-2">Demo Report Saved!</h2>
+  <p class="font-body-md text-body-md text-on-surface-variant max-w-[280px] leading-relaxed">
+    Report <span class="font-semibold text-on-surface">#AL-204</span> · Saved in this browser · demo only
+  </p>
+  <div class="w-full max-w-xs mt-8">
+    <button id="resume-route-btn" class="w-full py-3.5 px-6 rounded-xl bg-primary text-on-primary font-semibold text-[15px] shadow-sm hover:opacity-95 active:scale-[0.98] transition-all flex items-center justify-center gap-2">
+      <span class="">Return to Route</span>
+      <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+    </button>
+  </div>
+</div>
+
+<!-- Bottom Navigation Tab Bar (Accessible touch points with active Report tab) -->
+<nav aria-label="Main Navigation" class="fixed bottom-0 inset-x-0 z-50 bg-surface-container-lowest border-t border-outline-variant/30 pb-safe pt-2 px-6 shadow-[0_-2px_12px_rgba(0,0,0,0.05)] flex items-center justify-around"><a class="flex-1 flex flex-col items-center justify-center py-1 px-1 rounded-xl text-on-surface-variant hover:text-on-surface min-h-[44px] transition-colors" href="route.html"><span class="material-symbols-outlined text-[24px]">alt_route</span><span class="font-label-sm text-label-sm text-on-surface-variant mt-1 font-medium">Route</span></a><a aria-current="page" class="flex-1 flex flex-col items-center justify-center py-1 px-1 rounded-xl min-h-[44px] transition-all" href="report-photo.html"><div class="w-16 h-8 rounded-full bg-secondary-container text-on-secondary-container flex items-center justify-center shadow-sm"><span class="material-symbols-outlined text-[20px] font-bold">add</span></div><span class="font-label-sm text-label-sm font-bold text-primary mt-1">Report</span></a><a class="flex-1 flex flex-col items-center justify-center py-1 px-1 rounded-xl text-on-surface-variant hover:text-on-surface min-h-[44px] transition-colors" href="my-reports.html"><span class="material-symbols-outlined text-[24px]">assignment</span><span class="font-label-sm text-label-sm text-on-surface-variant mt-1 font-medium">My Reports</span></a></nav>
+<!-- Inline Script for Celebratory Delight Confetti Micro-interaction -->
+
+</div></main>
+
+<div id="feedback" role="status" aria-live="polite"></div></body></html>

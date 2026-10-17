@@ -1,0 +1,55 @@
+.accessloop-admin { color-scheme: light; color: #193a32; line-height: 1.5; width: 100%; max-width: 1200px; margin: 1.5rem 0; }
+.accessloop-admin *, .accessloop-admin *::before, .accessloop-admin *::after { box-sizing: border-box; }
+.accessloop-admin .al-admin-card { border: 1px solid #cfddd6; border-radius: 14px; padding: 24px; margin: 0 0 24px; background: #fff; }
+.accessloop-admin h2 { font-size: 1.45rem; line-height: 1.3; margin: 0 0 8px; }
+.accessloop-admin h3 { font-size: 1.05rem; margin: 0 0 12px; }
+.accessloop-admin p { margin: 6px 0 16px; overflow-wrap: anywhere; }
+.accessloop-admin .al-admin-heading { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 16px; }
+.accessloop-admin .al-admin-badge { border: 1px solid #b7d5c7; border-radius: 20px; background: #edf7f1; padding: 5px 12px; font-size: .85rem; font-weight: 600; }
+.accessloop-admin .al-admin-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; margin: 18px 0; }
+.accessloop-admin fieldset { min-width: 0; padding: 0; margin: 0; border: 0; }
+.accessloop-admin legend { font-weight: 650; padding: 0 5px; }
+.accessloop-admin label { display: grid; gap: 6px; font-size: .92rem; font-weight: 550; margin: 12px 0; }
+.accessloop-admin input:not([type=checkbox]):not([type=file]), .accessloop-admin select, .accessloop-admin textarea { display: block; width: 100%; min-height: 42px; padding: 9px 11px; border: 1px solid #aabfb4; border-radius: 7px; background: #fff; color: #18392f; font: inherit; font-weight: 400; }
+.accessloop-admin input[type=file] { width: 100%; max-width: 100%; }
+.accessloop-admin textarea { resize: vertical; }
+.accessloop-admin :focus-visible { outline: 3px solid #d2a328; outline-offset: 3px; }
+.accessloop-admin button { min-height: 40px; border: 1px solid #9cb5a8; border-radius: 7px; background: #f5f9f6; color: #234b3e; padding: 8px 13px; cursor: pointer; font: inherit; font-weight: 550; }
+.accessloop-admin button:hover:not(:disabled) { background: #e6f3eb; }
+.accessloop-admin button.al-admin-primary { background: #096b53; color: #fff; border-color: #096b53; }
+.accessloop-admin button.al-admin-primary:hover:not(:disabled) { background: #07543f; }
+.accessloop-admin button:disabled, .accessloop-admin fieldset:disabled button { opacity: .55; cursor: not-allowed; }
+.accessloop-admin fieldset:disabled input, .accessloop-admin fieldset:disabled textarea, .accessloop-admin fieldset:disabled select { background: #f1f5f2; }
+.accessloop-admin .al-admin-actions { display: flex; flex-wrap: wrap; gap: 9px; margin: 12px 0; }
+.accessloop-admin .al-admin-check { display: flex; align-items: flex-start; gap: 10px; font-weight: 400; }
+.accessloop-admin .al-admin-check input { flex: 0 0 auto; width: 18px; height: 18px; margin-top: 3px; }
+.accessloop-admin .al-admin-subsection { border: 1px solid #d5e2da; border-radius: 10px; padding: 16px; background: #f8fbf9; margin: 20px 0; }
+.accessloop-admin .al-admin-passage { border-top: 1px solid #d6e1db; padding: 16px 0; }
+.accessloop-admin .al-admin-note { color: #546b60; font-size: .86rem; }
+.accessloop-admin .al-admin-error { background: #fff0ed; color: #912c1d; border-left: 4px solid #bb4834; padding: 12px 15px; border-radius: 5px; }
+.accessloop-admin .al-admin-success { background: #eaf7ee; color: #175633; border-left: 4px solid #2f8055; padding: 12px 15px; border-radius: 5px; }
+.accessloop-admin .al-admin-code, .accessloop-admin pre { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: .84rem; }
+.accessloop-admin pre { padding: 12px; border-radius: 7px; background: #f1f5f2; max-height: 360px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; }
+.accessloop-admin dl { margin: 0; }
+.accessloop-admin dt { font-size: .85rem; color: #546b60; }
+.accessloop-admin dd { margin: 0 0 10px; overflow-wrap: anywhere; }
+.accessloop-admin .al-admin-metrics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.accessloop-admin .al-admin-metrics dd { font-size: 1.7rem; font-weight: 700; margin: 0; }
+.accessloop-admin .al-admin-photo { width: 100%; height: auto; max-height: 380px; object-fit: contain; background: #edf2ee; border-radius: 9px; }
+.accessloop-admin .map-wrap { border: 1px solid #cfddd5; border-radius: 9px; overflow: hidden; background: #e8eee8; }
+.accessloop-admin .map-tag, .accessloop-admin .map-caption { padding: 8px 12px; font-size: .8rem; }
+.accessloop-admin .map-tag span { margin-left: 12px; }
+.accessloop-admin .map { width: 100%; display: block; aspect-ratio: 4 / 3; max-height: 440px; }
+.accessloop-admin .map-controls { display: flex; flex-wrap: wrap; gap: 5px; padding: 8px; }
+.accessloop-admin .map-controls button { min-width: 36px; min-height: 36px; padding: 4px 9px; }
+.accessloop-admin .map-preview path { fill: #b46f2333; stroke: #9c5415; stroke-width: 4; stroke-dasharray: 10 5; }
+.accessloop-admin .map-hazard path { fill: #c03a2544; stroke: #a83322; stroke-width: 4; }
+.accessloop-admin .map-personal path { fill: #5874ce33; stroke: #4c67b6; stroke-width: 4; }
+.accessloop-admin .map-history path { fill: #7772; stroke: #777; stroke-width: 3; }
+@media (max-width: 720px) {
+  .accessloop-admin .al-admin-card { padding: 16px; }
+  .accessloop-admin .al-admin-grid { grid-template-columns: minmax(0, 1fr); }
+  .accessloop-admin .al-admin-heading { flex-direction: column; }
+  .accessloop-admin .al-admin-subsection { padding: 12px; }
+  .accessloop-admin h2 { font-size: 1.25rem; }
+}

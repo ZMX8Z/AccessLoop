@@ -1,0 +1,143 @@
+<!DOCTYPE html><html lang="en" style="position: relative;"><head><title>AccessLoop · Report Confirm</title><meta charset="utf-8"><meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"><meta content="mobile_stack" name="shell-type"><style>@layer base{html,body{width:100vw;margin:0;padding:0;}body{overscroll-behavior:none;}.pb-safe{padding-bottom:env(safe-area-inset-bottom,0px);}.pt-safe{padding-top:env(safe-area-inset-top,0px);}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style>
+
+<link rel="stylesheet" href="styles.css"><link rel="stylesheet" href="app.css"><script src="app.js" defer></script></head><body data-page="report-confirm" class="bg-surface text-on-surface font-body-md text-body-md flex flex-col min-h-screen selection:bg-secondary-container selection:text-on-secondary-container"><header class="fixed top-0 inset-x-0 z-50 bg-surface/80 backdrop-blur-xl pt-safe shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="h-16 px-margin flex items-center justify-between"><div class="flex items-center gap-space-sm"><button aria-label="Go back" class="min-w-[44px] min-h-[44px] -ml-2 flex items-center justify-center rounded-lg text-on-surface hover:bg-surface-container transition-colors focus:outline-none focus:ring-2 focus:ring-primary"><span class="material-symbols-outlined text-[24px]">arrow_back</span></button><h1 class="font-headline-sm text-headline-sm tracking-tight text-on-surface line-clamp-1">New Barrier Report</h1></div><div class="flex items-center gap-space-sm"><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center shadow-sm"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><main class="flex flex-col relative w-full pt-16 pb-safe bg-surface flex-1 min-h-[calc(100vh-4rem)]"><div class="flex flex-col w-full">
+<!-- Progress Indicator Flowchart -->
+<div class="px-margin pt-space-md pb-space-sm bg-surface"><div class="flex items-center justify-between gap-1.5" aria-label="Report progress: Step 2 of 3"><div class="flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 bg-surface-container-lowest rounded-full shadow-sm"><span class="material-symbols-outlined text-secondary text-[16px]" style="font-variation-settings: &quot;FILL&quot; 1;">check_circle</span><span class="font-label-sm text-label-sm text-on-surface font-body-bold truncate">1. Photo</span></div><span class="material-symbols-outlined text-[16px] text-outline-variant shrink-0">chevron_right</span><div class="flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 bg-primary text-on-primary rounded-full shadow-sm"><span class="material-symbols-outlined text-[16px]" style="font-variation-settings: &quot;FILL&quot; 1;">auto_fix_high</span><span class="font-label-sm text-label-sm text-on-primary font-body-bold truncate">2. AI Scan</span></div><span class="material-symbols-outlined text-[16px] text-outline-variant shrink-0">chevron_right</span><div class="flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 bg-surface-container-lowest/60 text-on-surface-variant rounded-full"><span class="material-symbols-outlined text-[16px] text-on-surface-variant/70">check_circle</span><span class="font-label-sm text-label-sm text-on-surface-variant truncate">3. Done</span></div></div></div>
+<!-- Main Content Body -->
+<div class="px-margin space-y-space-md pb-space-xl">
+<!-- Feedback Banner -->
+<div class="bg-secondary-container/50 rounded-xl p-space-md flex items-start gap-space-sm">
+<div class="w-8 h-8 rounded-full bg-secondary-container text-on-secondary-container flex items-center justify-center shrink-0 mt-0.5">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: &quot;FILL&quot; 1;">verified</span>
+</div>
+<div class="flex-1 min-w-0">
+<h2 class="font-headline-sm text-headline-sm text-on-surface font-body-bold">Review your observation</h2>
+
+</div>
+</div>
+<!-- Photo Preview with AR Spatial Bounding Box Overlay -->
+<div class="relative rounded-xl overflow-hidden shadow-sm bg-surface-container-high aspect-[16/10] w-full">
+<div class="w-full h-full bg-cover bg-center" data-alt="First-person sidewalk view showing temporary metal scaffolding poles obstructing a pedestrian pathway next to a university building, bright daylight casting sharp geometric shadows on concrete pavers with tactical yellow warning tiles in clean architectural photo style" style="background-image: url(&quot;evidence.svg&quot;);"></div>
+<!-- Gradient Scrim -->
+<div class="absolute inset-0 bg-gradient-to-t from-inverse-surface/80 via-transparent to-inverse-surface/30 pointer-events-none"></div>
+<!-- Simulated Computer Vision Bounding Box Overlay -->
+<div class="absolute inset-x-8 inset-y-6 rounded-lg pointer-events-none flex flex-col justify-between p-2">
+<!-- Top AI Tag -->
+<div class="self-start bg-inverse-surface/90 text-inverse-on-surface px-2.5 py-1 rounded-full flex items-center gap-1.5 shadow-md backdrop-blur-sm">
+<span class="w-2 h-2 rounded-full bg-tertiary-fixed animate-ping"></span>
+<span class="font-label-sm text-label-sm">Photo evidence</span>
+</div>
+<!-- Dimension Measurement Caliper Graphic -->
+<div class="w-full bg-inverse-surface/90 text-inverse-on-surface p-2 rounded-lg backdrop-blur-sm flex items-center justify-between gap-2 shadow-lg">
+<div class="flex items-center gap-1.5 min-w-0">
+<span class="material-symbols-outlined text-tertiary-fixed text-[18px]">straighten</span>
+<span class="font-tabular-data text-tabular-data font-body-bold text-inverse-on-surface">Width not measured</span>
+</div>
+<span class="bg-error-container text-on-error-container font-label-sm text-label-sm px-2 py-0.5 rounded-full shrink-0 font-body-bold">
+            Confirm on site
+          </span>
+</div>
+</div>
+<!-- Quick Retake Floating Badge -->
+<button aria-label="Enlarge photo preview" class="absolute top-2.5 right-2.5 min-w-[44px] min-h-[44px] bg-surface/90 backdrop-blur-md rounded-full shadow-sm flex items-center justify-center text-on-surface hover:bg-surface active:scale-95 transition-transform" type="button">
+<span class="material-symbols-outlined text-[20px]">zoom_in</span>
+</button>
+</div>
+<!-- AI Detection Editable Fieldset Card -->
+<div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm space-y-space-md">
+<!-- Obstacle Category -->
+<div>
+<div class="flex items-center justify-between mb-space-xs">
+<label class="font-label-md text-label-md text-on-surface font-body-bold flex items-center gap-1">
+<span class="">Obstacle Classification</span>
+<span class="text-primary font-label-sm">(review required)</span>
+</label>
+<span class="font-label-sm text-label-sm text-secondary font-body-bold flex items-center gap-0.5">
+<span class="material-symbols-outlined text-[14px]">lock_reset</span>
+            Review fields
+          </span>
+</div>
+<!-- Pill Categorical Selector -->
+<div aria-label="Obstacle category selection" class="grid grid-cols-2 gap-space-xs" role="radiogroup">
+
+
+
+
+</div>
+</div>
+<!-- Usable Width Readout & Micro Adjustment -->
+<div class="bg-surface-container-low rounded-xl p-space-sm flex items-center justify-between gap-space-sm">
+<div class="min-w-0">
+<div class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Passable Width</div>
+<div class="flex items-baseline gap-1.5 mt-0.5">
+<span class="font-tabular-data text-headline-sm font-body-bold text-on-surface" id="width-display">1.05</span>
+<span class="font-body-md text-body-md text-on-surface-variant">meters</span>
+</div>
+<p class="font-label-sm text-label-sm text-error font-body-bold mt-0.5">Photo dimensions are not reliable measurements.</p>
+</div>
+<!-- Increment / Decrement Steppers -->
+<div class="flex items-center gap-1 shrink-0">
+<button aria-label="Decrease width by 5 centimeters" class="w-11 h-11 rounded-lg bg-surface-container text-on-surface hover:bg-surface-container-highest flex items-center justify-center active:scale-95 transition-transform" id="width-decrease" type="button">
+<span class="material-symbols-outlined text-[20px]">remove</span>
+</button>
+<button aria-label="Increase width by 5 centimeters" class="w-11 h-11 rounded-lg bg-surface-container text-on-surface hover:bg-surface-container-highest flex items-center justify-center active:scale-95 transition-transform" id="width-increase" type="button">
+<span class="material-symbols-outlined text-[20px]">add</span>
+</button>
+</div>
+</div>
+<!-- Structured Metadata Tags -->
+<div class="space-y-space-sm">
+<!-- Location -->
+<div class="flex items-start gap-space-sm bg-surface-container-low rounded-lg p-space-sm">
+<div class="w-8 h-8 rounded-full bg-surface-container-highest text-on-surface-variant flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[18px]">location_on</span>
+</div>
+<div class="min-w-0 flex-1">
+<span class="font-label-sm text-label-sm text-on-surface-variant block">Observed Location</span>
+<span class="font-body-bold text-body-bold text-on-surface block truncate">South Engineering Breezeway</span>
+
+</div>
+<button class="text-primary font-label-md text-label-md hover:underline shrink-0 min-h-[44px] flex items-center" type="button">Edit</button>
+</div>
+<!-- Affected Impact Warning -->
+
+</div>
+<!-- Field Notes / User description -->
+<div>
+<div class="flex items-center justify-between mb-1"><label class="font-label-md text-label-md text-on-surface font-body-bold" for="field-notes">Field Verification Notes</label><button type="button" class="min-h-[44px] px-2.5 py-1 rounded-lg text-primary hover:bg-surface-container font-label-md text-label-md font-body-bold flex items-center gap-1 transition-colors focus:outline-none focus:ring-2 focus:ring-primary"><span class="material-symbols-outlined text-[16px]">edit</span><span class="">Edit</span></button></div>
+<div class="relative">
+<textarea class="w-full rounded-lg bg-surface-container-low text-on-surface p-space-sm font-body-md text-body-md focus:bg-surface focus:outline-none focus:ring-2 focus:ring-primary resize-none placeholder:text-on-surface-variant/60" id="field-notes" placeholder="Add specifics regarding obstacle stability, bypass options..." rows="3">Scaffolding uprights narrowing passage past library turn.</textarea>
+<div class="absolute bottom-2 right-2 flex items-center gap-1 text-on-surface-variant font-label-sm text-label-sm bg-surface-container-low/90 px-1.5 py-0.5 rounded">
+
+
+</div>
+</div>
+</div>
+</div>
+<!-- Action Buttons Group -->
+
+<!-- Action Buttons Group -->
+<div class="space-y-space-sm pt-space-xs">
+<!-- Primary Action Button -->
+<button class="w-full min-h-[48px] bg-primary text-on-primary rounded-lg font-body-bold text-body-bold flex items-center justify-center gap-2 shadow-sm hover:bg-surface-tint active:scale-[0.99] transition-all" id="submit-report-btn" type="button">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: &quot;FILL&quot; 1;">verified_user</span>
+<span class="">Submit Report</span>
+</button>
+<!-- Secondary Action Button -->
+<button class="w-full min-h-[48px] bg-surface-container text-on-surface rounded-lg font-body-bold text-body-bold flex items-center justify-center gap-2 hover:bg-surface-container-high active:scale-[0.99] transition-colors" type="button">
+<span class="material-symbols-outlined text-[20px]">photo_camera</span>
+<span class="">Edit Photo / Rescan</span>
+</button>
+</div>
+<!-- Micro Civic Trust Statement -->
+<div class="text-center">
+<p class="font-label-sm text-label-sm text-on-surface-variant flex items-center justify-center gap-1">
+<span class="material-symbols-outlined text-[14px]">verified</span>
+
+</p>
+</div>
+</div>
+</div>
+</main>
+
+<div id="feedback" role="status" aria-live="polite"></div></body></html>

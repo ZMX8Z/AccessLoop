@@ -1,286 +1,109 @@
-'use client';
+'use client'
+import React, { useEffect, useRef, useState } from 'react'
+import { PassagePicker } from '@/components/map/PassagePicker'
+import { ApiError, createIdempotencyKey, errorMessage, LatestRequest } from '@/shared/client/api'
+import type { PrivateReportDTO, PreviewDTO } from '@/shared/contracts/hazards'
+import type { RegionDTO, PresetPassageDTO } from '@/shared/contracts/region'
+import type { PassageRef, RouteDTO } from '@/shared/contracts'
+import { confirmAvoidance, deleteAvoidance, fetchReport, previewAvoidance } from './api'
+import { confirmationInput, isPersonalEffective } from './report-state'
+import { localTime } from './ReportForm'
 
-import React, { useCallback, useEffect, useState } from 'react';
-
-import type {
-  AvoidancePreviewDTO,
-  PassageRef,
-  PrivateReportDTO,
-} from '../../../shared/contracts';
-import { confirmAvoidance, deleteAvoidance, previewAvoidance } from './api';
-
-interface AvoidanceDrawerProps {
-  report: PrivateReportDTO;
-  onUpdated: (report: PrivateReportDTO) => void;
+interface Props {
+  report: PrivateReportDTO; region: RegionDTO; passages: PresetPassageDTO[]; route?: RouteDTO | null
+  onUpdated: (report: PrivateReportDTO) => void
 }
-
-export function AvoidanceDrawer({ report, onUpdated }: AvoidanceDrawerProps) {
-  const [preview, setPreview] = useState<AvoidancePreviewDTO | null>(null);
-  const [isLoadingPreview, setIsLoadingPreview] = useState(false);
-  const [consent, setConsent] = useState(false);
-  const [isConfirming, setIsConfirming] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const passage = React.useMemo<PassageRef>(() => {
-    return report.passage || {
-      presetPassageId: 'passage-library-walk',
-      passageVersion: 1,
-    };
-  }, [report.passage]);
-
-  const loadPreview = useCallback(async () => {
-    setIsLoadingPreview(true);
-    setError(null);
-    try {
-      let p: AvoidancePreviewDTO;
-      try {
-        p = await previewAvoidance(
-          report.id,
-          {
-            expectedVersion: report.rowVersion,
-            observedAt: report.observedAt,
-            passage,
-          },
-          false,
-        );
-      } catch {
-        p = await previewAvoidance(
-          report.id,
-          {
-            expectedVersion: report.rowVersion,
-            observedAt: report.observedAt,
-            passage,
-          },
-          true,
-        );
-      }
-      setPreview(p);
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to generate avoidance preview.');
-    } finally {
-      setIsLoadingPreview(false);
-    }
-  }, [report.id, report.rowVersion, report.observedAt, passage]);
-
+export function AvoidanceDrawer({ report, region, passages, route = null, onUpdated }: Props) {
+  const [now, setNow] = useState(0)
+  const [reviewing, setReviewing] = useState(!report.personalAvoidance?.effective)
+  const [observedAt, setObservedAt] = useState(localTime(report.personalAvoidance?.observedAt ?? report.observedAt))
+  const [passage, setPassage] = useState<PassageRef | null>(report.personalAvoidance?.passage ?? report.passage)
+  const [preview, setPreview] = useState<PreviewDTO | null>(null)
+  const [consent, setConsent] = useState(false)
+  const [loading, setLoading] = useState(false), [busy, setBusy] = useState(false)
+  const [error, setError] = useState(''), [refresh, setRefresh] = useState(0)
+  const latest = useRef(new LatestRequest())
+  const confirmOperation = useRef<{ body: string; key: string } | null>(null)
+  const stopOperation = useRef<{ version: number; key: string } | null>(null)
+  const observation = observedAt && Number.isFinite(Date.parse(observedAt)) ? new Date(observedAt).toISOString() : null
+  const possible = report.status !== 'resolved' && report.status !== 'rejected'
+  const effective = isPersonalEffective(report, now)
+  useEffect(() => { const timer = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(timer) }, [])
   useEffect(() => {
-    let ignore = false;
-    if (!report.personalAvoidance?.active) {
-      previewAvoidance(
-        report.id,
-        {
-          expectedVersion: report.rowVersion,
-          observedAt: report.observedAt,
-          passage,
-        },
-        true,
-      )
-        .then((p) => {
-          if (!ignore) setPreview(p);
-        })
-        .catch((err: unknown) => {
-          if (!ignore) setError(err instanceof Error ? err.message : 'Failed preview.');
-        });
-    }
-    return () => {
-      ignore = true;
-    };
-  }, [report.id, report.rowVersion, report.observedAt, report.personalAvoidance?.active, passage]);
-
-  const handleConfirmAvoidance = async () => {
-    if (!preview || !consent) {
-      setError('Explicit user consent is strictly required to activate personal avoidance.');
-      return;
-    }
-
-    setIsConfirming(true);
-    setError(null);
-
-    try {
-      let updated: PrivateReportDTO;
+    const requests = latest.current, task = requests.begin()
+    if (!reviewing || !possible || !passage || !observation) return () => requests.cancel()
+    const timer = setTimeout(async () => {
+      setPreview(null); setConsent(false); setLoading(true)
       try {
-        updated = await confirmAvoidance(
-          report.id,
-          {
-            expectedVersion: report.rowVersion,
-            observedAt: preview.observedAt,
-            passage: preview.passage,
-            previewDigest: preview.previewDigest,
-            consent: true,
-          },
-          false,
-        );
-      } catch {
-        updated = await confirmAvoidance(
-          report.id,
-          {
-            expectedVersion: report.rowVersion,
-            observedAt: preview.observedAt,
-            passage: preview.passage,
-            previewDigest: preview.previewDigest,
-            consent: true,
-          },
-          true,
-        );
-      }
-      onUpdated(updated);
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Avoidance confirmation failed.');
-    } finally {
-      setIsConfirming(false);
-    }
-  };
-
-  const handleDeactivate = async () => {
-    setIsDeleting(true);
-    setError(null);
+        if (Date.parse(observation) > Date.now()) throw new Error('Observation time cannot be in the future.')
+        const result = await previewAvoidance(report.id, { expectedVersion: report.rowVersion, observedAt: observation, passage }, task.signal)
+        if (!task.current()) return
+        if (result.expectedVersion !== report.rowVersion || result.configVersion !== region.configVersion
+          || result.observedAt !== observation || JSON.stringify(result.passage) !== JSON.stringify(passage)) throw new Error('Conditions changed. Refresh configuration and review a new preview.')
+        setPreview(result)
+      } catch (failure) { if (task.current()) setError(errorMessage(failure)) }
+      finally { if (task.current()) setLoading(false) }
+    }, 200)
+    return () => { clearTimeout(timer); requests.cancel() }
+  }, [reviewing, possible, report.id, report.rowVersion, observation, passage, region.configVersion, refresh])
+  const validPreview = preview && Date.parse(preview.expiresAt) > now && Date.parse(preview.validUntil) > now
+    && preview.expectedVersion === report.rowVersion && preview.configVersion === region.configVersion
+    && preview.observedAt === observation && JSON.stringify(preview.passage) === JSON.stringify(passage)
+  async function confirm() {
+    setBusy(true); setError('')
     try {
-      let updated: PrivateReportDTO;
-      try {
-        updated = await deleteAvoidance(report.id, report.rowVersion, false);
-      } catch {
-        updated = await deleteAvoidance(report.id, report.rowVersion, true);
+      const input = confirmationInput(preview, consent, Date.now())
+      const body = JSON.stringify(input)
+      if (confirmOperation.current?.body !== body) confirmOperation.current = { body, key: createIdempotencyKey() }
+      const updated = await confirmAvoidance(report.id, input, confirmOperation.current.key)
+      setReviewing(false); setConsent(false); setPreview(null); onUpdated(updated)
+    } catch (failure) {
+      setError(failure instanceof ApiError ? `${failure.code}: ${failure.message}` : errorMessage(failure))
+      if (failure instanceof ApiError && ['VERSION_CONFLICT', 'PREVIEW_STALE'].includes(failure.code)) {
+        setPreview(null); setConsent(false)
+        if (failure.code === 'VERSION_CONFLICT') {
+          try { const current = await fetchReport(report.id); if ('rowVersion' in current) onUpdated(current) }
+          catch { /* Preserve the original failure and the user's observation. */ }
+        }
+        setRefresh((value) => value + 1)
       }
-      onUpdated(updated);
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Deactivation failed.');
-    } finally {
-      setIsDeleting(false);
-    }
-  };
-
-  const isAvoidanceActive = report.personalAvoidance?.active && report.personalAvoidance?.effective;
-
-  return (
-    <div
-      style={{
-        border: '2px solid #006b50',
-        borderRadius: '0.75rem',
-        padding: '1.25rem',
-        marginBottom: '1.5rem',
-        background: '#f4fbf8',
-      }}
-    >
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-        <h3 style={{ margin: 0, fontSize: '1.15rem', color: '#163d36' }}>4. Personal Avoidance Routing</h3>
-        <span
-          style={{
-            fontSize: '0.8rem',
-            fontWeight: 700,
-            textTransform: 'uppercase',
-            padding: '0.25rem 0.6rem',
-            borderRadius: '1rem',
-            background: isAvoidanceActive ? '#e6f4ea' : '#f1f3f4',
-            color: isAvoidanceActive ? '#137333' : '#5f6368',
-          }}
-        >
-          {isAvoidanceActive ? 'Active (Avoided in Routes)' : 'Not Active'}
-        </span>
-      </div>
-
-      {isAvoidanceActive ? (
-        <div style={{ fontSize: '0.9rem', color: '#163d36' }}>
-          <p style={{ margin: '0 0 0.5rem' }}>
-            ✓ <strong>Personal avoidance is now active on your session.</strong>
-          </p>
-          <p style={{ margin: '0 0 0.5rem', fontSize: '0.85rem', color: '#4e6961' }}>
-            Valid Until: {new Date(report.personalAvoidance!.validUntil).toLocaleTimeString()} (Default 1-hour session isolation).
-          </p>
-          <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1rem' }}>
-            <button
-              type="button"
-              onClick={() => void handleDeactivate()}
-              disabled={isDeleting}
-              style={{
-                padding: '0.5rem 1rem',
-                background: '#fee2e2',
-                color: '#991b1b',
-                border: '1px solid #fca5a5',
-                borderRadius: '0.375rem',
-                fontWeight: 600,
-                cursor: 'pointer',
-              }}
-            >
-              {isDeleting ? 'Deactivating...' : 'Deactivate Personal Avoidance'}
-            </button>
-            <button
-              type="button"
-              onClick={() => void loadPreview()}
-              disabled={isLoadingPreview}
-              style={{
-                padding: '0.5rem 1rem',
-                background: '#ffffff',
-                color: '#006b50',
-                border: '1px solid #006b50',
-                borderRadius: '0.375rem',
-                fontWeight: 600,
-                cursor: 'pointer',
-              }}
-            >
-              Renew / Re-confirm
-            </button>
-          </div>
-        </div>
-      ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: '0.9rem' }}>
-          <p style={{ margin: 0, color: '#4e6961' }}>
-            Review the calculated obstacle avoidance polygon. Your confirmation immediately redirects wheelchair routes around this barrier without waiting for administrator review.
-          </p>
-
-          {isLoadingPreview && <p style={{ color: '#006b50' }}>Calculating dynamic avoidance geometry...</p>}
-
-          {preview && (
-            <div style={{ background: '#ffffff', border: '1px solid #d9e4de', borderRadius: '0.5rem', padding: '0.75rem' }}>
-              <div>
-                <strong>Avoidance Geometry:</strong> {preview.avoidGeometry.type} ({preview.avoidGeometry.coordinates[0]?.length || 0} vertices)
-              </div>
-              <div>
-                <strong>Validity Window:</strong> Up to 60 minutes from observation
-              </div>
-              <div style={{ fontSize: '0.75rem', color: '#707d77', wordBreak: 'break-all' }}>
-                Preview Token: <code>{preview.previewDigest.slice(0, 32)}...</code>
-              </div>
-            </div>
-          )}
-
-          <label style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', fontSize: '0.85rem', color: '#163d36', cursor: 'pointer' }}>
-            <input
-              type="checkbox"
-              checked={consent}
-              onChange={(e) => setConsent(e.target.checked)}
-              disabled={isConfirming || !preview}
-              style={{ marginTop: '0.2rem' }}
-            />
-            <span>
-              <strong>Explicit Avoidance Consent:</strong> I confirm that this passage is obstructed and explicitly consent to routing my wheelchair navigation around this avoidance polygon.
-            </span>
-          </label>
-
-          {error && (
-            <div style={{ color: '#b91c1c', fontSize: '0.85rem', padding: '0.5rem', background: '#fef2f2', borderRadius: '0.375rem' }}>
-              {error}
-            </div>
-          )}
-
-          <button
-            type="button"
-            onClick={() => void handleConfirmAvoidance()}
-            disabled={!consent || isConfirming || !preview}
-            style={{
-              alignSelf: 'flex-start',
-              padding: '0.65rem 1.3rem',
-              background: consent && preview ? '#006b50' : '#a0b5ae',
-              color: 'white',
-              border: 'none',
-              borderRadius: '0.5rem',
-              fontWeight: 700,
-              cursor: consent && preview && !isConfirming ? 'pointer' : 'not-allowed',
-            }}
-          >
-            {isConfirming ? 'Enabling Avoidance...' : 'Activate Personal Avoidance Now'}
-          </button>
-        </div>
-      )}
+    } finally { setBusy(false) }
+  }
+  async function deactivate() {
+    setBusy(true); setError('')
+    if (stopOperation.current?.version !== report.rowVersion) stopOperation.current = { version: report.rowVersion, key: createIdempotencyKey() }
+    try {
+      const updated = await deleteAvoidance(report.id, report.rowVersion, stopOperation.current.key)
+      setReviewing(false); setPreview(null); setConsent(false); onUpdated(updated)
+    } catch (failure) { setError(errorMessage(failure)) }
+    finally { setBusy(false) }
+  }
+  return <section aria-label="Personal avoidance"><h2>Personal temporary avoidance</h2>
+    <p role="status"><strong>{effective ? 'Effective for your session' : report.personalAvoidance?.active ? 'Expired or confirmation no longer effective' : 'Not enabled'}</strong></p>
+    <p>Personal avoidance affects your session only. Stopping it does not remove any verified public barrier. Expiry does not mean the passage is clear.</p>
+    {report.personalAvoidance && <p className="report-note">Observed {report.personalAvoidance.observedAt}; confirmed {report.personalAvoidance.confirmedAt}; valid until {report.personalAvoidance.validUntil}. Source: {report.personalAvoidance.decisionSource === 'user_manual' ? 'your manual observation' : 'AI suggestion and your confirmation'}.</p>}
+    {!possible && <p>This report is {report.status}; personal avoidance cannot be confirmed.</p>}
+    <div className="report-actions">
+      {report.personalAvoidance?.active && <button disabled={busy} type="button" onClick={() => void deactivate()}>Stop my personal avoidance</button>}
+      {possible && !reviewing && <button type="button" disabled={busy} onClick={() => {
+        setObservedAt(''); setReviewing(true); setConsent(false); setPreview(null); setError('')
+      }}>Renew / confirm a new observation</button>}
     </div>
-  );
+    {possible && reviewing && <fieldset disabled={busy}>
+      <legend>Review this observation and the server-generated area</legend>
+      <label>Actually observed at · your device time<input type="datetime-local" value={observedAt} onChange={(event) => { setObservedAt(event.target.value); setPreview(null); setConsent(false); setError('') }} /></label>
+      <button type="button" className="report-secondary" onClick={() => { setObservedAt(localTime()); setPreview(null); setConsent(false); setError('') }}>Observed now · use device time</button>
+      <p className="report-note">The report location is fixed here. To move it, save a correction to the report facts first.</p>
+      <PassagePicker bbox={region.bbox} location={report.location} route={route} passages={passages} value={passage} preview={validPreview ? preview.avoidGeometry : null} now={now}
+        onLocationChange={() => setError('Use Edit report facts to change and save the report location before previewing.')}
+        onChange={(value) => { setPassage(value); setPreview(null); setConsent(false); setError('') }} />
+      {loading && <p role="status">Calculating the server preview…</p>}
+      {validPreview && <p>Personal avoidance would last until {preview.validUntil}. Review the shaded area before choosing to confirm.</p>}
+      {preview && !validPreview && <p role="alert">This preview has expired. Refresh it and confirm the updated area.</p>}
+      <button type="button" className="report-secondary" disabled={loading || !passage || !observedAt} onClick={() => { setConsent(false); setPreview(null); setRefresh((value) => value + 1) }}>Refresh preview</button>
+      <label className="report-check"><input type="checkbox" disabled={!validPreview} checked={consent && !!validPreview} onChange={(event) => setConsent(event.target.checked)} />I confirm this location, observation time and passage, and explicitly choose to avoid the displayed area for my session.</label>
+      <button type="button" disabled={!validPreview || !consent || loading} onClick={() => void confirm()}>{busy ? 'Confirming…' : 'Confirm personal avoidance'}</button>
+    </fieldset>}
+    {error && <p role="alert" className="report-error">{error} No successful change is claimed. Your selected time and passage are retained.</p>}
+  </section>
 }
