@@ -2,7 +2,7 @@
 
 2026-10-17。分支 `codex/a-frontend-map`，目标 `dev`。
 
-- baseDevCommit：`5e4867d8b6141aacbc8fc4988f4aa41287bd370a`。
+- baseDevCommit：`d3e06bded36f2ca4cef98cd2a802dc633acf8a01`。
 - 范围：三 Tab Stitch HTML 交互、页面架构、公共地图/请求客户端阶段交付。
 - Node 22.14.0；pnpm 10.20.0 frozen-lockfile 安装成功。`pnpm check` 的嵌套命令受到系统 pnpm 11/Node 24 影响，因此改为使用固定 Node 22 直接调用下列工具。
 
@@ -10,7 +10,7 @@
 | --- | --- |
 | `node node_modules/eslint/bin/eslint.js .` | 通过，0 警告 |
 | `node node_modules/next/dist/bin/next build --webpack` | exit 0；TypeScript 通过，静态页 6/6；编译输出有未展开 warnings，不能声称零警告 |
-| `node node_modules/tsx/dist/cli.mjs --test tests/*.test.ts` | 111 项：108 通过、0 失败、3 跳过 |
+| `node node_modules/tsx/dist/cli.mjs --test tests/*.test.ts` | 116 项：113 通过、0 失败、3 跳过 |
 | 数据库/HTTP 集成测试 | 3 项按配置跳过，未启动真实服务，不计为通过 |
 | `git diff --check` | 通过 |
 | 浏览器主流程 | 复用此前同内容静态文件的 R1/R2、报告、列表和 360px 验证；截图见 screenshots/stitch-v2 |
@@ -20,3 +20,9 @@
 P0/P1 整包、独立技术验收、供应商调用、真实报告/绕行和公共状态双会话联调仍未完成。设计演示保存不代表向服务器提交报告。
 
 提交与 PR 标识在代码提交后追加；尚未由 D 合入 dev，也未部署。
+
+## 固定证据提交
+
+- headCommit（产品代码及最终测试所对应的提交）：`a07cb471c5f69eaef751f344be139786723d207e`。后续提交只更新交接记录，不修改产品代码。
+- 原功能提交：`050e5f14cecb7c301f3858e1f4613ab1cdbbe362`。
+- 最后同步 dev 仅新增 D 的校园资料、文档和 5 项测试，无运行时代码变更；重新执行测试 116 项（113 通过、3 跳过），新测试 ESLint 通过，之前同内容运行时代码的构建证据仍适用。

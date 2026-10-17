@@ -5,7 +5,7 @@
 ## Git 基线与归属
 
 - 仓库：ZMX8Z/AccessLoop；分支 `codex/a-frontend-map`；PR 目标 `dev`，由 D 串行集成。
-- baseDevCommit：`5e4867d8b6141aacbc8fc4988f4aa41287bd370a`，由已登录的 GitHub Desktop fetch 后核实。
+- baseDevCommit：`d3e06bded36f2ca4cef98cd2a802dc633acf8a01`，由已登录的 GitHub Desktop fetch 后核实。
 - 从用户新 clone 的最新 dev 创建 A 固定分支；保留原本 `origin/codex/a` 本地分支。
 - 仅迁入离线交付清单中的 50 个文件；已有文件中只替换公众首页与全局样式，两者在 dev 与原始 ZIP 基线一致。其余均为新增文件。
 - 未修改 package.json、lockfile、后端、数据库迁移、Payload 或其他包交接文档。

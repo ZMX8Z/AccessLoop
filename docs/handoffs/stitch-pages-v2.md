@@ -54,4 +54,4 @@
 
 原始 HTML 中的尺寸、坡度、路线节点及设施只是示例；不会向市政/校园发消息或提交报告。已去掉“派工”“已交校园”等不真实成功声明。示例地图不支持真实导航。
 
-本次已迁入用户 clone 的正式仓库，基线为 dev `5e4867d8b6141aacbc8fc4988f4aa41287bd370a`，在 `codex/a-frontend-map` 交付。提交与 PR 状态见 `docs/acceptance/wp-a.md`；不代表已合并或部署。离线 ZIP 仅作为此前交付快照。
+本次已迁入用户 clone 的正式仓库，基线为 dev `d3e06bded36f2ca4cef98cd2a802dc633acf8a01`，在 `codex/a-frontend-map` 交付。提交与 PR 状态见 `docs/acceptance/wp-a.md`；不代表已合并或部署。离线 ZIP 仅作为此前交付快照。
