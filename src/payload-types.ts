@@ -73,6 +73,7 @@ export interface Config {
     'anonymous-sessions': AnonymousSession;
     'session-contexts': SessionContext;
     'route-snapshots': RouteSnapshot;
+    'service-cache': ServiceCache;
     'route-cache': RouteCache;
     'provider-usage': ProviderUsage;
     'provider-blocks': ProviderBlock;
@@ -94,6 +95,7 @@ export interface Config {
     'anonymous-sessions': AnonymousSessionsSelect<false> | AnonymousSessionsSelect<true>;
     'session-contexts': SessionContextsSelect<false> | SessionContextsSelect<true>;
     'route-snapshots': RouteSnapshotsSelect<false> | RouteSnapshotsSelect<true>;
+    'service-cache': ServiceCacheSelect<false> | ServiceCacheSelect<true>;
     'route-cache': RouteCacheSelect<false> | RouteCacheSelect<true>;
     'provider-usage': ProviderUsageSelect<false> | ProviderUsageSelect<true>;
     'provider-blocks': ProviderBlocksSelect<false> | ProviderBlocksSelect<true>;
@@ -275,6 +277,34 @@ export interface RouteSnapshot {
     | boolean
     | null;
   expiresAt: string;
+  context?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "service-cache".
+ */
+export interface ServiceCache {
+  id: string;
+  result:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  expiresAt: string;
   updatedAt: string;
   createdAt: string;
 }
@@ -329,6 +359,7 @@ export interface ProviderBlock {
   keyFingerprint: string;
   service: 'ors_directions' | 'vision' | 'geocoding' | 'poi';
   blockedUntil: string;
+  reason?: ('rate' | 'quota') | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -339,7 +370,8 @@ export interface ProviderBlock {
 export interface ProviderEvent {
   id: string;
   service: 'ors_directions' | 'vision' | 'geocoding' | 'poi';
-  kind: 'wait' | 'cache_hit';
+  kind: 'wait' | 'cache_hit' | 'call' | 'error';
+  category?: string | null;
   occurredAt: string;
   updatedAt: string;
   createdAt: string;
@@ -512,6 +544,10 @@ export interface PayloadLockedDocument {
         value: string | RouteSnapshot;
       } | null)
     | ({
+        relationTo: 'service-cache';
+        value: string | ServiceCache;
+      } | null)
+    | ({
         relationTo: 'route-cache';
         value: string | RouteCache;
       } | null)
@@ -676,6 +712,18 @@ export interface RouteSnapshotsSelect<T extends boolean = true> {
   regionId?: T;
   geometry?: T;
   expiresAt?: T;
+  context?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "service-cache_select".
+ */
+export interface ServiceCacheSelect<T extends boolean = true> {
+  id?: T;
+  result?: T;
+  expiresAt?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -722,6 +770,7 @@ export interface ProviderBlocksSelect<T extends boolean = true> {
   keyFingerprint?: T;
   service?: T;
   blockedUntil?: T;
+  reason?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -733,6 +782,7 @@ export interface ProviderEventsSelect<T extends boolean = true> {
   id?: T;
   service?: T;
   kind?: T;
+  category?: T;
   occurredAt?: T;
   updatedAt?: T;
   createdAt?: T;

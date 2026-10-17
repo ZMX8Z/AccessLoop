@@ -4,6 +4,7 @@ import { createLocalReq, type Payload, type PayloadRequest } from 'payload'
 export type Transaction = {
   req: PayloadRequest
   lock: (key: string) => Promise<void>
+  execute: (statement: ReturnType<typeof sql>) => Promise<unknown>
 }
 
 export async function withTransaction<T>(
@@ -25,6 +26,7 @@ export async function withTransaction<T>(
     await execute(sql`SET LOCAL lock_timeout = '5s'`)
     const result = await operation({
       req,
+      execute,
       lock: async (key) => {
         await execute(sql`SELECT pg_advisory_xact_lock(hashtextextended(${key}, 0))`)
       },

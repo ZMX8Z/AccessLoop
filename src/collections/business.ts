@@ -38,7 +38,8 @@ export const BusinessCollections: CollectionConfig[] = [
     { name: 'ownerSessionHash', type: 'text', required: true, unique: true },
   ]),
   internal('session-contexts', [text('regionId', true), text('ownerSessionHash', true), version('personalVersion', 0)]),
-  internal('route-snapshots', [text('ownerSessionHash', true), text('regionId', true), json('geometry'), date('expiresAt')]),
+  internal('route-snapshots', [text('ownerSessionHash', true), text('regionId', true), json('geometry'), date('expiresAt'), { name: 'context', type: 'json' }]),
+  internal('service-cache', [json('result'), date('expiresAt')]),
   internal('route-cache', [
     text('regionId', true), text('scopeKey', true), text('requestHash', true),
     version('hazardVersion', 0), version('personalVersion', 0), text('activeDigest'),
@@ -58,10 +59,12 @@ export const BusinessCollections: CollectionConfig[] = [
     text('keyFingerprint', true),
     { name: 'service', type: 'select', required: true, options: ['ors_directions', 'vision', 'geocoding', 'poi'] },
     date('blockedUntil'),
+    { name: 'reason', type: 'select', options: ['rate', 'quota'] },
   ]),
   internal('provider-events', [
     { name: 'service', type: 'select', required: true, index: true, options: ['ors_directions', 'vision', 'geocoding', 'poi'] },
-    { name: 'kind', type: 'select', required: true, options: ['wait', 'cache_hit'] },
+    { name: 'kind', type: 'select', required: true, options: ['wait', 'cache_hit', 'call', 'error'] },
+    { name: 'category', type: 'text' },
     date('occurredAt'),
   ]),
   internal('idempotency-records', [text('requestFingerprint'), json('result'), date('expiresAt')]),

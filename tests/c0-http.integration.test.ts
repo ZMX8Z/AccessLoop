@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 
 import { SessionDataSchema } from '../src/shared/contracts/session'
+import { RegionSchema, RoutingContextSchema } from '../src/shared/contracts/region'
 
 test('C0 HTTP initializes and reuses private sessions while rejecting invalid origins and CMS bypasses', {
   skip: process.env.ACCESSLOOP_HTTP_TESTS !== '1', timeout: 90_000,
@@ -49,6 +50,22 @@ test('C0 HTTP initializes and reuses private sessions while rejecting invalid or
   const tampered = await send({ Cookie: 'accessloop_session=v1.forged.invalid' })
   assert.equal(tampered.status, 200)
   assert.ok(tampered.headers.get('set-cookie'))
+  const regionResponse = await fetch(`${origin}/api/region`)
+  assert.equal(regionResponse.status, 200)
+  const region = RegionSchema.parse((await regionResponse.json()).data)
+  assert.equal(region.id, firstBody.data.regionId)
+  const passages = await fetch(`${origin}/api/passages`)
+  assert.equal(passages.status, 200)
+  const passageData = (await passages.json()).data
+  assert.equal(passageData.configVersion, region.configVersion)
+  assert.ok(passageData.items.length > 0)
+  assert.equal((await fetch(`${origin}/api/routing-context`)).status, 401)
+  const contextResponse = await fetch(`${origin}/api/routing-context`, { headers: { Cookie: cookie.split(';')[0] } })
+  assert.equal(contextResponse.status, 200)
+  const context = RoutingContextSchema.parse((await contextResponse.json()).data)
+  assert.equal(context.regionId, region.id)
+  assert.equal(context.configVersion, region.configVersion)
+  assert.match(context.activeDigest, /^sha256:/)
   for (const collection of ['regions', 'preset-passages', 'anonymous-sessions', 'session-contexts', 'route-snapshots', 'provider-usage', 'idempotency-records', 'hazard-reports', 'report-events']) {
     const response = await fetch(`${origin}/cms-api/${collection}`)
     assert.ok([403, 404, 501].includes(response.status), `${collection} must not expose a generic CMS endpoint in C0.`)

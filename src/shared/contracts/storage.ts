@@ -1,59 +1,24 @@
 import { z } from 'zod'
 
-import { BBoxSchema, IdSchema, PositionSchema, VersionSchema } from './common'
-import { PassageRefSchema, RestrictionsSchema } from './routing'
+import { IdSchema, VersionSchema } from './common'
+import { AvoidGeometrySchema as PublicAvoidGeometrySchema, LineStringSchema } from './geo'
+import { InstantSchema, PresetPassageSchema, RegionSchema as PublicRegionSchema } from './region'
+import { PassageRefSchema } from './routing'
 
-export const InstantSchema = z.iso.datetime()
+export { InstantSchema, LineStringSchema, PresetPassageSchema }
 export const SessionHashSchema = z.string().regex(/^[a-f0-9]{64}$/)
-export const LineStringSchema = z.strictObject({
-  type: z.literal('LineString'),
-  coordinates: z.array(PositionSchema).min(2),
-})
-const RingSchema = z.array(PositionSchema).min(4).refine((ring) => {
-  const first = ring[0]
-  const last = ring[ring.length - 1]
-  return first[0] === last[0] && first[1] === last[1]
+export const AvoidGeometrySchema = PublicAvoidGeometrySchema.refine((geometry) => {
+  const rings = geometry.type === 'Polygon' ? geometry.coordinates : geometry.coordinates.flat()
+  return rings.every((ring) => ring[0][0] === ring[ring.length - 1][0] && ring[0][1] === ring[ring.length - 1][1])
 }, 'Polygon rings must be closed.')
-export const AvoidGeometrySchema = z.discriminatedUnion('type', [
-  z.strictObject({ type: z.literal('Polygon'), coordinates: z.array(RingSchema).min(1) }),
-  z.strictObject({ type: z.literal('MultiPolygon'), coordinates: z.array(z.array(RingSchema).min(1)).min(1) }),
-])
-const RestrictionOptionsSchema = z.strictObject({
-  maximum_incline: z.array(z.number().finite().nonnegative()).min(1),
-  maximum_sloped_kerb: z.array(z.number().finite().nonnegative()).min(1),
-  minimum_width: z.array(z.number().finite().positive()).min(1),
-})
-export const RegionSchema = z.strictObject({
-  id: IdSchema,
-  name: z.string().trim().min(1).max(120),
-  bbox: BBoxSchema,
-  timezone: z.string().refine((value) => {
-    try { new Intl.DateTimeFormat('en', { timeZone: value }); return true } catch { return false }
-  }, 'A valid IANA timezone is required.'),
-  isDemo: z.boolean(),
-  hazardVersion: z.number().int().nonnegative(),
-  configVersion: VersionSchema,
-  personalValiditySec: z.number().int().positive(),
-  publicValiditySec: z.number().int().positive(),
-  avoidanceBufferM: z.number().finite().min(0.5).max(5),
-  routing: z.strictObject({
-    profile: z.literal('wheelchair'),
-    defaultRestrictions: RestrictionsSchema,
-    supportedRestrictions: RestrictionOptionsSchema,
-  }),
-}).refine(({ routing }) =>
+export const RegionSchema = PublicRegionSchema.refine(({ routing }) =>
   routing.supportedRestrictions.maximum_incline.includes(routing.defaultRestrictions.maximum_incline)
   && routing.supportedRestrictions.maximum_sloped_kerb.includes(routing.defaultRestrictions.maximum_sloped_kerb)
-  && routing.supportedRestrictions.minimum_width.includes(routing.defaultRestrictions.minimum_width),
-{ message: 'Default restrictions must be in the supported options.', path: ['routing'] })
-
-export const PresetPassageSchema = z.strictObject({
-  id: IdSchema,
-  passageVersion: VersionSchema,
-  name: z.string().trim().min(1).max(120),
-  geometry: LineStringSchema,
-  isDemo: z.boolean(),
-})
+  && routing.supportedRestrictions.minimum_width.includes(routing.defaultRestrictions.minimum_width)
+  && routing.supportedRestrictions.maximum_incline.every((value) => value >= 0)
+  && routing.supportedRestrictions.maximum_sloped_kerb.every((value) => value >= 0)
+  && routing.supportedRestrictions.minimum_width.every((value) => value > 0),
+{ message: 'Default restrictions must be in the valid supported options.', path: ['routing'] })
 export const RegionSeedSchema = z.strictObject({
   region: RegionSchema,
   presetPassages: z.array(PresetPassageSchema).min(1),

@@ -11,18 +11,19 @@ import { withTransaction } from './transaction'
 
 export type BudgetReservation =
   | { kind: 'reserved'; reservationId: string; reservedAt: string }
-  | { kind: 'limited'; retryAfterSec: number; resetAt: string }
+  | { kind: 'limited'; reason: 'rate' | 'quota'; retryAfterSec: number; resetAt: string }
 
-export async function reserveProviderCall(payload: Payload, input: ProviderBudget & { now?: Date }): Promise<BudgetReservation> {
+export async function reserveProviderCall(payload: Payload, input: ProviderBudget & { now?: Date; clock?: () => Date; startImmediately?: boolean; recordWait?: boolean }): Promise<BudgetReservation> {
   const budget = ProviderBudgetSchema.parse({ service: input.service, keyFingerprint: input.keyFingerprint, windows: input.windows })
   return withTransaction(payload, async ({ req, lock }) => {
     const budgetKey = fingerprint({ service: budget.service, keyFingerprint: budget.keyFingerprint })
     await lock(`provider-budget:${budgetKey}`)
-    const now = input.now ?? new Date()
+    const now = input.clock?.() ?? input.now ?? new Date()
     const block = await payload.find({
       collection: 'provider-blocks', where: { id: { equals: budgetKey } }, limit: 1, depth: 0, overrideAccess: true, req,
     })
     let resetTime = block.docs[0] ? Date.parse(block.docs[0].blockedUntil) : 0
+    let reason: 'rate' | 'quota' = resetTime > now.getTime() && block.docs[0]?.reason === 'quota' ? 'quota' : 'rate'
     for (const window of budget.windows) {
       const windowStart = new Date(now.getTime() - window.seconds * 1000).toISOString()
       const reservations = await payload.find({
@@ -32,23 +33,25 @@ export async function reserveProviderCall(payload: Payload, input: ProviderBudge
         ] }, limit: 0, pagination: false, depth: 0, overrideAccess: true, req,
       })
       if (reservations.docs.length >= window.limit) {
+        if (window.seconds >= 86_400) reason = 'quota'
         const chargedAt = reservations.docs.map((entry) => Math.max(Date.parse(entry.reservedAt), entry.startedAt ? Date.parse(entry.startedAt) : 0)).sort((left, right) => left - right)
         resetTime = Math.max(resetTime, chargedAt[chargedAt.length - window.limit] + window.seconds * 1000)
       }
     }
     if (resetTime > now.getTime()) {
-      await payload.create({
+      if (input.recordWait !== false) await payload.create({
         collection: 'provider-events',
         data: { id: randomUUID(), service: budget.service, kind: 'wait', occurredAt: now.toISOString() },
         overrideAccess: true, req,
       })
-      return { kind: 'limited', retryAfterSec: Math.max(1, Math.ceil((resetTime - now.getTime()) / 1000)), resetAt: new Date(resetTime).toISOString() }
+      return { kind: 'limited', reason, retryAfterSec: Math.max(1, Math.ceil((resetTime - now.getTime()) / 1000)), resetAt: new Date(resetTime).toISOString() }
     }
     const reservationId = randomUUID()
     await payload.create({
       collection: 'provider-usage', data: {
         id: reservationId, service: budget.service, keyFingerprint: budget.keyFingerprint,
-        reservedAt: now.toISOString(), outcome: 'reserved',
+        reservedAt: now.toISOString(), outcome: input.startImmediately ? 'started' : 'reserved',
+        startedAt: input.startImmediately ? now.toISOString() : null,
         reservationExpiresAt: new Date(now.getTime() + Math.min(...budget.windows.map(({ seconds }) => seconds)) * 1000).toISOString(),
       }, overrideAccess: true, req,
     })
@@ -110,7 +113,7 @@ export async function finishProviderCall(payload: Payload, input: {
 }
 
 export async function blockProviderUntil(payload: Payload, input: {
-  service: ProviderService; keyFingerprint: string; blockedUntil: Date
+  service: ProviderService; keyFingerprint: string; blockedUntil: Date; reason?: 'rate' | 'quota'
 }): Promise<void> {
   const service = ProviderServiceSchema.parse(input.service)
   const keyFingerprint = SessionHashSchema.parse(input.keyFingerprint)
@@ -120,8 +123,9 @@ export async function blockProviderUntil(payload: Payload, input: {
     const { docs } = await payload.find({ collection: 'provider-blocks', where: { id: { equals: id } }, limit: 1, overrideAccess: true, req })
     const current = docs[0]
     const blockedUntil = new Date(Math.max(input.blockedUntil.getTime(), current ? Date.parse(current.blockedUntil) : 0)).toISOString()
-    if (!current) await payload.create({ collection: 'provider-blocks', data: { id, service, keyFingerprint, blockedUntil }, overrideAccess: true, req })
-    else await payload.update({ collection: 'provider-blocks', id, data: { blockedUntil }, overrideAccess: true, req })
+    const reason = current && Date.parse(current.blockedUntil) > input.blockedUntil.getTime() ? current.reason ?? 'rate' : input.reason ?? 'rate'
+    if (!current) await payload.create({ collection: 'provider-blocks', data: { id, service, keyFingerprint, blockedUntil, reason }, overrideAccess: true, req })
+    else await payload.update({ collection: 'provider-blocks', id, data: { blockedUntil, reason }, overrideAccess: true, req })
   })
 }
 
