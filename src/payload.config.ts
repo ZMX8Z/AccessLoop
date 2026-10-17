@@ -6,6 +6,7 @@ import { buildConfig } from 'payload'
 import sharp from 'sharp'
 
 import { Admins } from './collections/Admins'
+import { BusinessCollections } from './collections/business'
 
 const dirname = path.dirname(fileURLToPath(import.meta.url))
 const configuredBaseURL = process.env.APP_BASE_URL?.trim()
@@ -35,7 +36,7 @@ export default buildConfig({
     user: 'admins',
     importMap: { baseDir: dirname },
   },
-  collections: [Admins],
+  collections: [Admins, ...BusinessCollections],
   cors: appOrigin ? [appOrigin] : [],
   csrf: appOrigin ? [appOrigin] : [],
   db: postgresAdapter({
