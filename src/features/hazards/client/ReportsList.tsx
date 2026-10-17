@@ -66,7 +66,7 @@ export function ReportsList({ onNavigate, refreshKey }: { onNavigate?: (path: st
     if (next === scope) return
     latest.current.cancel(); setItems([]); setLoading(true); setError(''); setScope(next)
   }
-  return <main className="report-flow reports-list" data-report-page="my-reports">
+  return <section className="report-flow reports-list" data-report-page="my-reports">
     <div className="reports-list-title"><h1>{scope === 'mine' ? 'My Reports' : 'Public reports'}</h1><span className="report-total">{items.length}{truncated ? '+' : ''} total</span><button type="button" className="report-icon-button" aria-label="Refresh reports" onClick={() => { setLoading(true); setReload((value) => value + 1) }}>↻</button></div>
     <p className="report-note">{scope === 'mine' ? 'Private records for this browser session. Expiry does not mean a barrier is resolved.' : 'Separately approved public information and history. Private photos and analysis are not published.'}</p>
     {scope === 'mine' && <div className="report-filters" role="group" aria-label="Filter my reports">{(['all', 'active', 'resolved'] as const).map((value) => <button type="button" key={value} aria-pressed={filter === value} className={filter === value ? 'is-selected' : ''} onClick={() => setFilter(value)}>{value === 'all' ? 'All' : value === 'active' ? 'Active Detour' : 'Resolved'}<span>{filterMyReports(mine, value, now).length}</span></button>)}</div>}
@@ -76,5 +76,5 @@ export function ReportsList({ onNavigate, refreshKey }: { onNavigate?: (path: st
     {truncated && <p className="report-note">This list is limited; it is not a complete inventory.</p>}
     <div className="report-records">{visible.map((report) => <ReportSummary report={report} now={now} key={report.id} compact onNavigate={onNavigate} />)}</div>
     <button className="report-secondary report-public-toggle" type="button" onClick={() => changeScope(scope === 'mine' ? 'public' : 'mine')}>{scope === 'mine' ? 'View public reports and history' : 'Return to My Reports'}</button>
-  </main>
+  </section>
 }

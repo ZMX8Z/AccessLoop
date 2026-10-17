@@ -1,4 +1,5 @@
-/* Integrated Stitch surfaces. Inter uses the system fallback when unavailable. */
+@font-face{font-family:Inter;src:url('/fonts/Inter-variable.ttf') format('truetype');font-style:normal;font-weight:100 900;font-display:swap}
+/* Integrated Stitch surfaces. Inter is served locally under its bundled OFL license, with system fallback while loading. */
 .public-app{--primary:#005c55;--teal:#0f766e;--ink:#131b2e;--muted:#3e4947;--border:#bdc9c6;--canvas:#faf8ff;--mint:#97f5cc;--lavender:#f2f3ff;min-height:100dvh;color:var(--ink);background:var(--canvas);font-family:Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px;line-height:1.45;overflow-wrap:anywhere}
 .public-app [hidden]{display:none!important}
 .public-app main{max-width:none;margin:0;padding:0}

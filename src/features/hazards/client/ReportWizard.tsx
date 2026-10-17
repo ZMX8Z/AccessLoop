@@ -7,7 +7,7 @@ import type { PrivateReportDTO } from '@/shared/contracts/hazards'
 import type { RegionDTO, PresetPassageDTO } from '@/shared/contracts/region'
 import type { RouteDTO } from '@/shared/contracts'
 import { LatestRequest, createIdempotencyKey, errorMessage } from '@/shared/client/api'
-import { analyzePhoto, loadReportConfig } from './api'
+import { analyzePhoto, fetchReport, fetchReports, loadReportConfig } from './api'
 import { draftReducer, initialDraft, isPersonalEffective } from './report-state'
 import { PhotoUpload } from './PhotoUpload'
 import { AIAnalysisFeedback } from './AIAnalysisFeedback'
@@ -32,20 +32,40 @@ export function ReportWizard({ region: suppliedRegion, passages: suppliedPassage
   const [configError, setConfigError] = useState('')
   const [error, setError] = useState(''), [analyzing, setAnalyzing] = useState(false), [reload, setReload] = useState(0)
   const currentPhoto = useRef<string | null>(null)
+  const photoDraftStarted = useRef(false)
   const analysisRequest = useRef(new LatestRequest())
+  const resumeRequest = useRef(new LatestRequest())
   const region = suppliedRegion ?? config?.region
   const passages = suppliedPassages ?? config?.passages ?? []
   const path = pathname ?? localPath
   const step: Step = path.startsWith('/report/success/') ? 'success' : path === '/report/confirm' ? 'confirm' : 'photo'
   const validSuccess = !!report && completedId === report.id && path === `/report/success/${encodeURIComponent(report.id)}`
-  function navigate(next: string) { setLocalPath(next); onNavigate?.(next) }
+  function navigate(next: string) { resumeRequest.current.cancel(); setLocalPath(next); onNavigate?.(next) }
   useEffect(() => { onStepChange?.(step) }, [step, onStepChange])
+  useEffect(() => {
+    const requests = resumeRequest.current
+    const match = /^\/report\/success\/([^/]+)$/.exec(path)
+    if (!match || draft.photo || report || photoDraftStarted.current) return
+    let id: string
+    try { id = decodeURIComponent(match[1]) } catch { return }
+    if (!id) return
+    const task = requests.begin()
+    // Only the author's currently effective, server-confirmed report can
+    // recover this completion screen. Authorized private reads alone do not
+    // prove ownership, and a URL never supplies confirmation consent.
+    void Promise.all([fetchReport(id, task.signal), fetchReports('mine', task.signal)]).then(([record, mine]) => {
+      if (!task.current() || record.id !== id || !('rowVersion' in record)
+        || !mine.items.some((item) => item.id === id) || !isPersonalEffective(record, Date.now())) return
+      setReport(record); setCompletedId(record.id); setNow(Date.now())
+    }).catch(() => { /* Keep the guarded page when either read fails. */ })
+    return () => requests.cancel()
+  }, [path, draft.photo, report])
   useEffect(() => {
     if (path !== '/report' || !completedId) return
     // A new Report entry after completion starts a separate draft. Merely hiding
     // this mounted flow on Route or My Reports must preserve unfinished work.
     const timer = setTimeout(() => {
-      analysisRequest.current.cancel(); currentPhoto.current = null
+      analysisRequest.current.cancel(); currentPhoto.current = null; photoDraftStarted.current = false
       dispatch({ type: 'reset' }); setReport(null); setCompletedId(null)
       setPhotoUrl(''); setPhotoEpoch((value) => value + 1); setError('')
     }, 0)
@@ -94,7 +114,7 @@ export function ReportWizard({ region: suppliedRegion, passages: suppliedPassage
     else { analysisRequest.current.cancel(); setAnalyzing(false); dispatch({ type: 'manual' }) }
   }
   function restart() {
-    analysisRequest.current.cancel(); currentPhoto.current = null; dispatch({ type: 'reset' }); setReport(null)
+    analysisRequest.current.cancel(); currentPhoto.current = null; photoDraftStarted.current = false; dispatch({ type: 'reset' }); setReport(null)
     setCompletedId(null); setPhotoUrl(''); setPhotoEpoch((value) => value + 1); setError(''); navigate('/report')
   }
   return <div className={`report-flow report-wizard report-step-${step}`} data-report-step={step}>
@@ -104,8 +124,10 @@ export function ReportWizard({ region: suppliedRegion, passages: suppliedPassage
     {step === 'success' && !validSuccess && <section className="report-context-guard"><h2>No completed submission</h2><p>A URL cannot confirm a report. Start a new report or open your saved records.</p><button type="button" onClick={() => navigate('/report')}>Start a report</button><button type="button" className="report-secondary" onClick={() => navigate('/my-reports')}>My Reports</button></section>}
     <div hidden={step !== 'photo' || !!report}>
       <PhotoUpload key={photoEpoch} flowMode="steps" disabled={saving} onContinue={continuePhoto} onPhotoSelected={() => {
+        resumeRequest.current.cancel(); photoDraftStarted.current = true
         analysisRequest.current.cancel(); currentPhoto.current = null; setAnalyzing(false); dispatch({ type: 'photo', photo: null }); setPhotoUrl(''); setError('')
       }} onPhotoUploaded={(photo, url) => {
+        resumeRequest.current.cancel(); photoDraftStarted.current = true
         currentPhoto.current = photo.photoId; dispatch({ type: 'photo', photo }); setPhotoUrl(url); setError('')
       }} />
       <button className="report-cancel" type="button" onClick={() => navigate(returnTo)}>Cancel &amp; Return {returnTo.startsWith('/my-reports') ? 'to My Reports' : 'to Route'}</button>
@@ -134,8 +156,8 @@ export function ReportWizard({ region: suppliedRegion, passages: suppliedPassage
     </div>}
     {step === 'success' && validSuccess && report && <div className="report-success-content">
       <div className="report-success-mark" aria-hidden="true">✓</div><h2>Successfully Reported!</h2><p>Report <strong>#{report.id}</strong></p>
-      <p className="report-success-scope">{isPersonalEffective(report, now) ? `Personal temporary avoidance confirmed for this browser session until ${report.personalAvoidance!.validUntil}.` : 'Report saved. Personal avoidance is not enabled.'}</p>
-      <p className="report-note">Public activity: {report.publicActivity}. Private evidence is not published. No facilities dispatch is claimed.</p>
+      <p className="report-success-scope">{isPersonalEffective(report, now) ? `Personal detour for this browser session until ${new Date(report.personalAvoidance!.validUntil).toLocaleString('en-AU',{dateStyle:'short',timeStyle:'short',timeZone:region?.timezone??'Australia/Sydney'})} (${region?.timezone??'Australia/Sydney'}).` : 'Report saved. Personal avoidance is not enabled.'}</p>
+      <p className="report-note">Public activity: {report.publicActivity}. Your photo stays private.</p>
       <button type="button" className="report-primary-wide" onClick={() => navigate('/route')}>Return to Route <span aria-hidden="true">→</span></button>
       <div className="report-actions"><button className="report-secondary" type="button" onClick={() => navigate(`/my-reports/${encodeURIComponent(report.id)}`)}>View report</button><button className="report-secondary" type="button" onClick={restart}>Report another barrier</button></div>
       {!onNavigate && <Link className="report-link" href="/my-reports">My Reports</Link>}

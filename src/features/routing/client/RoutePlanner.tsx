@@ -40,6 +40,8 @@ export function RoutePlanner({fixture=false,pathname='/route',onNavigate,childre
   }
   const routePage=pathname==='/route'||pathname==='/route/journey'||fixture;
   const journey=pathname==='/route/journey';
+  const activeRoutePage=useRef(routePage);
+  useEffect(()=>{activeRoutePage.current=routePage},[routePage]);
   const reportPage=pathname==='/report'||pathname.startsWith('/report/');
   const listPage=pathname==='/my-reports';
   const focusedReport=reportPage&&!pathname.startsWith('/report/success/');
@@ -133,7 +135,7 @@ export function RoutePlanner({fixture=false,pathname='/route',onNavigate,childre
         }
         setContext(next);contextRef.current=next;setContextUnavailable(false);
         // Retry failed layer refreshes as well as version-triggered refreshes.
-        await layers(currentRegion,next,epoch,controller.signal,configChanged||facilitiesConfigVersion!==currentRegion.configVersion||Date.now()-lastFacilitiesReadAt>=60000);
+        await layers(currentRegion,next,epoch,controller.signal,configChanged||facilitiesConfigVersion!==currentRegion.configVersion||(activeRoutePage.current&&(typeof document==='undefined'||document.visibilityState==='visible')&&Date.now()-lastFacilitiesReadAt>=60000));
       }catch(cause){if(!disposed&&epoch===layerEpoch.current){setContextUnavailable(true);setLayersUnavailable(true);if(cause instanceof ApiError&&cause.code==='UNAUTHENTICATED'){resetSession();setMine([]);setRoute(null);setNotice('Session expired. Reconnect to initialize a new session.')}}}
       finally{clearTimeout(timeout);polling=false}
     },5000);
@@ -203,7 +205,7 @@ export function RoutePlanner({fixture=false,pathname='/route',onNavigate,childre
   return <div className={`public-app${focusedReport?' focused-report':''}`}>
     <a className="skip-link" href="#public-main">Skip to content</a>
     <header className="app-header">
-      {journey?<><Link href="/route" className="icon-button" aria-label="Return to route">←</Link><h1>Journey overview</h1></>:focusedReport?<><button className="icon-button" aria-label="Return to previous step" onClick={()=>navigate(pathname==='/report/confirm'?'/report':reportSource)}>←</button><h1>New Barrier Report</h1></>:<Link href="/route" className="brand"><span className="brand-icon" aria-hidden="true"><svg width="28" height="30" viewBox="0 0 28 30" fill="none" stroke="currentColor" strokeWidth="2.7" strokeLinecap="round" strokeLinejoin="round"><circle cx="17" cy="4" r="2" fill="currentColor"/><path d="m15 9-4 7h8l3 7h3M11 11H7l-2 4M9 17a6 6 0 1 0 8 7M15 9l5 3"/></svg></span>AccessLoop</Link>}
+      {journey?<><Link href="/route" className="icon-button" aria-label="Return to route">←</Link><h1>Journey overview</h1></>:reportPage?<><button className="icon-button" aria-label="Return to previous step" onClick={()=>navigate(pathname==='/report/confirm'?'/report':reportSource)}>←</button><h1>New Barrier Report</h1></>:<Link href="/route" className="brand"><span className="brand-icon" aria-hidden="true"><svg width="28" height="30" viewBox="0 0 28 30" fill="none" stroke="currentColor" strokeWidth="2.7" strokeLinecap="round" strokeLinejoin="round"><circle cx="17" cy="4" r="2" fill="currentColor"/><path d="m15 9-4 7h8l3 7h3M11 11H7l-2 4M9 17a6 6 0 1 0 8 7M15 9l5 3"/></svg></span>AccessLoop</Link>}
       <div className="app-header-actions">{(fixture||region?.isDemo)&&<span className="demo-badge">● {fixture?'Fixture':'Demo'}</span>}<button className="account-button" aria-label="Session and data information" onClick={()=>setPanel('layers')}><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="8" r="3"/><path d="M5 20v-2c0-5 14-5 14 0v2Z"/></svg></button></div>
     </header>
     <main id="public-main" className="public-main" tabIndex={-1}>

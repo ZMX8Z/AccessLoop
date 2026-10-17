@@ -9,7 +9,7 @@ import { createFixtureService, fixturePlaces } from '../src/features/routing/cli
 import type { Context } from '../src/features/routing/client/models';
 
 type Element = {type:unknown;props:Record<string,unknown> & {children?:unknown}};
-function host(service: ReturnType<typeof createFixtureService>) {
+function host(service: ReturnType<typeof createFixtureService>, clock:()=>number=Date.now) {
  const values:unknown[]=[];let cursor=0;
  const effects:(()=>unknown)[]=[];
  const intervals:{run:()=>unknown;ms:number}[]=[];
@@ -18,13 +18,14 @@ function host(service: ReturnType<typeof createFixtureService>) {
   useState:(initial:unknown)=>{const index=cursor++;if(!(index in values))values[index]=initial;return [values[index],(next:unknown)=>{values[index]=typeof next==='function'?next(values[index]):next}]},
   useRef:(initial:unknown)=>{const index=cursor++;return values[index]??=( {current:initial} )},
   useMemo:(factory:()=>unknown)=>{const index=cursor++;return values[index]??=factory()},
-  useEffect:(effect:()=>unknown)=>{const index=cursor++;if(!(index in values)){values[index]=true;effects.push(effect)}},
+  useEffect:(effect:()=>unknown,deps?:unknown[])=>{const index=cursor++,previous=values[index] as unknown[]|undefined;if(!previous||!deps||deps.some((value,i)=>value!==previous[i]))effects.push(effect);values[index]=deps??[]},
  };
  const imports:Record<string,unknown>={'react/jsx-runtime':{jsx:element,jsxs:element},react,'next/link':{default:()=>null},'@/shared/client/api':api,'@/components/map/MapView':{MapView:()=>null},'@/components/map/PassagePicker':{PassagePicker:()=>null},'@/features/hazards/client/ReportWizard':{ReportWizard:()=>null},'@/features/hazards/client/ReportsList':{ReportsList:()=>null},'./service':{liveService:service},'./fixtures':{createFixtureService:()=>service},'./state':state};
  const source=readFileSync(new URL('../src/features/routing/client/RoutePlanner.tsx',import.meta.url),'utf8');
  const code=ts.transpileModule(source,{compilerOptions:{jsx:ts.JsxEmit.ReactJSX,module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
  const loaded={exports:{} as {RoutePlanner:(props:object)=>Element}};
- vm.runInNewContext(code,{exports:loaded.exports,require:(name:string)=>{assert.ok(name in imports,`Unexpected import ${name}`);return imports[name]},Date,AbortController,setTimeout:()=>0,clearTimeout:()=>{},setInterval:(run:()=>unknown,ms:number)=>{intervals.push({run,ms});return intervals.length},clearInterval:()=>{}});
+ class ClockDate extends Date { static now(){return clock()} }
+ vm.runInNewContext(code,{exports:loaded.exports,require:(name:string)=>{assert.ok(name in imports,`Unexpected import ${name}`);return imports[name]},Date:ClockDate,AbortController,setTimeout:()=>0,clearTimeout:()=>{},setInterval:(run:()=>unknown,ms:number)=>{intervals.push({run,ms});return intervals.length},clearInterval:()=>{}});
  const render=(props:object={})=>{
   cursor=0;const nodes:Element[]=[];
   const visit=(value:unknown):void=>{if(Array.isArray(value)){value.forEach(visit);return}if(!value||typeof value!=='object')return;const node=value as Element;nodes.push(node);visit(node.props?.children)};
@@ -187,4 +188,15 @@ test('successful explicit planning closes its input panel so the route result is
  assert.equal(app.render().find(node=>node.props.className==='route-panel-backdrop')!.props.hidden,false);
  nodes=app.render();await (nodes.find(node=>node.type==='button'&&text(node)==='Plan route →')!.props.onClick as ()=>Promise<void>)();await flush();
  assert.equal(app.render().find(node=>node.props.className==='route-panel-backdrop')!.props.hidden,true);
+});
+
+
+test('unchanged facility suppliers pause outside Route and refresh after returning without directions',async()=>{
+ const service=createFixtureService(),originalPlaces=service.places;let reads=0,time=Date.now(),directions=0;
+ service.places=async(...args)=>{reads++;return originalPlaces(...args)};service.route=async()=>{directions++;throw new Error('unexpected route')};
+ const app=host(service,()=>time);app.render();app.effects.splice(0).forEach(effect=>effect());await flush();assert.equal(reads,1);
+ app.render({pathname:'/report'});app.effects.splice(0).forEach(effect=>effect());time+=61000;
+ await app.intervals.find(timer=>timer.ms===5000)!.run();assert.equal(reads,1,'the photo flow does not keep calling an unseen facility supplier');
+ app.render({pathname:'/route'});app.effects.splice(0).forEach(effect=>effect());await app.intervals.find(timer=>timer.ms===5000)!.run();
+ assert.equal(reads,2);assert.equal(directions,0);
 });

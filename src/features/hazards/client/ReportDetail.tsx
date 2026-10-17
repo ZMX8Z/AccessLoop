@@ -63,7 +63,7 @@ export function ReportDetail({ id, returnTo = '/my-reports', onNavigate, onChang
     try { await navigator.clipboard.writeText(text); setCopyState('Report text copied.') }
     catch { setCopyState('Copy is unavailable. Open the authorized printable report to select and copy the text.') }
   }
-  return <main className="report-flow report-detail" data-report-page="detail"><nav aria-label="Report detail navigation"><Link href={returnTo} onClick={(event) => navigate(event, returnTo)}>← {returnTo === '/route' ? 'Back to Route' : 'Back to My Reports'}</Link><Link href="/report" onClick={(event) => navigate(event, '/report')}>New report</Link></nav><h1>Report details</h1>
+  return <section className="report-flow report-detail" data-report-page="detail"><nav aria-label="Report detail navigation"><Link href={returnTo} onClick={(event) => navigate(event, returnTo)}>← {returnTo === '/route' ? 'Back to Route' : 'Back to My Reports'}</Link><Link href="/report" onClick={(event) => navigate(event, '/report')}>New report</Link></nav><h1>Report details</h1>
     {error && <p className="report-error" role="alert">{error} No unavailable report is replaced with an example.</p>}
     {(!report || report.id !== id) && !error && <p role="status">Loading this report…</p>}
     {report?.id === id && <><ReportSummary report={report} now={now} onNavigate={onNavigate} />
@@ -105,5 +105,5 @@ export function ReportDetail({ id, returnTo = '/my-reports', onNavigate, onChang
       {authorActions && privateReport && config && !editing && <AvoidanceDrawer report={privateReport} region={config.region} passages={config.passages} onUpdated={(updated) => { setReport(updated); notifyChanged() }} />}
       {!owner && privateReport && <p className="report-note">{mineTruncated ? 'Ownership could not be confirmed from the limited report list. Author actions require the original session; the server checks ownership for every change.' : 'You have authorized read access. Author controls require the original anonymous browser session.'}</p>}
     </>}
-  </main>
+  </section>
 }
