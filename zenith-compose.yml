@@ -1,7 +1,8 @@
 x-zenith:
   catalog:
     name: AccessLoop
-    description: Accessible campus places, wheelchair route planning, and temporary barrier reports.
+    description: Accessible campus places, wheelchair route planning, and temporary
+      barrier reports.
     authors:
       - AccessLoop contributors
     source: https://github.com/ZMX8Z/AccessLoop
@@ -31,188 +32,6 @@ x-zenith:
       generate: "[A-Za-z0-9]{64}"
       services:
         - web
-    DATABASE_URL:
-      input:
-        label: PostgreSQL URL
-        secret: true
-        required: true
-      services:
-        - web
-    POSTGRES_PASSWORD:
-      input:
-        label: PostgreSQL password matching DATABASE_URL
-        secret: true
-        required: true
-      services:
-        - db
-    ADMIN_EMAIL:
-      input:
-        label: ADMIN EMAIL
-        secret: false
-        required: true
-      services:
-        - web
-    ADMIN_PASSWORD:
-      input:
-        label: ADMIN PASSWORD
-        secret: true
-        required: true
-      services:
-        - web
-    OSS_ENDPOINT:
-      input:
-        label: OSS ENDPOINT
-        secret: false
-        required: true
-      services:
-        - web
-    OSS_BUCKET:
-      input:
-        label: OSS BUCKET
-        secret: false
-        required: true
-      services:
-        - web
-    OSS_REGION:
-      input:
-        label: OSS REGION
-        secret: false
-        required: true
-      services:
-        - web
-    OSS_ACCESS_KEY_ID:
-      input:
-        label: OSS ACCESS KEY ID
-        secret: true
-        required: true
-      services:
-        - web
-    OSS_ACCESS_KEY_SECRET:
-      input:
-        label: OSS ACCESS KEY SECRET
-        secret: true
-        required: true
-      services:
-        - web
-    OSS_SIGNED_URL_TTL_SECONDS:
-      input:
-        label: OSS SIGNED URL TTL SECONDS
-        secret: false
-        required: false
-      services:
-        - web
-    ORS_API_KEY:
-      input:
-        label: ORS API KEY
-        secret: true
-        required: false
-      services:
-        - web
-    ORS_BASE_URL:
-      input:
-        label: ORS BASE URL
-        secret: false
-        required: false
-      services:
-        - web
-    ORS_RPM:
-      input:
-        label: ORS RPM
-        secret: false
-        required: false
-      services:
-        - web
-    ORS_DAILY_BUDGET:
-      input:
-        label: ORS DAILY BUDGET
-        secret: false
-        required: false
-      services:
-        - web
-    POI_BASE_URL:
-      input:
-        label: POI BASE URL
-        secret: false
-        required: false
-      services:
-        - web
-    VISION_PROVIDER:
-      input:
-        label: VISION PROVIDER
-        secret: false
-        required: false
-      services:
-        - web
-    VISION_MODEL:
-      input:
-        label: VISION MODEL
-        secret: false
-        required: false
-      services:
-        - web
-    VISION_API_KEY:
-      input:
-        label: VISION API KEY
-        secret: true
-        required: false
-      services:
-        - web
-    VISION_DAILY_BUDGET:
-      input:
-        label: VISION DAILY BUDGET
-        secret: false
-        required: false
-      services:
-        - web
-    VISION_SCHEMA_VERSION:
-      input:
-        label: VISION SCHEMA VERSION
-        secret: false
-        required: false
-      services:
-        - web
-    VISION_PROMPT_VERSION:
-      input:
-        label: VISION PROMPT VERSION
-        secret: false
-        required: false
-      services:
-        - web
-    VISION_TIMEOUT_MS:
-      input:
-        label: VISION TIMEOUT MS
-        secret: false
-        required: false
-      services:
-        - web
-    ACCESSIBILITY_CLOUD_APP_TOKEN:
-      input:
-        label: ACCESSIBILITY CLOUD APP TOKEN
-        secret: true
-        required: false
-      services:
-        - web
-    ACCESSIBILITY_CLOUD_SOURCE_IDS:
-      input:
-        label: ACCESSIBILITY CLOUD SOURCE IDS
-        secret: false
-        required: false
-      services:
-        - web
-    ACCESSIBILITY_CLOUD_LICENSE_IDS:
-      input:
-        label: ACCESSIBILITY CLOUD LICENSE IDS
-        secret: false
-        required: false
-      services:
-        - web
-    PROVIDER_LEDGER_SNAPSHOT:
-      input:
-        label: PROVIDER LEDGER SNAPSHOT
-        secret: true
-        required: false
-      services:
-        - web
 services:
   db:
     image: postgres:17.6-bookworm
@@ -235,18 +54,10 @@ services:
       PORT: "3000"
       APP_MODE: demo
       REGION_ID: unsw-kensington-facilities-demo
+      ZENITH_BOOTSTRAP_EMPTY_DATABASE: "1"
     depends_on:
       db:
         condition: service_healthy
-    pre_start:
-      - command:
-          - pnpm
-          - db:migrate
-      - command:
-          - pnpm
-          - exec
-          - tsx
-          - scripts/zenith-initialize.ts
     healthcheck:
       test:
         - CMD
@@ -257,5 +68,10 @@ services:
       timeout: 5s
       retries: 12
       start_period: 20s
+    ports:
+      - 3000:3000
+    command:
+      - sh
+      - scripts/zenith-start.sh
 volumes:
   postgres-data: null
