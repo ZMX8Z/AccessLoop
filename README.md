@@ -21,7 +21,7 @@
 
 ## 本地启动
 
-使用 `.nvmrc` 中的 Node.js 和 `package.json` 指定的 pnpm，执行 `pnpm install --frozen-lockfile`、`pnpm dev`。公众入口 `/` 和兼容入口 `/live` 重定向整合后的真实 `/route`；三主 Tab 为 Route / Report / My Reports。`/preview` 为明确标识的fixture回归入口，`/stitch/` 仅保留静态Design Demo参考。健康检查 `/api/health`；配置独立 PostgreSQL、应用秘密并执行迁移及受控管理员初始化后使用 `/admin`。
+使用 `.nvmrc` 中的 Node.js 和 `package.json` 指定的 pnpm，执行 `pnpm install --frozen-lockfile`、`pnpm dev --port 3000`。公众入口 `/` 进入 `/route`：Stitch 三 Tab 界面接真实地图、设施、路线及报告接口；Report 为 `/report`，My Reports 为 `/my-reports`。`/live` 与旧 `/stitch/*.html` 仅作兼容跳转，旧控制台和静态 HTML 不再作为应用入口。`/preview` 是明确标识的合成 fixture。健康检查 `/api/health`，后台 `/admin`。已有 `.env` 和本机数据库可直接复用，不要用模板覆盖已有密钥。
 
 完整命令、环境配置、四包接入及检查方式见 [本地开发说明](docs/DEVELOPMENT.md)。本阶段交接与实际证据见 [D 交接](docs/handoffs/wp-d.md) 和 [D 技术验收](docs/acceptance/wp-d.md)。
 

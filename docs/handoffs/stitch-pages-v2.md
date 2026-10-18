@@ -1,5 +1,7 @@
 # Stitch 三 Tab 页面重构交接
 
+本文件以下为静态演示历史交接。当前应用已改为真实三 Tab 页面，入口及集成结果见[D 最新界面验收](../acceptance/d-stitch-live-integration.md)，旧 HTML URL 仅兼容跳转。
+
 2026-10-17。按用户修改后的 `docs/design/AccessLoop_页面架构_Stitch.md` 实施。该文件中的三个主 Tab 和 R1 内按钮进入 R2 的要求优先于上一版控制台布局。
 
 ## 本次实现

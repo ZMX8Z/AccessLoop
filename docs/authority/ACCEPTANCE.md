@@ -70,3 +70,6 @@ Zenith 控制面已于2026-10-18 15:13（Sydney）恢复；原会话随后连续
 最终停止记录：会话01M56N0A21JF9QGSS7SG0TZ9ZG的7d6z9/jtsrx作业失败后自动创建km9ht，错误详情仍仅PREVIEW_RETRY通用消息；2026-10-18T04:48:03.987Z已确认deleted。没有业务运行/线上预算恢复。下一步需平台提供实际构建退出原因/限额，详见[排查材料](../deployment/zenith-build-triage.md)。
 
 2026-10-18 main源码同步已获用户明确授权。授权前D头43b2880的check277通过/12默认集成跳过/0失败、实际私有值扫描0命中。实际集成/发布SHA及main候选核验结果由[发布记录](../deployment/main-sync-2026-10-18.md)引用PR #23正文回执；Zenith部署与完整P0/P1验收仍未通过。
+
+
+最新公众界面集成：A PR #21 原始提交由 D 保留并完成集成修复，产品5a08631034152a10b48141040409989cc222319c。统一check308通过/12默认集成跳过/0失败、生产构建和360/1280真实地图浏览器通过；默认入口及旧/live均进入Stitch真实/route，15设施及来源/unknown保留。具体base/head/集成回执见[本阶段验收](../acceptance/d-stitch-live-integration.md)。此阶段不替代最终真实ORS/搜索/公共管理、现场、人工或Zenith验收。

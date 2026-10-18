@@ -16,23 +16,23 @@ nvm install
 nvm use
 corepack enable
 pnpm install --frozen-lockfile
-pnpm dev
+pnpm dev --port 3000
 ```
 
-未配置数据库时，公众占位页 `/` 和 `/api/health` 可以运行。地图、报告、搜索和路线业务尚待各包实现。`/api/health` 只证明应用存活，不能作为外部服务已接通的证据。
+默认入口 `/` 进入真实业务页面 `/route`，使用 Stitch 三 Tab 外壳；照片流程 `/report`，本人记录 `/my-reports`。`/live` 和旧 `/stitch/*.html` 兼容跳转到真实页面，`/preview` 仅用于明确标识的合成回归。业务页面需要配置好的数据库和环境；服务缺失时显示实际错误，不用静态演示替代。已有 `.env`、数据库和管理员时直接复用，不覆盖环境文件、不重复初始化。`/api/health` 只证明应用存活，不能作为外部服务已接通的证据。
 
 当前固定使用 Webpack 开发和构建：初始化实测发现 Next.js 16.3.3 的 Turbopack 开发外部化会使 pnpm 安装的 Payload 数据库适配器无法解析传递依赖。切换构建器前应同时复验后台登录与构建。
 
 ## 数据库与后台
 
-1. 准备独立 PostgreSQL 数据库，将 `.env.example` 复制为不入库的 `.env.local`。
+1. 仅首次安装且没有现有环境文件时，准备独立 PostgreSQL，并将 `.env.example` 复制为不入库的 `.env.local`。本机已有配置见文末开发库说明。
 2. 设置自己的 `DATABASE_URL`、`APP_BASE_URL` 和独立随机 `PAYLOAD_SECRET`、`SESSION_SECRET`；密钥在本实例重启后保持不变。示例本地数据库账号仅供开发，实际数据库需自行创建。
 3. 设置仅用于受控初始化的 `ADMIN_EMAIL` 和不少于 12 字符的 `ADMIN_PASSWORD`，执行：
 
 ```sh
 pnpm db:migrate
 pnpm admin:bootstrap
-pnpm dev
+pnpm dev --port 3000
 ```
 
 首次命令创建 operator。已有管理员时 bootstrap 拒绝再次创建；随后移除本地文件中的 `ADMIN_PASSWORD`，通过 `/admin` 登录。公众注册与 `first-register` 已关闭。邮件密码恢复尚未接入，相关入口明确返回不可用提示；账号恢复由部署运营者受控处理。Payload 原生认证和数据接口位于 `/cms-api`；GraphQL 入口本阶段关闭。
@@ -56,16 +56,16 @@ pnpm start
 
 `check` 执行 lint、类型检查和测试。生成的 `src/payload-types.ts`、后台 import map 及版本化迁移应与模型一起提交。Next.js 自动修改 `AGENTS.md` 的功能已关闭，协作入口由项目维护。
 
-生产启动通过 `prestart` 检查数据库、会话/后台密钥及 OSS 必需配置；缺失时拒绝启动。`pnpm build` 不需要真实供应商凭据。OSS 适配包已锁定，但照片集合与上传业务仍由 C 接入；GLM、ORS、搜索和 Zenith 均不因骨架可构建而算作已完成。
+生产启动通过 `prestart` 检查数据库、会话/后台密钥及 OSS 必需配置；缺失时拒绝启动。`pnpm build` 不需要真实供应商凭据。照片、上传、GLM、ORS、搜索已接入现有业务服务；实际外部能力和完整 P0/P1 状态以各阶段验收记录为准，不能仅因构建成功就宣布通过。
 
-构建和启动遵循平台提供的 `PORT`；服务监听 `0.0.0.0`。Zenith manifest、资源、密钥注入和出网按现场模板验证。本阶段没有生成未经确认的 Zenith 配置。
+构建和启动遵循平台提供的 `PORT`；服务监听 `0.0.0.0`。Zenith 配置、持久数据库及平台构建排查见 [Zenith 说明](deployment/zenith-preview.md)。本机成功不代表平台预览已通过。
 
 ## 分发给四包
 
 - A/B 直接使用现有公众路由组和公共目录，不再初始化脚手架。
 - C 接管 `payload.config.ts`、Collections、迁移和仓储，在现有管理员防护上继续实现数据业务。
 - D 继续区域、地点、地理、路由、部署和总集成。
-- 所有人安装相同 lockfile；依赖变更由 D 统一整合。共享契约仅实现了坐标、通道引用、路线输入和健康响应的最小结构，其余按唯一 [API 契约](authority/API_CONTRACTS.md) 增补。
+- 所有人安装相同 lockfile；依赖变更由 D 统一整合。运行时共享 Schema 与唯一 [API 契约](authority/API_CONTRACTS.md) 同步维护。
 
 初始化阶段的实际验证与剩余事项见 [D 交接](handoffs/wp-d.md) 和 [D 验收](acceptance/wp-d.md)。
 

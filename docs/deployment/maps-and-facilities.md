@@ -4,7 +4,7 @@
 
 ## 地图入口与配置
 
-`/route`（`/live`兼容重定向）、`/preview` 和复用共享 MapView 的报告选点使用锁定 Leaflet 1.9.4 的真实瓦片地图，支持缩放、拖动、标记、路线、公共与个人避让、预览和范围内选点。`/preview` 仍是明确标记的 fixture；根路径当前进入真实三Tab的R1；Stitch Design Demo静态稿仅保留独立参考入口。新底图不代表静态稿或校园通道已经通过最终验收。
+`/` 默认进入 `/route`。Stitch 三 Tab 的真实页面与报告选点复用锁定 Leaflet 1.9.4 的同一个 MapView，支持缩放、拖动、设施标记、路线、公共与个人避让、预览和范围内选点。`/live` 与旧 `/stitch/*.html` 仅作兼容跳转；`/preview` 保留明确标识的合成 fixture。R2 行程内点击设施只检查详情，不修改起终点或清除路线。底图不是校园通道实测或最终验收的证明。
 
 默认使用 `https://tile.openstreetmap.org/{z}/{x}/{y}.png`。无需新密钥；显示链接到 OSM copyright 的署名及 Leaflet 署名。依照 [OSM tile policy](https://operations.osmfoundation.org/policies/tiles/) 保留正常浏览器缓存和 referrer，不做批量下载、离线预取或扫描。正式流量较大时应配置合适的瓦片服务，并遵循其服务条款。
 
@@ -41,4 +41,4 @@ cloud 是补充来源，现有 Overpass/HeiGIT 来源仍保留。一个来源失
 
 ## 保留的本机验收入口
 
-`http://localhost:3000/live` 是此前保留服务，当前A整合验收使用 `http://localhost:3121/route`，两者均指向已有的 `unsw-kensington-facilities-demo` 区域（独立于未初始化的 region-unsw），APP_MODE=demo、isDemo=true。初始化仓储要求至少一条预设通道，因此保留名为“Synthetic demo passage — not field validated”的单条结构演示通道（不是实测校园通道）；没有种入真实障碍或声称现场可通行。原未初始化的region-unsw不修改。cloud设施实时读取并正常缓存/计量；该区域仅用于界面与设施验收。
+`http://localhost:3000/` 默认进入 `/route`，使用已有的 `unsw-kensington-facilities-demo` 区域（独立于未初始化的 region-unsw），APP_MODE=demo、isDemo=true。初始化仓储要求至少一条预设通道，因此保留名为“Synthetic demo passage — not field validated”的单条结构演示通道（不是实测校园通道）；没有种入真实障碍或声称现场可通行。原未初始化的region-unsw不修改。cloud设施实时读取并正常缓存/计量；该区域仅用于界面与设施验收。
