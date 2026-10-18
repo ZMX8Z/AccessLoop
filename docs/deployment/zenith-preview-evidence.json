@@ -6,7 +6,26 @@
     "sessionId": "01M56FMK83TP7ZMMJBJR6ZFMA4",
     "code": "ERR_PNPM_UNSUPPORTED_ENGINE",
     "expectedNode": "22.14.0",
-    "actualNode": "22.23.3"
+    "actualNode": "22.23.3",
+    "userProvidedCompleteLog": {
+      "fileName": "01M56FMK83TP7ZMMJBJR6ZFMA4-01M56FMK83TP7ZMMJBJR6ZFMA4-all.log",
+      "bytes": 14032,
+      "lines": 288,
+      "sha256": "7a9b384af966a07b34e9f164ddf96389375a791bd0488fe8ca6f4b4f9a1dac0e",
+      "buildJobs": [
+        "zenith-publish-svfxq",
+        "zenith-publish-shrd7",
+        "zenith-publish-79j9k"
+      ],
+      "unsupportedEngineOccurrences": 3,
+      "expectedNode": "22.14.0",
+      "actualNode": "22.23.3",
+      "verifiedErrorLines": [
+        87,
+        184,
+        280
+      ]
+    }
   },
   "checks": {
     "staticZenithCheck": "passed",

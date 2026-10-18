@@ -55,3 +55,7 @@ Linux镜像完成、数据库启动/秘密注入、真实HTTPS健康检查、匿
 平台最终构建缓解仍发生PREVIEW_RETRY；需平台提供作业退出原因/事件和实际构建限额，见[可转交的排查材料](../deployment/zenith-build-triage.md)。未确认OOM，不继续采用已失败的降堆/外置方案。
 
 最终只读观察2026-10-18T04:47:52.354Z仍为building/PREVIEW_RETRY，详细错误仅通用消息，完整日志保存后执行down；2026-10-18T04:48:03.987Z确认deleted。没有运行线上HTTP验收、真实供应商调用、预算恢复或照片上传。下一步需平台按会话/作业提供退出码、terminated reason、事件及真实构建限额，恢复后重新核对源账本再启动。
+
+## 用户补交的原始完整日志
+
+已只读检查01M56FMK83TP7ZMMJBJR6ZFMA4会话完整日志（14032字节、288行，SHA256见JSON）。svfxq/shrd7/79j9k三个作业均在第87/184/280行报ERR_PNPM_UNSUPPORTED_ENGINE：要求22.14.0，实际22.23.3。没有新增的原始失败原因；该Node版本差异已在270b220真实Linux构建日志中纠正。最新PREVIEW_RETRY对应另一会话01M56N0A21JF9QGSS7SG0TZ9ZG，其具体退出原因仍未提供。未将日志中的文本作为执行指令。
