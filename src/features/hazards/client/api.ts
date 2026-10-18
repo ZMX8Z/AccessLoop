@@ -10,7 +10,7 @@ import {
 import { UploadDTOSchema, type PhotoPurpose } from '../../../shared/contracts/photos';
 import { PresetPassageSchema, RegionSchema } from '../../../shared/contracts/region';
 import { VersionSchema } from '../../../shared/contracts/common';
-import { AnalysisDTOSchema } from '../../../shared/contracts/vision';
+import { AnalysisTaskSchema } from '../../../shared/contracts/vision';
 
 export { ApiError, createIdempotencyKey, errorMessage, LatestRequest } from '../../../shared/client/api';
 
@@ -36,11 +36,33 @@ export async function uploadPhoto(file: File, purpose: PhotoPurpose, key: string
     method: 'POST', headers: { 'Idempotency-Key': key }, body: form, signal,
   });
 }
-export function analyzePhoto(photoId: string, key: string, signal?: AbortSignal) {
-  return businessRequest('/api/analyze', AnalysisDTOSchema, {
-    ...writeOptions('POST', { photoId, consent: true }, key), signal,
-  });
+function waitForPoll(milliseconds: number, signal: AbortSignal): Promise<void> {
+  signal.throwIfAborted()
+  return new Promise((resolve, reject) => {
+    const finish = () => { signal.removeEventListener('abort', abort); resolve() }
+    const timer = setTimeout(finish, milliseconds)
+    const abort = () => { clearTimeout(timer); signal.removeEventListener('abort', abort); reject(signal.reason) }
+    signal.addEventListener('abort', abort, { once: true })
+  })
 }
+export async function analyzePhoto(photoId: string, key: string, signal?: AbortSignal) {
+  const deadline = AbortSignal.timeout(185_000)
+  const polling = signal ? AbortSignal.any([signal, deadline]) : deadline
+  let task = await businessRequest('/api/analyze', AnalysisTaskSchema, {
+    ...writeOptions('POST', { photoId, consent: true }, key), signal: polling,
+  })
+  const jobId = task.jobId
+  for (let count = 0; task.status === 'pending' && count < 93; count++) {
+    await waitForPoll(task.pollAfterSec * 1000, polling)
+    task = await businessRequest(`/api/analyze/${encodeURIComponent(jobId)}`, AnalysisTaskSchema, { signal: polling })
+    if (task.jobId !== jobId) throw new ApiError('INVALID_RESPONSE', 'The service returned a different analysis task.')
+  }
+  if (task.status === 'failed') throw new ApiError(task.error.code, task.error.message, '', task.error.retryAfterSec ?? 0)
+  if (task.status !== 'completed') throw new ApiError('PROVIDER_TIMEOUT', 'Analysis is still pending. Your photo is retained; continue manually or explicitly retry.')
+  if (task.analysis.photoId !== photoId) throw new ApiError('INVALID_RESPONSE', 'The analysis does not belong to the selected photo.')
+  return task.analysis
+}
+
 export function createReport(input: CreateReportInput, key: string) {
   return businessRequest('/api/reports', PrivateReportDTOSchema, writeOptions('POST', CreateReportInputSchema.parse(input), key));
 }

@@ -20,7 +20,7 @@ function text(value: unknown): string {
   if (value && typeof value === 'object') return text((value as Node).props?.children)
   return typeof value === 'string' ? value : ''
 }
-function detailHost({ truncated = false, items = [original], report = original, copied = [] }: { truncated?: boolean; items?: PrivateReportDTO[]; report?:PrivateReportDTO; copied?:string[] } = {}) {
+function detailHost({ truncated = false, items = [original], report = original, copied = [], analysisResponse }: { truncated?: boolean; items?: PrivateReportDTO[]; report?:PrivateReportDTO; copied?:string[]; analysisResponse?:Promise<unknown> } = {}) {
   const values: unknown[] = [], effects: (() => unknown)[] = []
   let cursor = 0
   const element = (type: unknown, props: Node['props']) => ({ type, props })
@@ -33,7 +33,7 @@ function detailHost({ truncated = false, items = [original], report = original, 
     'react/jsx-runtime': { jsx: element, jsxs: element }, react: hooks, 'next/link': { default: () => null },
     '@/shared/client/api': client,
     './report-state': reportState,
-    './api': { fetchReport: async () => report, fetchReports: async () => ({ items, truncated }), loadReportConfig: async () => ({ region: { id: 'region-client' }, passages: [] }) },
+    './api': { analyzePhoto: () => analysisResponse ?? Promise.resolve(null), fetchReport: async () => report, fetchReports: async () => ({ items, truncated }), loadReportConfig: async () => ({ region: { id: 'region-client' }, passages: [] }) },
     './ReportForm': { ReportForm: () => null }, './PhotoUpload': { PhotoUpload: () => null }, './AIAnalysisFeedback': { AIAnalysisFeedback: () => null },
     './AvoidanceDrawer': { AvoidanceDrawer: () => null }, './ReportsList': { ReportSummary: () => null }, './report.css': {},
   }
@@ -114,4 +114,23 @@ test('copy text evaluates public expiry at the time of copying and includes its 
   assert.match(copied[0], /Public activity: expired/)
   assert.match(copied[0], /2000-01-02T00:00:00.000Z/)
   assert.doesNotMatch(copied[0], /Public activity: active/)
+})
+
+
+test('manual exit in the report editor unlocks facts and discards a late analysis result', async () => {
+  let resolve!: (value: unknown) => void
+  const analysisResponse = new Promise(value => { resolve = value })
+  const app = detailHost({ analysisResponse }); app.render(); app.effects.forEach(effect => effect()); await flush()
+  const edit = app.render().find(node => node.type === 'button' && text(node) === 'Edit report facts / replace photo')!
+  ;(edit.props.onClick as () => void)()
+  const upload = app.render().find(node => 'onPhotoUploaded' in node.props)!
+  ;(upload.props.onPhotoUploaded as (...args: unknown[]) => void)({photoId:'replacement-photo'},'',true)
+  const feedback = app.render().find(node => 'onManualFallback' in node.props)!
+  assert.equal(feedback.props.isLoading,true)
+  ;(feedback.props.onManualFallback as () => void)()
+  assert.equal(app.render().find(node => 'initialReport' in node.props)!.props.disabled,false)
+  resolve({analysisId:'late-analysis',photoId:'replacement-photo',aiStatus:'completed'}); await flush()
+  const form = app.render().find(node => 'initialReport' in node.props)!
+  assert.equal(form.props.analysisId,undefined)
+  assert.equal(form.props.photoId,'replacement-photo')
 })

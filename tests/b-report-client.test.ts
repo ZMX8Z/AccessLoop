@@ -162,7 +162,7 @@ test('analysis, patch and deactivation use the contract payloads and stable writ
     ]);
   }, async (url, options) => {
     calls.push({ path: String(url), method: options?.method, body: JSON.parse(String(options?.body)), key: new Headers(options?.headers).get('Idempotency-Key') });
-    return json(String(url) === '/api/analyze' ? completedAnalysis : report);
+    return json(String(url) === '/api/analyze' ? {jobId:'a'.repeat(64),status:'completed',analysis:completedAnalysis} : report);
   });
 });
 

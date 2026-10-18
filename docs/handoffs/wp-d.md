@@ -185,3 +185,6 @@ Zenith 控制面已于2026-10-18 15:13（Sydney）恢复；原会话随后连续
 
 
 2026-10-18 报告选点修复：baseDevCommit=`9c2fdaf42788ee881d8379653be076bb9955c35d`，产品`4514b5c43be8447b432b2a7472ef15977f3b047f`。无路线时隐藏From/To空控件，预设通道紫线、坐标范围/缺项提示及未应用坐标保存拦截已交接A/B；无需ORS即可保存预设报告。check314通过/12默认集成跳过/0失败，生产build与真实C/OSS的手机手动保存、管理员HTTP200核对通过。详见[本阶段验收](../acceptance/d-report-location.md)；PR正文记录deliveryHead和实际集成SHA。无HTTP/Schema/数据库变更；本次合成报告未启用避让，不计实时模型/最终P0/P1验收。
+
+
+2026-10-18 GLM异步回复恢复：baseDevCommit=`4cbe2c7a9ddaa74d428e49af1bcfae2a71e6bb16`，产品`206f1589a0e5976b0db98e951e651a58128f4f99`。POST任务/本人GET、Next after及B/C调用方已同步；提示词以system实际发送，七字段校验保持。check320通过/12默认跳过/0失败、生产build、独立PG15/15与两轴复核通过；慢16秒的生产HTTP约13ms接纳，另一次真实已同意照片GLM HTTP200/12354ms、completed，真实调用只增1。详见[验收与清理](../acceptance/d-glm-async.md)，PR正文固定交付/集成SHA。复用C原Collection/JSON，无迁移/新连接。现场/最终全项目/Zenith仍待验。

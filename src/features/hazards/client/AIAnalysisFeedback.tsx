@@ -9,7 +9,7 @@ interface Props {
   onManualFallback: () => void
 }
 export function AIAnalysisFeedback({ analysis, isLoading, onApplyFindings, onManualFallback }: Props) {
-  if (isLoading) return <section className="report-analysis-feedback" aria-label="AI analysis" role="status"><h3>AI Obstruction Analysis</h3><p>Analyzing your private photo with the configured GLM visual model. You can review the saved result here.</p></section>
+  if (isLoading) return <section className="report-analysis-feedback" aria-label="AI analysis" role="status"><h3>AI Obstruction Analysis</h3><p>Analyzing your private photo with the configured GLM visual model. This can take about a minute. You can continue manually while analysis finishes.</p><button type="button" className="report-secondary" onClick={onManualFallback}>Continue with Manual Details</button></section>
   if (!analysis) return null
   const { aiStatus, result, unavailableReason } = analysis
   return <section className="report-analysis-feedback" aria-label="AI analysis">

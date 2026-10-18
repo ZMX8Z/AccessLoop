@@ -3,10 +3,11 @@
 import { useState } from 'react'
 import { z } from 'zod'
 
-import { AnalysisDTOSchema, type AnalysisDTO } from '@/shared/contracts/vision'
+import { type AnalysisDTO } from '@/shared/contracts/vision'
 import { UploadDTOSchema } from '@/shared/contracts/photos'
 import { PrivateReportDTOSchema, PreviewDTOSchema, type PrivateReportDTO, type PreviewDTO } from '@/shared/contracts/hazards'
 import type { RegionRecord, PresetPassageRecord } from '@/shared/contracts/storage'
+import { analyzePhoto } from '@/features/hazards/client/api'
 import { GeometryPreview } from '@/features/hazards/GeometryPreview'
 
 async function api<T>(path: string, schema: z.ZodType<T>, method = 'GET', body?: BodyInit): Promise<T> {
@@ -120,7 +121,8 @@ export function C1Demo({ region, passages, initialObservation }: {
       {photoId && <p><a href={`/api/photos/${encodeURIComponent(photoId)}`} target="_blank" rel="noreferrer">View your private image</a></p>}
       <label><input type="checkbox" checked={aiConsent} disabled={busy || !!report} onChange={(event) => setAiConsent(event.target.checked)} />I agree to send this photo to the configured external AI service.</label>
       <button disabled={busy || !photoId || !aiConsent || !!report} onClick={() => run(async () => {
-        const result = await api('/api/analyze', AnalysisDTOSchema, 'POST', JSON.stringify({ photoId, consent: true }))
+        if (!photoId) throw new Error('Choose a photo first.')
+        const result = await analyzePhoto(photoId, crypto.randomUUID())
         setAnalysis(result)
         return result.aiStatus === 'completed' ? 'An AI suggestion is available. Review the facts before saving.' : 'AI did not provide a completed obstacle assessment. Continue manually.'
       })}>Analyze photo · optional</button>

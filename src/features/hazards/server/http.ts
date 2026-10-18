@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto'
+import { after } from 'next/server'
 import { z } from 'zod'
 
 import { resolveAdminSession } from '@/server/auth/admin-session'
@@ -80,7 +81,20 @@ export function analyzePhoto(request: Request): Promise<Response> {
     const { ownerSessionHash } = await requireAnonymousSession(request)
     const input = parseRequest(AnalyzeInputSchema, await readJSON(request))
     const services = await c1Services()
-    return jsonResult((await services.analyses.analyze({ ownerSessionHash, idempotencyKey, input })).result)
+    const submitted = await services.analysisTasks.submit({ ownerSessionHash, idempotencyKey, input })
+    const work = submitted.run
+    if (work) after(async () => {
+      try { await work() } catch { console.error(JSON.stringify({ event: 'analysis_task_storage_failed', jobId: submitted.task.jobId })) }
+    })
+    return jsonResult(submitted.task, submitted.task.status === 'pending' ? 202 : 200)
+  })
+}
+
+export function readAnalysisTask(request: Request, rawJobId: string): Promise<Response> {
+  return handleC1(async () => {
+    const jobId = parseRequest(z.string().regex(/^[a-f0-9]{64}$/), rawJobId)
+    const { ownerSessionHash } = await requireAnonymousSession(request)
+    return jsonResult(await (await c1Services()).analysisTasks.read({ ownerSessionHash, jobId }))
   })
 }
 

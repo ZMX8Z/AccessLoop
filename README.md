@@ -32,3 +32,5 @@ D 服务接线见 [仓储与前端交接](docs/handoffs/d-service-integration.md
 底图与设施配置见[部署接线](docs/deployment/maps-and-facilities.md)，本次真实覆盖、浏览器和失败回归见[地图/cloud验收](docs/acceptance/d-map-cloud.md)。cloud作为设施补充，不替代校园现场核验。
 
 2026-10-18 用户已授权将当前修复经 dev 同步至 main，供 Zenith 拉取；具体提交与核验见[main同步记录](docs/deployment/main-sync-2026-10-18.md)。线上构建和P0/P1未通过状态保持单独记录。
+
+GLM等待修复已改为持久任务和本人轮询，系统提示词仍实际发送，真实付费模型已返回合法结果；当前API升级、实测与边界见[异步分析验收](docs/acceptance/d-glm-async.md)。已配置的旧VISION_TIMEOUT_MS会覆盖默认值，部署时按[环境说明](docs/deployment/README.md#glm-异步等待)核对。

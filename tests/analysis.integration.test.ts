@@ -70,6 +70,71 @@ test('C1 analysis uses durable leases, scoped cache and immutable idempotent out
   const analysisCount = () => payload.count({ collection: 'ai-analyses', where: { regionId: { equals: runId } }, overrideAccess: true })
 
   try {
+    await t.test('async tasks accept before model completion, poll privately, and deduplicate worker schedules', async () => {
+      const { createAnalysisTasks } = await import('../src/server/photos/analysis-tasks')
+      const photoId = await photo('async-pending')
+      let release!: () => void, calls = 0
+      const blocked = new Promise<void>(resolve => { release = resolve })
+      const adapter = createGlmAdapter({ apiKey: `${runId}-async`, fetch: async () => { calls++; await blocked; return Response.json(completion()) } })
+      const tasks = createAnalysisTasks(payload, { regionId: runId, analysis: service(adapter) })
+      const invocation = { ownerSessionHash: owner, idempotencyKey: `${runId}-task`, input: { photoId, consent: true as const } }
+      const [first, duplicate] = await Promise.all([tasks.submit(invocation), tasks.submit(invocation)])
+      assert.equal(first.task.status, 'pending'); assert.equal(duplicate.task.status, 'pending')
+      assert.equal(first.task.jobId, duplicate.task.jobId)
+      assert.equal(Number(!!first.run) + Number(!!duplicate.run), 1)
+      assert.equal(calls, 0, 'Accept the durable task without waiting for or starting the model in POST.')
+      await assert.rejects(tasks.read({ ownerSessionHash: otherOwner, jobId: first.task.jobId }), errorCode('NOT_FOUND'))
+      const runner = first.run ?? duplicate.run!
+      const running = runner()
+      for (let i=0;calls===0&&i<100;i++) await new Promise(resolve=>setTimeout(resolve,10))
+      assert.equal(calls,1)
+      await runner()
+      assert.equal((await tasks.read({ ownerSessionHash: owner, jobId: first.task.jobId })).status, 'pending')
+      release(); await running
+      const done = await tasks.read({ ownerSessionHash: owner, jobId: first.task.jobId })
+      assert.equal(done.status, 'completed')
+      if(done.status==='completed') assert.equal(done.analysis.aiStatus,'completed')
+      assert.deepEqual((await tasks.submit(invocation)).task, done)
+      assert.equal(calls,1)
+    })
+
+    await t.test('expired async work is failed without silently retrying or publishing its late result', async () => {
+      const { createAnalysisTasks } = await import('../src/server/photos/analysis-tasks')
+      const photoId = await photo('async-crash'); let clock=Date.now(), calls=0
+      const tasks=createAnalysisTasks(payload,{regionId:runId,analysis:service(createGlmAdapter({apiKey:`${runId}-crash`,fetch:async()=>{calls++;return Response.json(completion())}})),now:()=>clock})
+      const input={ownerSessionHash:owner,idempotencyKey:`${runId}-crash-job`,input:{photoId,consent:true as const}}
+      const queued=await tasks.submit(input); clock+=181_000
+      assert.equal((await tasks.read({ownerSessionHash:owner,jobId:queued.task.jobId})).status,'failed')
+      assert.equal((await tasks.submit(input)).task.status,'failed')
+      await queued.run?.();assert.equal(calls,0)
+      assert.equal((await tasks.read({ownerSessionHash:owner,jobId:queued.task.jobId})).status,'failed')
+      const latePhoto=await photo('async-late')
+      const lateTasks=createAnalysisTasks(payload,{regionId:runId,now:()=>clock,analysis:service(createGlmAdapter({apiKey:`${runId}-late`,fetch:async()=>{calls++;clock+=181_000;return Response.json(completion())}}))})
+      const late=await lateTasks.submit({ownerSessionHash:owner,idempotencyKey:`${runId}-late-job`,input:{photoId:latePhoto,consent:true}})
+      await late.run?.()
+      assert.equal((await lateTasks.read({ownerSessionHash:owner,jobId:late.task.jobId})).status,'failed','A late completed model result must not revive an expired task.')
+      assert.equal(calls,1)
+    })
+
+    await t.test('pre-call quota rejection completes a failed task without a fake AI result', async () => {
+      const { createAnalysisTasks } = await import('../src/server/photos/analysis-tasks')
+      const photoId=await photo('async-quota'), before=(await analysisCount()).totalDocs
+      const engine=service(createGlmAdapter({apiKey:`${runId}-async-quota`,fetch:async()=>assert.fail('Budget must block first')}),{gate:{run:async()=>{throw new AppError(503,'QUOTA_EXHAUSTED','Budget reached.')}}})
+      const tasks=createAnalysisTasks(payload,{regionId:runId,analysis:engine})
+      const submitted=await tasks.submit({ownerSessionHash:owner,idempotencyKey:`${runId}-quota-job`,input:{photoId,consent:true}})
+      await submitted.run?.();const done=await tasks.read({ownerSessionHash:owner,jobId:submitted.task.jobId})
+      assert.equal(done.status,'failed');if(done.status==='failed')assert.equal(done.error.code,'QUOTA_EXHAUSTED')
+      assert.equal((await analysisCount()).totalDocs,before)
+    })
+
+    await t.test('Vision can finish after the old 15 second foreground window', async () => {
+      let clock=Date.now()
+      const photoId=await photo('slow-vision')
+      const adapter=createGlmAdapter({apiKey:`${runId}-slow-vision`,timeoutMs:60_000,fetch:async()=>{clock+=20_000;return Response.json(completion())}})
+      const result=await invoke(service(adapter,{now:()=>clock}),photoId,'slow-vision')
+      assert.equal(result.result.aiStatus,'completed')
+    })
+
     await t.test('a successful same-key replay makes no second object read or model request', async () => {
       const photoId = await photo('success')
       let requests = 0
@@ -221,11 +286,11 @@ test('C1 analysis uses durable leases, scoped cache and immutable idempotent out
       const adapter = createGlmAdapter({ apiKey: `${runId}-slow-storage`, fetch: async () => { requests += 1; return Response.json(completion()) } })
       const fingerprint = adapter.keyFingerprint.slice('sha256:'.length)
       const usageBefore = await payload.count({ collection: 'provider-usage', where: { keyFingerprint: { equals: fingerprint } }, overrideAccess: true })
-      const eventWhere: Where = { and: [{ service: { equals: 'vision' } }, { occurredAt: { equals: new Date(clock + 46_000).toISOString() } }] }
+      const eventWhere: Where = { and: [{ service: { equals: 'vision' } }, { occurredAt: { equals: new Date(clock + 181_000).toISOString() } }] }
       const eventBefore = await payload.count({ collection: 'provider-events', where: eventWhere, overrideAccess: true })
       const stale = service(adapter, {
         now: () => clock,
-        readOwnedReportBytes: async (input) => { const read = await readOwnedReportBytes(input); clock += 46_000; return read },
+        readOwnedReportBytes: async (input) => { const read = await readOwnedReportBytes(input); clock += 181_000; return read },
       })
       await assert.rejects(invoke(stale, photoId, 'slow-storage'), errorCode('RATE_LIMITED'))
       assert.equal(requests, 0)

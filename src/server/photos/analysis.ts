@@ -5,7 +5,7 @@ import { z } from 'zod'
 import type { Photo } from '../../payload-types'
 import { AppError } from '../http/errors'
 import { ProviderGate } from '../providers/gate'
-import { createGlmAdapter, DEFAULT_VISION_MODEL, parseVisionPolicy } from '../providers/glm'
+import { createGlmAdapter, DEFAULT_VISION_MODEL, DEFAULT_VISION_TIMEOUT_MS, parseVisionPolicy } from '../providers/glm'
 import { ProviderError } from '../providers/provider-error'
 import { createRoutingRepository } from '../storage/routing-repository'
 import { requireRegion } from '../storage/regions'
@@ -59,7 +59,7 @@ export function createAnalysisService(payload: Payload, options: {
   if (options.adapter && options.adapter.model !== config.model) throw new AppError(503, 'PROVIDER_UNAVAILABLE', 'The image analysis model is not configured consistently.')
   const identity = options.adapter?.identity ?? `glm:${config.model}:native-vision-tool-v1:https://open.bigmodel.cn/api/paas/v4/chat/completions`
   const operationLifetimeMs = 86_400_000
-  const leaseMs = 45_000
+  const leaseMs = 180_000
 
   async function ownedPhoto(photoId: string, ownerSessionHash: string, transaction?: Transaction): Promise<OwnedPhoto> {
     const { docs } = await payload.find({
@@ -179,16 +179,16 @@ export function createAnalysisService(payload: Payload, options: {
         }
         const adapter = options.adapter ?? createGlmAdapter({
           apiKey: process.env.VISION_API_KEY ?? '', model: config.model,
-          timeoutMs: Number(process.env.VISION_TIMEOUT_MS?.trim() || '8000'),
+          timeoutMs: Number(process.env.VISION_TIMEOUT_MS?.trim() || DEFAULT_VISION_TIMEOUT_MS),
         })
         const policy = options.policy ?? parseVisionPolicy(process.env)
         const gate = options.gate ?? new ProviderGate(createRoutingRepository(payload, { regionId, sessionSecret: process.env.SESSION_SECRET ?? '', now }), { now })
-        // Reject expired/superseded work before budget reservation or call telemetry. The 45s lease covers the 15s gate deadline.
+        // Reject expired/superseded work before budget reservation or call telemetry. The durable lease covers the bounded background model deadline.
         await renewBeforeAttempt()
         const startedAt = now()
         outcome = VisionOutcomeSchema.parse(await gate.run({
           service: 'vision', keyFingerprint: adapter.keyFingerprint, policy,
-          maxAttemptMs: adapter.timeoutMs, deadlineAt: startedAt + 15_000,
+          maxAttemptMs: adapter.timeoutMs, deadlineAt: startedAt + adapter.timeoutMs + 1000,
           isErrorResult: (value) => value.aiStatus === 'unavailable',
           operation: () => {
             attempted = true
