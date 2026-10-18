@@ -73,3 +73,6 @@ Zenith 控制面已于2026-10-18 15:13（Sydney）恢复；原会话随后连续
 
 
 最新公众界面集成：A PR #21 原始提交由 D 保留并完成集成修复，产品5a08631034152a10b48141040409989cc222319c。统一check308通过/12默认集成跳过/0失败、生产构建和360/1280真实地图浏览器通过；默认入口及旧/live均进入Stitch真实/route，15设施及来源/unknown保留。具体base/head/集成回执见[本阶段验收](../acceptance/d-stitch-live-integration.md)。此阶段不替代最终真实ORS/搜索/公共管理、现场、人工或Zenith验收。
+
+
+2026-10-18 报告选点修复：baseDevCommit=`9c2fdaf42788ee881d8379653be076bb9955c35d`，产品`4514b5c43be8447b432b2a7472ef15977f3b047f`。无路线时隐藏From/To空控件，预设通道紫线、坐标范围/缺项提示及未应用坐标保存拦截已交接A/B；无需ORS即可保存预设报告。check314通过/12默认集成跳过/0失败，生产build与真实C/OSS的手机手动保存、管理员HTTP200核对通过。详见[本阶段验收](../acceptance/d-report-location.md)；PR正文记录deliveryHead和实际集成SHA。无HTTP/Schema/数据库变更；本次合成报告未启用避让，不计实时模型/最终P0/P1验收。

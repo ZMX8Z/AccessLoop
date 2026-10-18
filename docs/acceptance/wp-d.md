@@ -143,3 +143,6 @@ Zenith 控制面已于2026-10-18 15:13（Sydney）恢复；原会话随后连续
 最终停止记录：会话01M56N0A21JF9QGSS7SG0TZ9ZG的7d6z9/jtsrx作业失败后自动创建km9ht，错误详情仍仅PREVIEW_RETRY通用消息；2026-10-18T04:48:03.987Z已确认deleted。没有业务运行/线上预算恢复。下一步需平台提供实际构建退出原因/限额，详见[排查材料](../deployment/zenith-build-triage.md)。
 
 2026-10-18 main源码同步已获用户明确授权。授权前D头43b2880的check277通过/12默认集成跳过/0失败、实际私有值扫描0命中。实际集成/发布SHA及main候选核验结果由[发布记录](../deployment/main-sync-2026-10-18.md)引用PR #23正文回执；Zenith部署与完整P0/P1验收仍未通过。
+
+
+2026-10-18 报告选点修复：baseDevCommit=`9c2fdaf42788ee881d8379653be076bb9955c35d`，产品`4514b5c43be8447b432b2a7472ef15977f3b047f`。无路线时隐藏From/To空控件，预设通道紫线、坐标范围/缺项提示及未应用坐标保存拦截已交接A/B；无需ORS即可保存预设报告。check314通过/12默认集成跳过/0失败，生产build与真实C/OSS的手机手动保存、管理员HTTP200核对通过。详见[本阶段验收](../acceptance/d-report-location.md)；PR正文记录deliveryHead和实际集成SHA。无HTTP/Schema/数据库变更；本次合成报告未启用避让，不计实时模型/最终P0/P1验收。
