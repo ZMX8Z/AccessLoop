@@ -24,11 +24,16 @@
 
 ## Tasks
 
-- [ ] 1. Add task DTO and failing PG task tests (submit/read/run, dedupe, ownership, lease expiry, quota). Implement src/server/photos/analysis-tasks.ts over existing analysis and storage; extend only Vision timeout/engine lease; assert actual outgoing system prompt in vision tests. Watch red/green.
-- [ ] 2. Add POST after scheduling and GET route; sync API_CONTRACTS/technical/requirements. Add HTTP/client poll/cancel/failure tests before implementation. Keep analyzePhoto return type AnalysisDTO for B consumers; add manual escape during waiting.
-- [ ] 3. Run check/build/realPG, production HTTP with delayed provider and restart/ownership checks; then one real consented-photo GLM attempt. Record failures and success without fabricated findings.
+- [x] 1. Add task DTO and failing PG task tests (submit/read/run, dedupe, ownership, lease expiry, quota). Implement src/server/photos/analysis-tasks.ts over existing analysis and storage; extend only Vision timeout/engine lease; assert actual outgoing system prompt in vision tests. Watch red/green.
+- [x] 2. Add POST after scheduling and GET route; sync API_CONTRACTS/technical/requirements. Add HTTP/client poll/cancel/failure tests before implementation. Keep analyzePhoto return type AnalysisDTO for B consumers; add manual escape during waiting.
+- [x] 3. Run check/build/realPG, production HTTP with delayed provider and restart/ownership checks; then one real consented-photo GLM attempt. Record failures and success without fabricated findings.
 - [ ] 4. Independent review, fix findings, handoff/API/environment docs, evidence, stage PR todev, merge fixedhead and postmerge regression; safely fast-forward root preserving env/generated files. Do not publish main without new authorization.
 
 ## Execution ledger
 
 - Initial diagnosis and scope reviewed. User authorization overrides extra skill approval gates; continue directly.
+
+- PG/client/task regressions and true prompt payload assertions passed. Standards/Spec findings fixed and re-reviewed. Full check320/12/0, production build exit0, isolated PG15/15.
+- Real GLM one call: HTTP200/12354ms, completed; task accepted68ms. Production HTTP after separately verified with a16s simulated boundary. No raw image/evidence exported.
+- Ruling: use a separate task envelope over the original C engine rather than duplicate its analysis/cache/budget logic; existing JSON storage needs no migration.
+- Temporary data cleaned and actual ledger preserved; stage delivery/merge/root-sync completion is recorded in the actual PR receipt to avoid self-referential commit IDs.

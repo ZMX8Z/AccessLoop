@@ -1,0 +1,126 @@
+{
+  "recordedAt": "2026-10-18T06:35:54.565948+00:00",
+  "baseDevCommit": "4cbe2c7a9ddaa74d428e49af1bcfae2a71e6bb16",
+  "codeEvidenceCommit": "206f1589a0e5976b0db98e951e651a58128f4f99",
+  "check": {
+    "pass": 320,
+    "fail": 0,
+    "skipped": 12,
+    "exitCode": 0
+  },
+  "build": {
+    "exitCode": 0
+  },
+  "realPostgres": {
+    "isolatedDatabase": true,
+    "pass": 15,
+    "fail": 0
+  },
+  "productionHttpWithSimulatedSlowProvider": {
+    "recordedAt": "2026-10-18T06:33:55.719Z",
+    "scope": "Production Next HTTP/after, isolated schema-only PostgreSQL database, synthetic private OSS photo, simulated 16s GLM boundary; not a real GLM response",
+    "postStatus": 202,
+    "postMs": 13,
+    "completionMs": 17283,
+    "polls": 17,
+    "otherSessionStatus": 404,
+    "falseConsentStatus": 400,
+    "sameKeyReplayStatus": 200,
+    "modelRequests": 1,
+    "systemPromptSent": true,
+    "requiredToolFields": 7,
+    "completedAfterForeground15Seconds": true
+  },
+  "realGlmThroughDurableTask": {
+    "recordedAt": "2026-10-18T06:33:00.276Z",
+    "scope": "Existing consented private photo retried to the same GLM provider; no image or evidence text is exported",
+    "configured": {
+      "model": "glm-4.6v",
+      "timeoutMs": 60000,
+      "policy": {
+        "minuteLimit": 10,
+        "dayLimit": 9007199254740991
+      }
+    },
+    "requests": 1,
+    "acceptanceMs": 68,
+    "taskStatus": "completed",
+    "elapsedMs": 17538,
+    "timings": [
+      {
+        "status": 200,
+        "headersMs": 12354
+      }
+    ],
+    "result": {
+      "aiStatus": "completed",
+      "unavailableReason": null,
+      "cacheHit": false,
+      "hasValidatedResult": true
+    },
+    "usageBefore": {
+      "calls": 11,
+      "waits": 0,
+      "errors": 8,
+      "cacheHits": 1
+    },
+    "usageAfter": {
+      "calls": 12,
+      "waits": 0,
+      "errors": 8,
+      "cacheHits": 1
+    }
+  },
+  "cleanup": {
+    "earlySyntheticRowsInDevelopment": {
+      "recordedAt": "2026-10-18T06:32:10.562Z",
+      "ownSyntheticRegionsRemoved": 8,
+      "ownMetadataPhotosOnly": true,
+      "ownSyntheticUsageRowsRemoved": 50,
+      "ownSyntheticEventsRemoved": 68,
+      "sourcePhotosReportsAnalysesCountsUnchanged": true,
+      "realVisionSummaryAfter": {
+        "calls": 11,
+        "waits": 0,
+        "errors": 8,
+        "cacheHits": 1
+      }
+    },
+    "isolatedHttpPhoto": {
+      "recordedAt": "2026-10-18T06:34:44.704Z",
+      "ownSyntheticObjectRemoved": true,
+      "headStatus": 404,
+      "sourceUserObjectsTouched": false
+    },
+    "isolatedDatabase": {
+      "isolatedDisposableDatabaseRemoved": true,
+      "sourceDevelopmentDatabaseTouched": false
+    }
+  },
+  "logs": {
+    "check": {
+      "localPath": "/private/tmp/accessloop-analysis-tasks-check.log",
+      "sha256": "1b6673b81453149b126ff03d60123ca3fe6744959dfedcdba8ffc1e26dc3d691"
+    },
+    "build": {
+      "localPath": "/private/tmp/accessloop-analysis-tasks-build.log",
+      "sha256": "e1a80c33f1bc00a31168182bc00b3fc3cedaeb07f8a55a637156c89b6b8f1ba9"
+    },
+    "postgres": {
+      "localPath": "/private/tmp/accessloop-analysis-tasks-pg-isolated.log",
+      "sha256": "3c792ad4d73b122db6528beec5965c27477f4e6c5b87573483d53c756bcb6355"
+    },
+    "clientRed": {
+      "localPath": "/private/tmp/accessloop-analysis-task-client-red.log",
+      "sha256": "4f2ccc6b29a15da0c7dd06a1143c5b01c10f1174e8c11d97f9b02581653360e9"
+    },
+    "detailRed": {
+      "localPath": "/private/tmp/accessloop-analysis-task-detail-red.log",
+      "sha256": "a1df1bec406c7ee2e44971fa523d410fcbfbf34ec1837e0e02a3e20694b45f43"
+    },
+    "detailGreen": {
+      "localPath": "/private/tmp/accessloop-analysis-task-detail-green.log",
+      "sha256": "6d18b2361a3e0b41a265adda91079202142a1ec3868ba33b0a1e18abd51bc4e8"
+    }
+  }
+}
