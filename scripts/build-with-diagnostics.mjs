@@ -1,4 +1,5 @@
 import {spawn} from 'node:child_process';
+import {getHeapStatistics} from 'node:v8';
 import {readFile} from 'node:fs/promises';
 import {availableParallelism,constants,freemem,totalmem} from 'node:os';
 const started=Date.now();
@@ -14,7 +15,7 @@ async function report(phase,extra={}){
  const cgroup=Object.fromEntries(await Promise.all(Object.entries(files).map(async([key,path])=>{
   try{return [key,(await readFile(path,'utf8')).trim().replace(/\s+/g,' ').slice(0,512)]}catch{return [key,null]}
  })));
- console.log('[build-diagnostics] '+JSON.stringify({phase,elapsedSeconds:Math.round((Date.now()-started)/1000),node:process.version,platform:process.platform,architecture:process.arch,availableCpus:availableParallelism(),wrapperRssBytes:process.memoryUsage().rss,systemMemoryBytes:{total:totalmem(),free:freemem()},proc:await procMetadata(),cgroup,...extra}));
+ console.log('[build-diagnostics] '+JSON.stringify({phase,elapsedSeconds:Math.round((Date.now()-started)/1000),node:process.version,platform:process.platform,architecture:process.arch,availableCpus:availableParallelism(),wrapperRssBytes:process.memoryUsage().rss,heapLimitBytes:getHeapStatistics().heap_size_limit,systemMemoryBytes:{total:totalmem(),free:freemem()},proc:await procMetadata(),cgroup,...extra}));
 }
 await report('start');
 const command=process.argv[2]??'pnpm';const args=process.argv.length>2?process.argv.slice(3):['build'];

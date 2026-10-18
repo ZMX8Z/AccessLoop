@@ -4,7 +4,7 @@ ENV COREPACK_HOME=/opt/corepack
 COPY package.json pnpm-lock.yaml .npmrc ./
 RUN corepack enable && corepack prepare pnpm@10.20.0 --activate && pnpm install --frozen-lockfile
 COPY . .
-RUN node scripts/build-with-diagnostics.mjs
+RUN NODE_OPTIONS=--max-old-space-size=1024 node scripts/build-with-diagnostics.mjs
 FROM node:22.14.0-bookworm-slim
 WORKDIR /app
 ENV COREPACK_HOME=/opt/corepack
