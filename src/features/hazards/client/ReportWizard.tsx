@@ -125,7 +125,7 @@ export function ReportWizard({ region: suppliedRegion, passages: suppliedPassage
     try {
       const analysis = await analyzePhoto(photo.photoId, createIdempotencyKey(), task.signal)
       if (task.current()) dispatch({ type: 'analysis', analysis })
-    } catch (failure) { if (task.current()) setError(`${errorMessage(failure)} Continue with your own facts; no AI result was created.`) }
+    } catch (failure) { if (task.current()) setError(`${errorMessage(failure)} Your photo is retained. Continue manually; an accepted analysis may still finish in the background.`) }
     finally { if (task.current()) setAnalyzing(false) }
   }
   function continuePhoto(consent: boolean, uploadedPhoto?: UploadDTO, previewUrl?: string) {
@@ -164,7 +164,7 @@ export function ReportWizard({ region: suppliedRegion, passages: suppliedPassage
       {!report && <>
         <div className={`report-scan-banner ${analyzing ? 'is-loading' : ''}`} role="status"><span aria-hidden="true">✦</span><h2>{analyzing ? 'Analyzing your photo…' : draft.analysis?.aiStatus === 'completed' ? 'AI Scan Complete' : draft.analysis?.aiStatus === 'uncertain' ? 'AI needs your review' : 'Your observation matters'}</h2></div>
         {photoUrl && <div className="report-analysis-photo"><img src={photoUrl} alt="Your private photo being reviewed" /><span>{analyzing ? 'External analysis in progress' : 'Private evidence · measurements unknown'}</span></div>}
-        <AIAnalysisFeedback analysis={draft.analysis} isLoading={analyzing} onApplyFindings={() => dispatch({ type: 'apply_analysis' })} onManualFallback={() => dispatch({ type: 'manual' })} />
+        <AIAnalysisFeedback analysis={draft.analysis} isLoading={analyzing} onApplyFindings={() => dispatch({ type: 'apply_analysis' })} onManualFallback={() => { analysisRequest.current.cancel(); setAnalyzing(false); setError(''); dispatch({ type: 'manual' }) }} />
         <p className="report-note">{draft.analysisId ? 'The saved AI record will be attached. Your facts remain editable.' : 'Manual report: no analysis is attached.'} AI does not measure passage width or slope.</p>
         {draft.analysis?.aiStatus === 'unavailable' && <button type="button" className="report-secondary" disabled={analyzing} onClick={() => void analyze()}>I choose to retry external AI analysis</button>}
         <ReportForm key={draft.photo.photoId} photoId={draft.photo.photoId} analysisId={draft.analysisId} category={draft.category} description={draft.description}

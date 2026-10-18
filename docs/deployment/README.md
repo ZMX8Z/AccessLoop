@@ -74,3 +74,10 @@ bash -n scripts/backup-restore.sh
 [阿里云官方兼容说明](https://www.alibabacloud.com/help/en/oss/developer-reference/compatibility-with-amazon-s3)要求virtual-hosted寻址；本次读取/写入/删除在该方式真实成功。C实现和挂载photos时复用已验证参数，保留现有API规定的应用授权代理。签名URL仅在服务端探针内用于兼容/到期检查，没有交给前端或写入证据。
 
 首次2秒签名在匿名检查之后得到403，无法区分提前过期；该次结果未计作签名通过。后续用30秒链接验证200，并用另一条2秒链接先得到200、等待后得到403，才记录过期通过。证据保留原失败，不修改Bucket权限以绕过问题。生产配置存在性检查`pnpm exec tsx scripts/check-environment.ts`已exit0；尚未据此声称Zenith或完整生产流程通过。
+
+
+### GLM 异步等待
+
+Vision等待由`VISION_TIMEOUT_MS`配置，默认60000ms、最高60000ms；旧本地8000ms会继续覆盖默认值，升级时按需更新已有私有配置。`VISION_DAILY_BUDGET=unlimited`表示明确取消滚动24小时调用上限，`VISION_RPM`仍单独生效，历史预算/调用/错误记录不清空。模型密钥、图片与工具输出均不放入公开任务状态之外的额外日志。
+
+`POST /api/analyze`现在返回任务，GET轮询和异常语义统一见[API契约](../authority/API_CONTRACTS.md#53-post-apianalyze)。Next的after由同一个Node/Docker应用执行，无额外队列服务；任务中断按租约显示失败而非后台自动重新收费。平台必须允许响应后的工作，route maxDuration=180仅为框架/平台配置，不能当作Zenith已验收证据。

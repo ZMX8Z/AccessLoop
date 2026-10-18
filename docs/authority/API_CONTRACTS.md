@@ -303,7 +303,24 @@ type AnalysisDTO = {
 };
 ```
 
-成功 200 返回 `AnalysisDTO`。可用结构但不能形成障碍建议时为 uncertain，保留经校验结果；拒绝、无有效工具结果、结构错误或调用失败为 unavailable，`result=null`，保存失败原因后允许人工填报。原幂等键仍重放原 unavailable 结果；用户显式重试须使用新幂等键，重新经过预算门禁。预算门禁尚未允许发起调用时直接返回 429/503 错误，不生成伪造完成记录；429 的倒计时统一读取 `error.details.retryAfterSec`。内部持久化失败也不包装成分析成功。completed/uncertain 时 `unavailableReason=null`。
+分析采用持久任务异步返回，不能让一个公众 HTTP 请求等待整个 GLM 推理。首次接纳成功返回 **202 AnalysisTaskDTO**；相同幂等键返回同一个任务（pending=202，已终结=200），不创建第二个工作者。任务元数据持久化于 C 的 external-operations；框架在响应后执行模型工作。重复 POST 的输入不一致为409 IDEMPOTENCY_CONFLICT。鉴权、照片归属、用途及同意错误仍在接纳前返回原HTTP错误。
+
+```ts
+type AnalysisTaskDTO =
+  | {jobId:string;status:"pending";pollAfterSec:number}
+  | {jobId:string;status:"completed";analysis:AnalysisDTO}
+  | {jobId:string;status:"failed";error:{
+      code:"RATE_LIMITED"|"QUOTA_EXHAUSTED"|"PROVIDER_UNAVAILABLE"|"PROVIDER_TIMEOUT"
+        |"ANALYSIS_STALE"|"ANALYSIS_INTERRUPTED"|"INTERNAL_ERROR";
+      message:string;retryAfterSec?:number
+    }};
+```
+
+jobId为64位小写十六进制，不是授权凭证。pending的pollAfterSec为0至10的整数，服务端当前建议2秒。GET `/api/analyze/{jobId}` 200返回当前 AnalysisTaskDTO，只接受原匿名会话及区域，管理员登录不扩大范围；无权/不存在/超过24小时保留期统一404。GET无外部调用和预算预留。每个HTTP请求仍保持15秒等待边界，页面总轮询最长185秒，并允许随时改为人工填写。取消浏览器等待不撤销已接纳的模型工作，迟到结果不可覆盖新照片、手动事实或已保存报告。
+
+任务租约180秒；应用进程中断或租约到期时返回failed/ANALYSIS_INTERRUPTED，不无限pending、不在轮询或原键重放时自动再次收费。用户明确重试采用新键。模型单次默认等待60秒、允许配置1至60000ms；内部分析与门禁使用覆盖后台推理的租约和截止线。任务工作通过原C分析服务和预算门禁；不增加第二套存储/队列/ORM。
+
+completed任务中的AnalysisDTO保留原语义：可用结构但不能形成障碍建议时为uncertain；拒绝、无有效工具结果、结构错误或已发起的模型调用失败为unavailable，result=null，保存原因后允许人工填报。completed/uncertain分析的unavailableReason=null。尚未发起模型时被预算/配置拒绝的任务为failed，不生成伪造AI完成记录；任务error.retryAfterSec用于频率等待。内部持久化失败不包装为分析成功。原键重放原任务及其结果；unavailable不进入可复用分析缓存，显式新键重试重新经过门禁。
 
 ### 5.4 原生 GLM 工具参数与服务端 Schema
 
@@ -704,7 +721,7 @@ ORS、Vision、Geocoding 的原子预算按服务与密钥共享持久化；重�
 
 不接受或无法解析的 HTTP 方法按框架返回 405，但错误体仍采用可控的 JSON 包络。所有 details 均走白名单，不能透传数据库错误、供应商 body、内部 SQL、照片对象键或会话信息。
 
-上游 403 只有明确配额错误才映射 QUOTA_EXHAUSTED；401 或其他 403 属供应商鉴权/配置不可用，映射 PROVIDER_UNAVAILABLE 并在后台记脱敏错误类别，不能提示用户登录 AccessLoop 或一律说额度不足。超时/5xx 或上游 429 至多一次有限重试，每次重新取预算；配额与鉴权错误不自动重试。前台等待总时长目标不超过 15s，不能无限排队。analyze 已被接纳后的模型失败按 §5.3 返回 unavailable，路由/搜索等仍按本错误表返回失败。
+上游 403 只有明确配额错误才映射 QUOTA_EXHAUSTED；401 或其他 403 属供应商鉴权/配置不可用，映射 PROVIDER_UNAVAILABLE 并在后台记脱敏错误类别，不能提示用户登录 AccessLoop 或一律说额度不足。超时/5xx 或上游 429 至多一次有限重试，每次重新取预算；配额与鉴权错误不自动重试。单个前台HTTP等待目标不超过15s，不能无限排队。analyze采用§5.3的异步任务，后台模型最多等待60s；已发起模型失败完成为unavailable分析，发起前失败为failed任务。路由/搜索等仍按本错误表返回失败。
 
 版本冲突和限流示例：
 

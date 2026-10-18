@@ -97,3 +97,15 @@ export function parseGlmToolResult(body: unknown): VisionOutcome {
   if (!result.success) return { aiStatus: 'unavailable', result: null, unavailableReason: 'invalid_output' }
   return VisionOutcomeSchema.parse({ aiStatus: classifyVisionResult(result.data), result: result.data, unavailableReason: null })
 }
+
+export const AnalysisTaskErrorSchema = z.strictObject({
+  code: z.enum(['RATE_LIMITED', 'QUOTA_EXHAUSTED', 'PROVIDER_UNAVAILABLE', 'PROVIDER_TIMEOUT', 'ANALYSIS_STALE', 'ANALYSIS_INTERRUPTED', 'INTERNAL_ERROR']),
+  message: z.string().min(1).max(300), retryAfterSec: z.number().int().nonnegative().max(86400).optional(),
+})
+const TaskMetadata = { jobId: z.string().regex(/^[a-f0-9]{64}$/) }
+export const AnalysisTaskSchema = z.discriminatedUnion('status', [
+  z.strictObject({ ...TaskMetadata, status: z.literal('pending'), pollAfterSec: z.number().int().min(0).max(10) }),
+  z.strictObject({ ...TaskMetadata, status: z.literal('completed'), analysis: AnalysisDTOSchema }),
+  z.strictObject({ ...TaskMetadata, status: z.literal('failed'), error: AnalysisTaskErrorSchema }),
+])
+export type AnalysisTaskDTO = z.infer<typeof AnalysisTaskSchema>

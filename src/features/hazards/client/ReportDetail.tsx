@@ -84,7 +84,7 @@ export function ReportDetail({ id, returnTo = '/my-reports', onNavigate, onChang
             if (task.current()) { setAnalysis(result); setAnalysisId(result.analysisId) }
           }).catch((failure) => { if (task.current()) setError(errorMessage(failure)) }).finally(() => { if (task.current()) setAnalyzing(false) })
         }} />
-        <AIAnalysisFeedback analysis={analysis} isLoading={analyzing} onManualFallback={() => setAnalysisId(undefined)} onApplyFindings={(facts) => {
+        <AIAnalysisFeedback analysis={analysis} isLoading={analyzing} onManualFallback={() => { analysisRequests.current.cancel(); setAnalyzing(false); setError(''); setAnalysis(null); setAnalysisId(undefined) }} onApplyFindings={(facts) => {
           setCategory(facts.category); setDescription(facts.description); setAnalysisId(facts.analysisId)
         }} />
         <ReportForm photoId={photoId ?? ''} analysisId={analysisId} category={category} description={description} disabled={!photoId || analyzing}

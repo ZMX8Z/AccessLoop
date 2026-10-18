@@ -6,11 +6,12 @@ import { parseGlmToolResult, RecordHazardAnalysisTool, type VisionOutcome } from
 import { ProviderError } from './provider-error'
 
 export const DEFAULT_VISION_MODEL = 'glm-4.6v'
+export const DEFAULT_VISION_TIMEOUT_MS = 60_000
 
 const GLM_ENDPOINT = 'https://open.bigmodel.cn/api/paas/v4/chat/completions'
 const ConfigurationSchema = z.object({
   apiKey: z.string().trim().min(1), model: z.string().trim().regex(/^[a-zA-Z0-9._-]{1,100}$/),
-  timeoutMs: z.number().int().min(1).max(15000),
+  timeoutMs: z.number().int().min(1).max(60_000),
 })
 const SYSTEM_PROMPT = [
   'Inspect only visible image evidence about a possible pedestrian passage obstruction.',
@@ -110,7 +111,7 @@ export function parseVisionPolicy(environment: Readonly<Record<string, string | 
 export function createGlmAdapter(options: {
   apiKey: string; model?: string; timeoutMs?: number; fetch?: typeof fetch
 }) {
-  const parsed = ConfigurationSchema.safeParse({ apiKey: options.apiKey, model: options.model ?? DEFAULT_VISION_MODEL, timeoutMs: options.timeoutMs ?? 8000 })
+  const parsed = ConfigurationSchema.safeParse({ apiKey: options.apiKey, model: options.model ?? DEFAULT_VISION_MODEL, timeoutMs: options.timeoutMs ?? DEFAULT_VISION_TIMEOUT_MS })
   if (!parsed.success) throw unavailable(false)
   const { apiKey, model, timeoutMs } = parsed.data
   const fetcher = options.fetch ?? fetch

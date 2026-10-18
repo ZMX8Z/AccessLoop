@@ -6,6 +6,7 @@ import { DEFAULT_VISION_MODEL } from '@/server/providers/glm'
 import { createHazardService } from '@/features/hazards/server/service'
 import { createPhotoService } from './service'
 import { createAnalysisService } from './analysis'
+import { createAnalysisTasks } from './analysis-tasks'
 
 export async function c1Services() {
   assertPayloadEnvironment()
@@ -21,9 +22,10 @@ export async function c1Services() {
     schemaVersion: process.env.VISION_SCHEMA_VERSION?.trim() || '1',
   }
   const photos = createPhotoService(payload, { regionId })
+  const analyses = createAnalysisService(payload, { regionId, visionConfig, readOwnedReportBytes: photos.readOwnedReportBytes })
   return {
-    photos,
-    analyses: createAnalysisService(payload, { regionId, visionConfig, readOwnedReportBytes: photos.readOwnedReportBytes }),
+    photos, analyses,
+    analysisTasks: createAnalysisTasks(payload, { regionId, analysis: analyses }),
     hazards: createHazardService(payload, { regionId, sessionSecret, visionConfig }),
   }
 }
