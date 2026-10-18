@@ -3,6 +3,7 @@ import {getPayload,readMigrationFiles} from 'payload';
 import {z} from 'zod';
 import {migrations} from '../src/migrations';
 import {withTransaction} from '../src/server/storage/transaction';
+import {schemaObjectsStatement} from './zenith-schema-objects';
 import {planZenithBootstrap,parseAppliedMigrations} from './zenith-bootstrap-policy';
 
 async function bootstrap(){
@@ -13,17 +14,7 @@ async function bootstrap(){
  try{
   await withTransaction(payload,async transaction=>{
    await transaction.lock('deployment-schema-bootstrap');
-   const found=z.object({rows:z.array(z.object({name:z.string()}))}).parse(await transaction.execute(sql`
-    SELECT CASE WHEN n.nspname='public' THEN c.relname ELSE n.nspname||'.'||c.relname END AS name
-    FROM pg_catalog.pg_class c JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace
-    WHERE n.nspname NOT IN ('pg_catalog','information_schema') AND n.nspname NOT LIKE 'pg_%'
-    AND c.relkind IN ('r','p','v','m','S','f','c')
-    UNION ALL
-    SELECT n.nspname||'.'||t.typname AS name
-    FROM pg_catalog.pg_type t JOIN pg_catalog.pg_namespace n ON n.oid=t.typnamespace
-    WHERE n.nspname NOT IN ('pg_catalog','information_schema') AND n.nspname NOT LIKE 'pg_%'
-    AND t.typtype IN ('e','d')
-   `));
+   const found=z.object({rows:z.array(z.object({name:z.string()}))}).parse(await transaction.execute(schemaObjectsStatement()));
    const objects=found.rows.map(row=>row.name);
    const readApplied=async()=>parseAppliedMigrations(await transaction.execute(sql`SELECT name,batch FROM public.payload_migrations`));
    const expected=migrations.map(migration=>migration.name);
