@@ -30,10 +30,20 @@ export function decodeProviderLedger(encoded:string){
   return LedgerSchema.parse(raw);
  }catch{throw new Error('The private provider ledger snapshot is invalid. No records were restored.');}
 }
+/** Only an empty target or an exact repeat can accept a snapshot; never mix event identity formats. */
+export function requireRepeatableEventRestore(targetCount:number,existingIds:ReadonlySet<string>,expectedIds:readonly string[]){
+ if(targetCount>0&&expectedIds.some(id=>!existingIds.has(id)))throw new Error('The provider ledger target is incompatible with this snapshot. Existing records were not changed.');
+}
 /** Controlled deployment restore through C's existing Payload transaction; never overwrites or resets usage. */
 export async function restoreProviderLedger(payload:Payload,snapshot:z.infer<typeof LedgerSchema>){
  return withTransaction(payload,async({req,lock})=>{
   await lock('deployment-provider-ledger-restore');
+  const target=await payload.count({collection:'provider-events',overrideAccess:true,req});
+  const expectedIds=snapshot.events.map(row=>row.id);
+  if(target.totalDocs>0&&expectedIds.length){
+   const found=await payload.find({collection:'provider-events',where:{id:{in:expectedIds}},pagination:false,limit:0,depth:0,overrideAccess:true,req});
+   requireRepeatableEventRestore(target.totalDocs,new Set(found.docs.map(row=>row.id)),expectedIds);
+  }
   let restored=0,existing=0;
   for(const row of snapshot.usage){const found=await payload.count({collection:'provider-usage',where:{id:{equals:row.id}},overrideAccess:true,req});if(found.totalDocs){existing++;continue}await payload.create({collection:'provider-usage',data:row,overrideAccess:true,req});restored++}
   for(const row of snapshot.blocks){const found=await payload.count({collection:'provider-blocks',where:{id:{equals:row.id}},overrideAccess:true,req});if(found.totalDocs){existing++;continue}await payload.create({collection:'provider-blocks',data:row,overrideAccess:true,req});restored++}

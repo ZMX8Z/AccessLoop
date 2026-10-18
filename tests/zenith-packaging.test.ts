@@ -11,7 +11,7 @@ test('every container stage uses the exact Node runtime required by the applicat
 });
 
 import {gzipSync,brotliCompressSync} from 'node:zlib';
-import {decodeProviderLedger} from '../scripts/zenith-provider-ledger';
+import {decodeProviderLedger,requireRepeatableEventRestore} from '../scripts/zenith-provider-ledger';
 const encode=(value:unknown)=>gzipSync(JSON.stringify(value)).toString('base64');
 const ledger=()=>({version:1,exportedAt:'2026-10-18T00:00:00Z',usage:[{id:'reservation-1',keyFingerprint:'a'.repeat(64),service:'vision',reservedAt:'2026-10-17T23:59:00Z',startedAt:'2026-10-17T23:59:01Z',outcome:'error',finishedAt:'2026-10-17T23:59:02Z',errorCode:'PROVIDER_UNAVAILABLE'}],blocks:[{id:'block-1',keyFingerprint:'a'.repeat(64),service:'vision',blockedUntil:'2026-10-18T00:01:00Z',reason:'rate'}],events:[{id:'event-1',service:'vision',kind:'error',category:'PROVIDER_UNAVAILABLE',occurredAt:'2026-10-17T23:59:02Z'}]});
 test('private ledger restore retains charged timestamps, error events and quota blocks',()=>{
@@ -44,4 +44,12 @@ test('compact ledger refuses inflated counts and duplicate groups instead of fab
 
 test('Brotli ledger transport preserves bounded records within the platform private-env envelope',()=>{
  const input=ledger();assert.deepEqual(decodeProviderLedger('br:'+brotliCompressSync(JSON.stringify(input)).toString('base64')),input);
+});
+
+test('restoring a different event format into an existing ledger is rejected before inserts',()=>{
+ const source=ledger(),legacy=decodeProviderLedger(encode(source));const {id:_id,...event}=source.events[0];void _id;
+ const compact=decodeProviderLedger(encode({version:2,exportedAt:source.exportedAt,usage:source.usage,blocks:source.blocks,eventGroups:[{...event,count:1}]}));
+ assert.throws(()=>requireRepeatableEventRestore(1,new Set(legacy.events.map(row=>row.id)),compact.events.map(row=>row.id)),/incompatible/);
+ assert.doesNotThrow(()=>requireRepeatableEventRestore(0,new Set(),compact.events.map(row=>row.id)));
+ assert.doesNotThrow(()=>requireRepeatableEventRestore(2,new Set([...compact.events.map(row=>row.id),'a-new-live-event']),compact.events.map(row=>row.id)));
 });
