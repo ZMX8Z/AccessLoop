@@ -1,0 +1,16 @@
+x-zenith:
+  catalog:
+    name: My Next.js app
+    description: My Next.js app starter for zenith up.
+    authors: [Your name]
+    source: https://example.com/replace-with-your-repository
+    license: UNLICENSED
+    tags: [node, nextjs]
+  expose:
+    - { service: web, port: 3000, web: true }
+
+services:
+  web:
+    build: .
+    ports:
+      - "3000:3000"

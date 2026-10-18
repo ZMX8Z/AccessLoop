@@ -24,3 +24,9 @@
 - 实际命令以 package.json 和运行环境为准。骨架及业务完成状态以所属交接/验收记录为准，不宣称未运行的构建、服务或外部能力已通过。
 - 记录 baseDevCommit、headCommit、检查结果和真实/桩验证证据；外部依赖未验证如实标记阻塞。
 - 交接写入 docs/handoffs/wp-<a|b|c|d>.md，技术验收结果写入 docs/acceptance/wp-<a|b|c|d>.md；这两类是执行记录，不替代权威规则。
+
+## Zenith
+
+Use the checked-in .agents/skills/zenith-setup/SKILL.md to prepare this repository for Zenith. Read the Compose, test, and publish skills there as the work progresses. Run `zenith check` after adapting Dockerfile and zenith-compose.yml to the actual app. Keep secrets out of Git.
+
+You do not need Docker installed locally; Zenith builds and runs containers on the platform, so use `zenith up` for previews. Zenith also provides outbound app email through its SMTP relay. Configure x-zenith.env using the Compose skill for previews and published apps.
