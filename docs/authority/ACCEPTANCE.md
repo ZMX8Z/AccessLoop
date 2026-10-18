@@ -42,7 +42,7 @@
 | P1纠错/驳回/解除/重开与审计 | B/C/D | C15命令、审计、版本/幂等/事务实库及生产Admin HTTP通过 | 待执行 | C15集成 |
 | P1区域/预设通道配置与持久化 | C/D，B界面 | C15事务命令/权限/全部会话影响及D校验通过；实测区域未导入 | 界面部分待执行 | C15、D地理回归 |
 | P1调用/等待/错误/缓存摘要 | D/C，B界面 | 真实24h脱敏事件核对及重启/恢复保留通过；C15鉴权接口与后台挂载通过 | 界面部分待执行 | Vision/业务恢复证据、C15 |
-| Zenith、重启持久化及最小备份恢复 | D/C | 本机生产照片/报告/确认/预算重启、配套空库及对象副本删除后回填通过；Zenith待验 | 在线功能待执行 | business-recovery-evidence.json、object-recovery-evidence.json、恢复说明 |
+| Zenith、重启持久化及最小备份恢复 | D/C | 本机生产照片/报告/确认/预算重启、配套空库及对象回填通过；Zenith Node失败修复、干净构建通过，私有源码/秘密上传待明确授权，平台仍待验 | 在线功能待执行 | business-recovery-evidence.json、object-recovery-evidence.json、恢复说明 |
 
 **最终完成定义：**四包 P0/P1 必要功能均完成，AI 技术验收通过，人工功能与界面验收通过，Zenith 上真实核心闭环、搜索和公共管理流程可复现。单独 P0 通过、静态页面完成或预存演示可用均不代表整项目完成。
 
@@ -56,3 +56,5 @@ B最新独立两轴31/31（重叠）及真实C/OSS隔离浏览器、第二会话
 当前四包工程阶段已共享dev `9cfd186a8d2345af9cd970266e22415a9085d2e2`（B #8）。同树构建、31项合后回归和入口/匿名保护通过；完整P0/P1未通过。早期模型重查见[四包集成回执](../acceptance/d-four-package-integration.md)；后续付费模型真实照片分析已通过，见[付费模型验收](../acceptance/d-paid-vision.md)。
 
 地图/设施补充最新阶段：baseDevCommit=2d85e52c7e488c706f1fad606a67ebf55ec317d2，产品938cfc29d2b91f31102f562b5a1ffc8ff2de863c；[验收](../acceptance/d-map-cloud.md)与[真实证据](../deployment/map-cloud-evidence.json)。主Overpass失败保留，cloud提供实际设施补充，旧“无可用实时地点源”不再代表当前状态。统一check262通过/11默认集成跳过、build exit0，两轴复核通过；现场通道、最终真实导航/搜索/公共管理总闭环、人工与Zenith仍未通过。
+
+Zenith 预览准备最新阶段：base dev `9891b3b`，产品证据 `86a3892635b117d5ea4c9311ab39985cdcef2ab3`。原 Node 版本失败已定位；内部持久 PG、私有输入与 C 原子账本接管已准备。统一 check 270通过/11默认跳过、无环境文件生产构建成功，独立两轴复核通过。`up` 在上传前被自动审批拒绝，需明确传输授权；没有新平台构建/数据库/重启证据或在线入口，P0/P1 总验收状态不变。见[本阶段验收](../acceptance/d-zenith-preview.md)。

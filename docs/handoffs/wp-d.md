@@ -158,3 +158,11 @@ D17恢复证据阶段实际集成SHA为d49eef50a59cd3c42b6c6ce3996a075822a68228�
 baseDevCommit=2d85e52c7e488c706f1fad606a67ebf55ec317d2，codeEvidenceCommit/headCommit=938cfc29d2b91f31102f562b5a1ffc8ff2de863c；最终交付/集成SHA见本阶段PR元数据。Leaflet依赖/锁文件、共享MapView、设施Schema、HTTP与客户端已同批同步；A/B保持既有props。C预算/缓存仓储所有权不变，无迁移/新连接。两轴发现均修复并独立复核。真实事件、原失败、截图与清理详见上述阶段验收；本阶段没有ORS/模型/搜索外呼。
 
 本机http://localhost:3000/live保留isDemo=true的独立设施演示区域，C初始化所需一条synthetic通道明确标为未实测，不作为生产校园种子。云设施是实际读取；源故障、许可与unknown在UI可见。主/工作树环境均仅本地保存cloud配置。现场与Zenith缺项不因设施连通而消失。
+
+## Zenith 预览失败修复准备（2026-10-18）
+
+baseDevCommit=`9891b3ba7a8e6f14fa5cb3b59a34d713f654cfae`；codeEvidenceCommit=`86a3892635b117d5ea4c9311ab39985cdcef2ab3`，最终交付 head 见本阶段 PR。已安全同步 dev 并先集成 D 子分支 CLI 锁定提交；原预览因 Node22.23.3 与项目要求22.14.0 不符而失败。Docker 版本已固定，按用户选择加入平台持久 PostgreSQL 与顺序 C 迁移/初始化、私有账本接管。没有增加 ORM、修改 C Collection 或覆盖本机数据。
+
+统一 check270通过/11默认集成跳过/0失败，无环境文件生产构建exit0，两轴独立复核通过。初次私有准备26项29789字节，源库只读，源码压缩包不含秘密；上传前须按最终 head 刷新导出。相同密钥的旧实例须停用或共用原子仓储，快照不能充当双库同步。
+
+自动审批在执行前拒绝了向 Zenith 传输私有源码和数据库/OSS/供应商/管理员配置，`up` 未执行；待用户明确授权后再做真实平台验收。本阶段 draft PR 尚未集成，无新线上入口或二维码，不表示 D 或全项目 P0/P1 完成。[完整验收](../acceptance/d-zenith-preview.md)、[操作与待验步骤](../deployment/zenith-preview.md)。此前“缺 Zenith 模板/入口”已更新为：模板、contract/schema、认证 CLI 已具备，传输授权与修复后平台验证待完成。

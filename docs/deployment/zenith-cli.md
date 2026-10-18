@@ -23,6 +23,6 @@ pnpm exec zenith check
 pnpm exec zenith up
 ```
 
-这些后续动作尚未执行。`init` 会准备部署文件及仓库指导文件；先评估生成差异。`up` 会上传项目并启动平台预览，不能把 CLI 安装成功当作预览或生产部署通过。容器、秘密注入、数据库、预算、迁移及验收规则继续遵循[技术文档第 11 节](../authority/AccessLoop_技术文档_v1.0.md#11-配置与-zenith-部署)和[部署入口](README.md)。
+其中 `check` 与原失败预览的 `logs` 已执行；新预览 `up` 因私有源码/秘密传输自动审批拒绝而未执行，见[修复验收](../acceptance/d-zenith-preview.md)。`init` 会准备部署文件及仓库指导文件；先评估生成差异。`up` 会上传项目并启动平台预览，不能把 CLI 安装成功当作预览或生产部署通过。容器、秘密注入、数据库、预算、迁移及验收规则继续遵循[技术文档第 11 节](../authority/AccessLoop_技术文档_v1.0.md#11-配置与-zenith-部署)和[部署入口](README.md)。
 
 依赖来源：[npm 包 0.1.9](https://www.npmjs.com/package/@zenith-hosting/cli/v/0.1.9)及安装包自带 README / 命令帮助。
