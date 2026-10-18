@@ -5,5 +5,5 @@ import nextTypeScript from 'eslint-config-next/typescript'
 export default defineConfig([
   ...nextVitals,
   ...nextTypeScript,
-  globalIgnores(['.next/**', 'next-env.d.ts', 'src/payload-types.ts', 'src/migrations/**', 'src/app/(payload)/admin/importMap.js']),
+  globalIgnores(['.local/**', '.next/**', 'next-env.d.ts', 'src/payload-types.ts', 'src/migrations/**', 'src/app/(payload)/admin/importMap.js']),
 ])

@@ -1,16 +1,77 @@
 x-zenith:
   catalog:
-    name: My Next.js app
-    description: My Next.js app starter for zenith up.
-    authors: [Your name]
-    source: https://example.com/replace-with-your-repository
+    name: AccessLoop
+    description: Accessible campus places, wheelchair route planning, and temporary
+      barrier reports.
+    authors:
+      - AccessLoop contributors
+    source: https://github.com/ZMX8Z/AccessLoop
     license: UNLICENSED
-    tags: [node, nextjs]
+    tags:
+      - accessibility
+      - maps
+      - nextjs
   expose:
-    - { service: web, port: 3000, web: true }
-
+    - service: web
+      port: 3000
+      web: true
+  storage:
+    database:
+      volume: postgres-data
+      label: AccessLoop PostgreSQL data
+  env:
+    APP_BASE_URL:
+      alias: ZENITH_PUBLIC_URL
+      services:
+        - web
+    PAYLOAD_SECRET:
+      generate: "[A-Za-z0-9]{64}"
+      services:
+        - web
+    SESSION_SECRET:
+      generate: "[A-Za-z0-9]{64}"
+      services:
+        - web
 services:
+  db:
+    image: postgres:17.6-bookworm
+    environment:
+      POSTGRES_USER: accessloop
+      POSTGRES_DB: accessloop
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pg_isready -U accessloop -d accessloop
+      interval: 5s
+      timeout: 3s
+      retries: 12
   web:
     build: .
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+      APP_MODE: demo
+      REGION_ID: unsw-kensington-facilities-demo
+      ZENITH_BOOTSTRAP_EMPTY_DATABASE: "1"
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - fetch("http://127.0.0.1:3000/api/health").then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
     ports:
-      - "3000:3000"
+      - 3000:3000
+    command:
+      - sh
+      - scripts/zenith-start.sh
+volumes:
+  postgres-data: null

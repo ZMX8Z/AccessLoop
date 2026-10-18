@@ -29,8 +29,8 @@ pnpm exec tsx scripts/deployment-probe.ts --http --database --egress
 
 ## 最小缺项
 
-1. 比赛提供的 Zenith 模板/项目入口及部署权限：确认 Node/容器方式、构建命令、PORT、资源、持久化、出网、密钥注入、健康检查与发布审核。公开页面没有给出比赛模板的 manifest Schema，本仓库未据此编造配置。
-2. Zenith真实部署地址、平台PostgreSQL连接与持久化资源、稳定且分别配置的PAYLOAD_SECRET/SESSION_SECRET注入；本机对应资源已配好。
+1. Zenith 模板、官方 Compose contract/schema、已认证 CLI 已具备；原预览 Node 版本失败已定位并修复。初次 `up` 因传输授权被拒；用户随后已明确授权上传启动。当前平台已接受兼容配置，实际构建/启动结果待记录，见[预览配置](zenith-preview.md)和[固定提交验收](../acceptance/d-zenith-preview.md)。
+2. 用户已选择平台内持久 PostgreSQL；Compose、内部连接和独立应用秘密配置已准备，实际数据库就绪、注入/重启稳定性及新 HTTPS 地址仍待平台验证。
 3. OSS本机配置、C15真实照片上传/授权代理与单样本配套备份回填已验证；Zenith仍需验证连接和权限、配套生产备份目标及完整照片覆盖。秘密不进入提交或浏览器。
 4. ORS/Geocoding密钥与权限已实测；VISION_API_KEY已配置。早期[GLM探针](vision-connection-evidence.json)返回429/1305，仅在该进程设日上限1、未修改环境。后续本地Vision日预算显式设为10次/日并重启；集成9cfd186的一次有界重查仍429/1305，见[新证据](vision-recheck-evidence.json)。用户后续指定付费glm-4.6v并确认充值，真实连通与私有照片HTTP分析/重放/缓存已通过，见[付费证据](paid-vision-evidence.json)；旧1305与充值前1113均保留。解析规则见技术文档11.1，调用须经持久化预算。
 5. D 的现场通道测量记录；已有带官方 GIS/OSM 来源的[校园候选](campus-survey.md)，仍需现场与真实 ORS 核验。四包当前阶段代码已集成，仍需最终真实闭环及人工验收；未取得实测证据不能称已验证可通行。
@@ -43,7 +43,7 @@ pnpm exec tsx scripts/deployment-probe.ts --http --database --egress
 
 2026-10-17 读取的 [开发者发布说明](https://zenith.hosting/developers)要求公开 GitHub 仓库、zenith-compose.yml、介绍/图片及审核。当前私有仓库不能据此直接假定满足公开发布要求；比赛专用路径若有不同条件，以实际模板核对。
 
-[官方 Agent 连接页](https://zenith.hosting/connect)提供 OAuth MCP 入口，支持部署、配置及健康读取；新部署另有价格批准。当前会话没有已连接的 Zenith 工具或现场模板，因此未登录、未创建部署、未变更仓库可见性。参阅 [官方指南目录](https://zenith.hosting/guides)。
+[官方 Agent 连接页](https://zenith.hosting/connect)提供 OAuth MCP 入口，支持部署、配置及健康读取；新部署另有价格批准。当前未发现已连接的 Zenith MCP；已使用项目锁定的官方 CLI 读取原预览日志、核对真实 contract/schema 并完成静态检查。初次传输自动审批拒绝后，用户已明确授权；实际源码和私有配置已上传并创建预览，构建作业反复重试后已停止，见[平台排查材料](zenith-build-triage.md)。未变更仓库可见性。参阅 [官方指南目录](https://zenith.hosting/guides)。
 
 ## 发布与同一提交回归
 

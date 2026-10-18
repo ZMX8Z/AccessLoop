@@ -369,7 +369,11 @@ P0 不做完整公众账号，以服务器生成的不可预测匿名会话标�
 | --- | --- | --- |
 | APP_BASE_URL / APP_MODE | 站点地址与 demo 或 live 模式 | 服务端与有限公开配置 |
 | REGION_ID / REGION_BBOX | 单区域范围和种子数据选择 | 服务端；返回可公开区域字段 |
-| DATABASE_URL | PostgreSQL 连接或等价托管连接配置 | 服务端秘密 |
+| DATABASE_URL | PostgreSQL 连接或等价托管连接配置；Zenith 预览指向内部 db:5432/accessloop | 服务端秘密 |
+| ZENITH_BOOTSTRAP_EMPTY_DATABASE | Zenith 新库首次部署显式允许执行既有迁移；只在 schema 无用户对象时生效，已有库仅核对迁移集 | 服务端部署开关，非通用启动迁移 |
+| POSTGRES_PASSWORD | Zenith 内部 PostgreSQL 初始化密码，须与 DATABASE_URL 一致 | 仅数据库容器秘密 |
+| ADMIN_EMAIL / ADMIN_PASSWORD | 受控命令或 Zenith 一次性初始化首个 operator；已有账户不覆盖 | 服务端私有初始化配置 |
+| PROVIDER_LEDGER_SNAPSHOT | 部署接管时恢复有效预留/封锁与脱敏事件的有界私有快照；不是持续同步 | 服务端私有输入；C 事务/锁恢复，不含行程或原始密钥 |
 | PAYLOAD_SECRET | Payload 认证及加密密钥；与 SESSION_SECRET 分开配置 | 服务端秘密；每实例独立，重启保持一致 |
 | OSS_ENDPOINT / OSS_BUCKET | 阿里云 OSS HTTPS 服务地址与私有 Bucket；Zenith 使用可连通的 endpoint | 服务端配置 |
 | OSS_REGION | Bucket 所在地域；映射为所用 SDK 要求的地域及签名配置，不能照搬 AWS 地域值 | 服务端配置 |
@@ -410,7 +414,7 @@ P0 不做完整公众账号，以服务器生成的不可预测匿名会话标�
 
 7. 冻结功能，保留上一可用镜像或提交版本；数据库迁移尽量向前兼容，回滚不通过删除真实数据实现。
 
-照片存储供应商已确定为阿里云 OSS，实际账号、地域、Bucket、权限及 Zenith 连通性尚待部署验证。PostgreSQL 托管供应商仍按部署条件确定；如使用 Supabase，仅连接其 PostgreSQL，不额外引入 Auth、Storage 与 Studio 作为本版默认架构。外部数据服务的使用条件须按比赛规则确认；若需将 PostgreSQL 改为 Zenith 内的数据库，先核实数据库容器及持久化卷支持。OSS 或网络不可用时上传明确失败，不能回退到容器临时目录持久化照片。
+照片存储供应商已确定为阿里云 OSS，实际账号、地域、Bucket、权限及 Zenith 连通性尚待部署验证。PostgreSQL 托管供应商仍按部署条件确定；如使用 Supabase，仅连接其 PostgreSQL，不额外引入 Auth、Storage 与 Studio 作为本版默认架构。外部数据服务的使用条件须按比赛规则确认；当前预览按用户选择配置 Zenith 内 PostgreSQL 17.6 与命名持久卷，web/db 分离服务且仅公开 web:3000；依据官方 Compose contract/schema 配置，不代表平台持久性已验。构建与运行固定 Node 22.14.0 / pnpm 10.20.0。当前平台渲染器拒绝 `pre_start` 和输入声明，预览通过 CLI 私密 local-env 注入及容器入口顺序执行受控新库迁移、幂等初始化和 Web。新库迁移必须显式启用且 schema 无用户对象；已有库仅核对完整迁移集合，部分/不兼容库停止等待受控修复。该初始化不在每次重启执行迁移，不清表，实际数据库等待及持久性须看平台日志。同一供应商密钥接管前须停用旧账本的运行实例或改为统一原子仓储，禁止用一次快照维持两套并发预算。操作及通过范围见[预览说明](../deployment/zenith-preview.md)。OSS 或网络不可用时上传明确失败，不能回退到容器临时目录持久化照片。
 
 ## 12 验证方案与需求追踪
 

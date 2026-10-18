@@ -25,8 +25,10 @@
 
 完整命令、环境配置、四包接入及检查方式见 [本地开发说明](docs/DEVELOPMENT.md)。本阶段交接与实际证据见 [D 交接](docs/handoffs/wp-d.md) 和 [D 技术验收](docs/acceptance/wp-d.md)。
 
-D 服务接线见 [仓储与前端交接](docs/handoffs/d-service-integration.md)。部署探针执行 `pnpm deploy:probe`，仅打印配置存在性；额外探测和恢复步骤见 [部署说明](docs/deployment/README.md)。秘密放独立工作目录的 `.env.local`，该文件不提交。
+D 服务接线见 [仓储与前端交接](docs/handoffs/d-service-integration.md)。部署探针执行 `pnpm deploy:probe`，仅打印配置存在性；额外探测和恢复步骤见 [部署说明](docs/deployment/README.md)。秘密放独立工作目录的 `.env.local`，该文件不提交。Zenith 失败原因与修复后的持久数据库/私有输入流程见[预览配置](docs/deployment/zenith-preview.md)及[阶段验收](docs/acceptance/d-zenith-preview.md)；本机干净构建通过；用户已授权并上传，控制面502已恢复，构建作业反复重试后已停止，需平台排查，平台结果以阶段验收记录为准。
 
 本机联调库已按用户授权独立配置，路径、端口和安全复用方式见 [本机 PostgreSQL](docs/deployment/local-development-db.md)；数据库与秘密留在本地忽略文件中。
 
 底图与设施配置见[部署接线](docs/deployment/maps-and-facilities.md)，本次真实覆盖、浏览器和失败回归见[地图/cloud验收](docs/acceptance/d-map-cloud.md)。cloud作为设施补充，不替代校园现场核验。
+
+2026-10-18 用户已授权将当前修复经 dev 同步至 main，供 Zenith 拉取；具体提交与核验见[main同步记录](docs/deployment/main-sync-2026-10-18.md)。线上构建和P0/P1未通过状态保持单独记录。

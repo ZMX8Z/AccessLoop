@@ -1,14 +1,18 @@
-FROM node:22-alpine AS build
+FROM node:22.14.0-bookworm-slim AS build
 WORKDIR /app
-COPY package.json pnpm-lock.yaml ./
-RUN corepack enable && pnpm install --frozen-lockfile
+ENV COREPACK_HOME=/opt/corepack
+COPY package.json pnpm-lock.yaml .npmrc ./
+RUN corepack enable && corepack prepare pnpm@10.20.0 --activate && pnpm install --frozen-lockfile
 COPY . .
-RUN pnpm build
-FROM node:22-alpine
+RUN NODE_OPTIONS=--max-old-space-size=1024 node scripts/build-with-diagnostics.mjs
+FROM node:22.14.0-bookworm-slim
 WORKDIR /app
-RUN corepack enable
-COPY --from=build /app ./
+ENV COREPACK_HOME=/opt/corepack
+RUN corepack enable && corepack prepare pnpm@10.20.0 --activate && chmod -R a+rX /opt/corepack
+COPY --from=build --chown=node:node /app ./
 ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV PORT=3000
 EXPOSE 3000
 USER node
 CMD ["pnpm", "start"]
