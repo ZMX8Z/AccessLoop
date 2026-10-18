@@ -1,5 +1,6 @@
 'use client'
 import React, { useEffect, useRef, useState } from 'react'
+import { inside } from '@/features/routing/client/state'
 import { PassagePicker } from '@/components/map/PassagePicker'
 import { createIdempotencyKey, errorMessage, ApiError } from '@/shared/client/api'
 import { CreateReportInputSchema, UpdateReportInputSchema, ReportCategorySchema, type PrivateReportDTO } from '@/shared/contracts/hazards'
@@ -27,14 +28,25 @@ export function ReportForm({ photoId, analysisId, category = 'obstruction', desc
   const [now, setNow] = useState(0)
   useEffect(() => { const timer = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(timer) }, [])
   const [location, setLocation] = useState<Position | null>(initialReport?.location ?? null)
+  const [locationDirty, setLocationDirty] = useState(false)
   const [passage, setPassage] = useState<PassageRef | null>(initialReport?.passage ?? null)
   const [observedAt, setObservedAt] = useState(initialReport ? localTime(initialReport.observedAt) : '')
   const [observationEdited, setObservationEdited] = useState(false)
   const [busy, setBusy] = useState(false), [error, setError] = useState('')
   const operation = useRef<{ body: string; key: string } | null>(null)
+  const missing = [
+    ...(!photoId ? ['Upload a report photo.'] : []),
+    ...(!region ? ['Wait for region configuration.'] : []),
+    ...(!description.trim() ? ['Enter an observation description.'] : []),
+    ...(!observedAt ? ['Set the actual observation time.'] : []),
+    ...(locationDirty ? ['Apply your edited report coordinates with Set report location.'] : !location || !region || !inside(location, region.bbox) ? ['Set a valid report location inside this region.'] : []),
+    ...(!passage ? ['Choose a preset passage or a current route segment.'] : []),
+  ]
   async function save() {
+    if (busy || disabled) return
     setError(''); setBusy(true); onSavingChange?.(true)
     try {
+      if (locationDirty) throw new Error('Apply your edited report coordinates with Set report location before saving.')
       if (!region || !location || !passage || !observedAt) throw new Error('Choose a location, passage and actual observation time before saving.')
       const time = new Date(observedAt).toISOString()
       if (Date.parse(time) > Date.now()) throw new Error('Observation time cannot be in the future.')
@@ -63,9 +75,11 @@ export function ReportForm({ photoId, analysisId, category = 'obstruction', desc
       <label>Actually observed at · your device time<input type="datetime-local" value={observedAt} onChange={(event) => { setObservedAt(event.target.value); setObservationEdited(true) }} required /></label>
       <button className="report-secondary" type="button" onClick={() => { setObservedAt(localTime()); setObservationEdited(true) }}>Observed now · use device time</button>
       {region && <PassagePicker bbox={region.bbox} location={location} route={route} passages={passages} value={passage} preview={null}
-        now={now} onLocationChange={(value) => { if (!busy) setLocation(value) }} onChange={(value) => { if (!busy) setPassage(value) }} />}
+        now={now} onLocationChange={(value) => { if (!busy && !disabled) { setLocation(value); setLocationDirty(false) } }} onLocationDraftChange={(dirty) => { if (!busy && !disabled) setLocationDirty(dirty) }} onChange={(value) => { if (!busy && !disabled) setPassage(value) }} />}
       {!region && <p>Waiting for the configured region and passages.</p>}
-      <button type="button" disabled={!location || !passage || !observedAt || !description.trim() || !region} onClick={() => void save()}>{busy ? 'Saving…' : initialReport ? 'Save corrections' : 'Save report and review avoidance'}</button>
+      {missing.length > 0 && <div role="status"><p>Before saving:</p><ul aria-label="Before saving">{missing.map(message => <li key={message}>{message}</li>)}</ul></div>}
+      {disabled && <p role="status">Wait for the current operation to finish before saving.</p>}
+      <button type="button" disabled={busy || disabled || missing.length > 0} onClick={() => void save()}>{busy ? 'Saving…' : initialReport ? 'Save corrections' : 'Save report and review avoidance'}</button>
     </fieldset>
     {onCancel && <button className="report-secondary" type="button" disabled={busy} onClick={onCancel}>Cancel editing</button>}
     {error && <p role="alert" className="report-error">{error} Your inputs are retained. On a version conflict, reload the report and review your changes before saving again.</p>}

@@ -5,6 +5,7 @@ import vm from 'node:vm'
 import ts from 'typescript'
 import * as client from '../src/shared/client/api'
 import * as contracts from '../src/shared/contracts/hazards'
+import { inside } from '../src/features/routing/client/state'
 
 const original: contracts.PrivateReportDTO = {
   id: 'report-time', regionId: 'region-time', rowVersion: 4, status: 'pending', publicRevision: null,
@@ -31,6 +32,7 @@ test('a description-only correction preserves the original precise observation i
   const imports: Record<string, unknown> = {
     'react/jsx-runtime': { jsx: element, jsxs: element }, react: hooks,
     '@/shared/client/api': client, '@/shared/contracts/hazards': contracts,
+    '@/features/routing/client/state': { inside },
     '@/components/map/PassagePicker': { PassagePicker: () => null },
     './api': { patchReport: async (_id: string, input: contracts.UpdateReportInput) => { writes.push(input); return { ...original, rowVersion: 5, description: input.description ?? original.description } } },
   }

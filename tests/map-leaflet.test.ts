@@ -162,3 +162,13 @@ test('an explicit planner route focuses its geometry once, while polling and tab
  c.update({...props,route,fitRoute:true,now:3000});
  assert.equal(h.bounds.length,2,'ticks, stale hiding and tab restoration do not refit');
 });
+
+test('a selected preset passage is visible and focused once without changing the report point',()=>{
+ const h=host(),selected:unknown[]=[];
+ const passage={type:'LineString' as const,coordinates:[[151.2294,-33.917],[151.2298,-33.917]] as [number,number][]};
+ const c=h.create({...props,passage,onLocationChange:value=>selected.push(value)});
+ assert.ok(h.layers.find(layer=>layer.kind==='geometry'&&(layer.options.style as {className?:string}).className==='map-passage'));
+ assert.deepEqual(json(h.bounds[1]),[[-33.917,151.2294],[-33.917,151.2298]]);
+ c.update({...props,passage,now:2000});assert.equal(h.bounds.length,2);
+ assert.deepEqual(selected,[],'Showing a passage must not claim where the user observed the barrier.');
+});
