@@ -127,3 +127,9 @@ baseDevCommit=`9891b3ba7a8e6f14fa5cb3b59a34d713f654cfae`；codeEvidenceCommit=`8
 统一 check270通过/11默认集成跳过/0失败，无环境文件生产构建exit0，两轴独立复核通过。初次私有准备26项29789字节，源库只读，源码压缩包不含秘密；上传前须按最终 head 刷新导出。相同密钥的旧实例须停用或共用原子仓储，快照不能充当双库同步。
 
 自动审批在执行前拒绝了向 Zenith 传输私有源码和数据库/OSS/供应商/管理员配置，`up` 未执行；待用户明确授权后再做真实平台验收。本阶段 draft PR 尚未集成，无新线上入口或二维码，不表示 D 或全项目 P0/P1 完成。[完整验收](../acceptance/d-zenith-preview.md)、[操作与待验步骤](../deployment/zenith-preview.md)。此前“缺 Zenith 模板/入口”已更新为：模板、contract/schema、认证 CLI 已具备，传输授权与修复后平台验证待完成。
+
+## 已授权的 Zenith 兼容修复跟进
+
+用户明确授权后已上传。平台渲染不接受 input/pre_start 的实测差异已解决；受控空库入口、C原生迁移与账本接管的最新产品/上传提交为2ec148e9a914833b23c414b60bff14ed81c609ae。check274通过/12默认跳过/0失败，真实PG schema保护回归1/1及独立两轴复核通过。当前会话01M56JV8MV4VTSHRF0NZTEGNYF已进入平台构建，线上HTTP/持久性仍待验；此前“待传输授权”不再代表当前状态。完整范围见[Zenith验收](../acceptance/d-zenith-preview.md)。
+
+最新外部阻塞（2026-10-18 15:10 Sydney）：Zenith账户列表/当前状态/build日志及控制台首页均502，浏览器明确Host Error。实际源码及26项私有输入已上传、构建已启动，最后可读状态building；当前运行状态未知，不宣称在线成功。先恢复读取原会话01M56JV8MV4VTSHRF0NZTEGNYF，避免重复实例/独立预算。PR #23保留draft，尚无新集成SHA、在线入口或平台恢复证据。详见[记录](../acceptance/d-zenith-preview.md)。

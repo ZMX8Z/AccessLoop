@@ -29,7 +29,7 @@ pnpm exec tsx scripts/deployment-probe.ts --http --database --egress
 
 ## 最小缺项
 
-1. Zenith 模板、官方 Compose contract/schema、已认证 CLI 已具备；原预览 Node 版本失败已定位并修复。新 `up` 的私有源码/秘密传输被自动审批拒绝，待明确授权，见[预览配置](zenith-preview.md)和[固定提交验收](../acceptance/d-zenith-preview.md)。
+1. Zenith 模板、官方 Compose contract/schema、已认证 CLI 已具备；原预览 Node 版本失败已定位并修复。初次 `up` 因传输授权被拒；用户随后已明确授权上传启动。当前平台已接受兼容配置，实际构建/启动结果待记录，见[预览配置](zenith-preview.md)和[固定提交验收](../acceptance/d-zenith-preview.md)。
 2. 用户已选择平台内持久 PostgreSQL；Compose、内部连接和独立应用秘密配置已准备，实际数据库就绪、注入/重启稳定性及新 HTTPS 地址仍待平台验证。
 3. OSS本机配置、C15真实照片上传/授权代理与单样本配套备份回填已验证；Zenith仍需验证连接和权限、配套生产备份目标及完整照片覆盖。秘密不进入提交或浏览器。
 4. ORS/Geocoding密钥与权限已实测；VISION_API_KEY已配置。早期[GLM探针](vision-connection-evidence.json)返回429/1305，仅在该进程设日上限1、未修改环境。后续本地Vision日预算显式设为10次/日并重启；集成9cfd186的一次有界重查仍429/1305，见[新证据](vision-recheck-evidence.json)。用户后续指定付费glm-4.6v并确认充值，真实连通与私有照片HTTP分析/重放/缓存已通过，见[付费证据](paid-vision-evidence.json)；旧1305与充值前1113均保留。解析规则见技术文档11.1，调用须经持久化预算。

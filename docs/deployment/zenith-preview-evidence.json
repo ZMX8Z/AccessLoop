@@ -1,7 +1,7 @@
 {
   "recordedAt": "2026-10-18",
   "baseDevCommit": "9891b3ba7a8e6f14fa5cb3b59a34d713f654cfae",
-  "codeEvidenceCommit": "86a3892635b117d5ea4c9311ab39985cdcef2ab3",
+  "codeEvidenceCommit": "2ec148e9a914833b23c414b60bff14ed81c609ae",
   "originalFailure": {
     "sessionId": "01M56FMK83TP7ZMMJBJR6ZFMA4",
     "code": "ERR_PNPM_UNSUPPORTED_ENGINE",
@@ -13,45 +13,89 @@
     "lint": "passed",
     "typecheck": "passed",
     "tests": {
-      "passed": 270,
-      "skipped": 11,
+      "passed": 274,
+      "skipped": 12,
       "failed": 0
     },
     "cleanBuildWithoutEnvironmentFiles": {
       "exitCode": 0,
       "platform": "local macOS",
-      "containerTested": false
+      "containerTested": false,
+      "sourceCommit": "86a3892635b117d5ea4c9311ab39985cdcef2ab3"
     },
     "independentSpecRegression": {
       "passed": 8,
       "failed": 0,
       "skipped": 0
+    },
+    "realPostgresSchemaProtection": {
+      "passed": 1,
+      "failed": 0,
+      "testObjectsRolledBack": true
     }
   },
   "privatePreparation": {
-    "exportedAt": "2026-10-18T03:36:07.833Z",
+    "exportedAt": "2026-10-18T03:56:01.540Z",
     "usage": 474,
     "blocks": 0,
     "events": 1687,
-    "snapshotSha256": "ec0678fe1f2761ce0d3a2ae219e5fc8a6a1f11d1a4b7deddfb7e2491a8ce16fa",
+    "snapshotSha256": "a94adfd9bdc5b0edae489a95feedf889afc0c029f1fd0f0d69da2c89299b5169",
     "privateEnvironmentVariables": 26,
-    "privateEnvironmentBytes": 29789,
+    "privateEnvironmentBytes": 29765,
     "privateEnvironmentExcludedFromArchive": true,
     "localDatabaseNotChanged": true
   },
   "archiveAudit": {
-    "preparationCodeCommit": "a85777fbe53787d35b7dceb84a462bc083b61d65",
-    "files": 382,
-    "bytes": 6115540,
-    "privateOrGeneratedFiles": 0,
-    "requiresRefreshBeforeUpload": true
+    "sourceCommit": "2ec148e9a914833b23c414b60bff14ed81c609ae",
+    "files": 391,
+    "expandedBytes": 8422450,
+    "zipBytes": 6129515,
+    "privateOrGeneratedFiles": 0
   },
   "deployment": {
-    "uploadExecuted": false,
-    "newPreviewCreated": false,
-    "automaticApproval": "rejected: explicit authorization required for private source and secret transfer",
-    "liveChecks": "not_run",
+    "uploadExecuted": true,
+    "newPreviewCreated": true,
+    "automaticApproval": "initially rejected; explicit user authorization subsequently granted",
+    "sessionId": "01M56JV8MV4VTSHRF0NZTEGNYF",
+    "status": "unknown_after_control_plane_502",
+    "liveChecks": "blocked_by_control_plane_502",
     "integratedDevCommit": null,
-    "onlineUrl": null
+    "onlineUrl": null,
+    "lastObservedStatus": "building",
+    "buildStarted": true,
+    "nodeBaseImageDigest": "sha256:1c18d9ab3af4585870b92e4dbc5cac5a0dc77dd13df1a5905cea89fc720eb05b",
+    "controlPlaneObservations": [
+      {
+        "at": "2026-10-18T04:09:23.792Z",
+        "accountPreviews": 502,
+        "currentPreview": 502,
+        "buildLogs": 502
+      },
+      {
+        "at": "2026-10-18T04:09:37Z",
+        "consoleUrl": "https://app.zenith.hosting/",
+        "httpStatus": 502,
+        "cloudflareHostStatus": "Error",
+        "rayId": "a4c4b0493cbbd367"
+      },
+      {
+        "at": "2026-10-18T04:10:52.132Z",
+        "currentPreview": 502
+      },
+      {
+        "at": "2026-10-18T04:12:19.209Z",
+        "currentPreview": 502
+      }
+    ]
+  },
+  "previousCodeEvidenceCommit": "86a3892635b117d5ea4c9311ab39985cdcef2ab3",
+  "compatibility": {
+    "inputDeclarations": "platform render rejected",
+    "preStart": "platform render rejected",
+    "privateLocalEnv": "accepted",
+    "aliasAndGenerate": "accepted",
+    "databaseAndVolume": "accepted",
+    "guardedStartupCompose": "accepted",
+    "priorBuildStoppedBeforeRuntime": true
   }
 }
