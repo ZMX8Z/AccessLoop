@@ -1,0 +1,36 @@
+{
+  "region": {
+    "id": "c0-synthetic-region",
+    "name": "Development verification — synthetic data",
+    "bbox": [0, 0, 1, 1],
+    "timezone": "Australia/Sydney",
+    "isDemo": true,
+    "hazardVersion": 0,
+    "configVersion": 1,
+    "personalValiditySec": 3600,
+    "publicValiditySec": 86400,
+    "avoidanceBufferM": 2,
+    "routing": {
+      "profile": "wheelchair",
+      "defaultRestrictions": { "maximum_incline": 6, "maximum_sloped_kerb": 0.06, "minimum_width": 0.9 },
+      "supportedRestrictions": { "maximum_incline": [6], "maximum_sloped_kerb": [0.06], "minimum_width": [0.9] }
+    }
+  },
+  "presetPassages": [
+    {
+      "id": "c0-synthetic-passage-a",
+      "passageVersion": 1,
+      "name": "Synthetic passage A",
+      "geometry": { "type": "LineString", "coordinates": [[0.1, 0.1], [0.2, 0.2], [0.3, 0.2]] },
+      "isDemo": true
+    },
+    {
+      "id": "c0-synthetic-passage-b",
+      "passageVersion": 1,
+      "name": "Synthetic passage B",
+      "geometry": { "type": "LineString", "coordinates": [[0.1, 0.1], [0.1, 0.3], [0.3, 0.2]] },
+      "isDemo": true
+    }
+  ],
+  "source": { "kind": "synthetic", "note": "Local C0 storage verification only. Invented coordinates; not UNSW, not surveyed, not suitable for navigation. Replace with a separate reviewed region from D before real use." }
+}

@@ -1,0 +1,104 @@
+{
+  "recordedAt": "2026-10-17T13:35:55.357Z",
+  "codeEvidenceCommit": "f7357ac14d7123e3ff394e4073d269d07365580f",
+  "baseDevCommit": "7da9f32fe62b2916de038b949db3a28f5a351af2",
+  "selectedModel": "glm-4.6v",
+  "status": "passed-local-provider-and-private-photo-http",
+  "configuredApplicationPolicy": {
+    "minuteLimit": 10,
+    "dayLimit": 10,
+    "keyAndExistingLedgerPreserved": true
+  },
+  "beforeRecharge": {
+    "probe": "glm",
+    "status": "failed",
+    "model": "glm-4.6v",
+    "attempt": 1,
+    "requestCount": 1,
+    "elapsedMs": 1493,
+    "code": "QUOTA_EXHAUSTED",
+    "upstreamStatus": 429,
+    "upstreamCode": "1113",
+    "toolResultValidated": false,
+    "sample": "synthetic-geometric-scene",
+    "accuracyValidation": "not-performed"
+  },
+  "confirmedRechargeRecovery": {
+    "confirmedRechargeByUser": true,
+    "removedOnlyCurrentVisionUpstreamQuotaBlock": true,
+    "priorVisionReservationsPreserved": 3
+  },
+  "afterRecharge": {
+    "probe": "glm",
+    "status": "passed",
+    "model": "glm-4.6v",
+    "attempt": 1,
+    "requestCount": 1,
+    "elapsedMs": 5121,
+    "aiStatus": "completed",
+    "toolResultValidated": true,
+    "unavailableReason": null,
+    "sample": "synthetic-geometric-scene",
+    "accuracyValidation": "not-performed"
+  },
+  "businessHttp": {
+    "recordedAt": "2026-10-17T13:35:28.260Z",
+    "codeEvidenceCommit": "f7357ac14d7123e3ff394e4073d269d07365580f",
+    "baseDevCommit": "7da9f32fe62b2916de038b949db3a28f5a351af2",
+    "status": "passed",
+    "scope": "Local production HTTP, generated geometric image, temporary synthetic region in existing development database, real private OSS and paid GLM; no physical hazard accuracy or campus/route/Zenith acceptance",
+    "checks": {
+      "existingRollingReservations": 4,
+      "realPrivateUpload": true,
+      "falseConsent400AndOtherOwner404BeforeProvider": true,
+      "analysisElapsedMs": 7508,
+      "aiStatus": "completed",
+      "strictResultWithPaidModel": true,
+      "sameKeyReplayIdentical": true,
+      "newKeySamePhotoCacheHit": true,
+      "newVisionReservations": 1,
+      "providerEvents": {
+        "calls": 1,
+        "errors": 0,
+        "cacheHits": 1
+      }
+    },
+    "cleanup": {
+      "temporaryServerStopped": true,
+      "ownPhotoAnalysesOperationsSessionsAndRegionRemoved": true,
+      "ownOssObjectDeletionConfirmed404": true
+    },
+    "budget": "Existing C persistent key-scoped Vision ledger retained; temporary service cap is existing rolling reservations plus one, within configured app limit 10; at most one new real model attempt."
+  },
+  "initialBusinessHarnessFailure": {
+    "stage": "synthetic_region_seed_validation",
+    "code": "ZodError",
+    "diagnosis": "Verifier supplied zero preset passages; C seed contract requires at least one. Rejected before region write, HTTP server, photo upload or model request. Corrected only the ignored verifier to supply an explicitly synthetic passage.",
+    "newModelCalls": 0
+  },
+  "totalPersistedVisionReservations": 5,
+  "summary": {
+    "windowStart": "2026-10-16T13:35:55.357Z",
+    "windowEnd": "2026-10-17T13:35:55.357Z",
+    "services": {
+      "ors": {
+        "calls": 2,
+        "waits": 0,
+        "errors": 1,
+        "cacheHits": 0
+      },
+      "vision": {
+        "calls": 5,
+        "waits": 0,
+        "errors": 3,
+        "cacheHits": 1
+      }
+    }
+  },
+  "officialErrorCodeSource": "https://docs.bigmodel.cn/cn/api/api-code",
+  "limitations": [
+    "Generated geometric images only; not physical hazard accuracy or campus accessibility acceptance.",
+    "No real ORS, Geocoding, POI or Zenith request in this model-switch stage.",
+    "Existing free-model 1305 and paid-model pre-recharge 1113 failures remain historical evidence, not current model failures."
+  ]
+}

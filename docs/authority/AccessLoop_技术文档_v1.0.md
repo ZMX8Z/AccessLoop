@@ -299,9 +299,13 @@ MVP 采用“服务端拒绝超预算请求 + 前端等待倒计时”，不依�
 
 HeiGIT POI 是独立的 openpoiservice，不是自托管 ORS 自带模块。[S7] API 迁移公告对应的地址为 https://api.heigit.org/openpoiservice/v0/pois；地址搜索对应 https://api.heigit.org/pelias/v1。[S5] 分类 ID、请求体和返回标签以实际 API Playground 和目标账号响应为准，不能从地图页面样式猜测字段。
 
-先用目标区域测试厕所、入口及休息点等所需类别，核对是否真的有 wheelchair 相关字段。建议地点缓存 15 分钟并记录 fetched_at，不对用户承诺实时状态。少量预设演示地点应标明数据来源与演示属性；不能把人工种子数据写成刚从 API 获得的完整覆盖。
+先用目标区域测试厕所、入口及休息点等所需类别，核对是否真的有 wheelchair 相关字段。地点按区域、configVersion 和适配器来源隔离，成功结果缓存 24 小时并记录 fetched_at，不对用户承诺实时状态。少量预设演示地点应标明数据来源与演示属性；不能把人工种子数据写成刚从 API 获得的完整覆盖。
 
-若 POI 字段不足，可接入 Overpass 查询 OSM 标签，或评估 accessibility.cloud。后者官方文档描述非商业免费访问、Token 可见范围和数据源许可约束；取得 Token 不代表获得所有合作方数据。[S9]这些接入属于后续选择，不作为 P0 同时接三家服务的前提。
+公众底图按用户确认接入Leaflet 1.9.4与默认OpenStreetMap HTTPS瓦片，公开配置在前端layout仅传tile URL/纯文本署名/署名链接；不传其他环境值。保留WGS84业务几何，展示边界转换Leaflet纬经顺序；动态导入避免SSR访问window，数据刷新不重置视口，瓦片失败明确提示且保留业务图层。默认瓦片只请求当前视口，不预取或离线抓取，遵守OSM署名、浏览器缓存和Referer要求。[S24]
+
+Overpass/HeiGIT提供主要OSM设施，accessibility.cloud按用户确认作为补充，分别通过C原子预算/持久缓存。使用固定官方v2缓存端点，Token只在服务端；经Token可见性、数据源ID和许可ID白名单过滤，保留实际来源及许可，未知或冲突事实为unknown。[S9] cloud整区域查询为一次包含bbox的XYZ瓦片请求，再按区域过滤；最多101条lookahead且响应1MiB/8秒限制。源错误与无结果区分；一个源失败可显式部分返回，全部源失败报错。缓存身份包含凭据可见范围及源/许可配置，换Token不复用旧权限缓存。不是ORS路线或公共障碍数据源，不能据设施标签直接生成避让。
+
+当前适配器由部署配置选择：默认 Overpass，或显式 HeiGIT。Overpass 仅允许固定 HTTPS interpreter，读取 node 坐标及 way/relation 的 bbox 中心；中心是地图选点，并不证明其为真实可通行入口。查询仅取区域内厕所、休息点、入口及含 wheelchair 标签的对象，源返回最多102项，公开最多100项；源截断标记必须穿过区域过滤、去重及缓存保留。原始 wheelchair/toilets:wheelchair 缺失或冲突仍为 unknown。HTTP200 的 remark、坏坐标、非法 JSON 均按失败处理，不缓存为无结果。读取上限1 MiB、总超时8秒，门禁按该单次上限判断剩余15秒预算；公共端点不发送 ORS 密钥。源身份指纹独立计入 C 持久 poi 预算，默认10次/分钟、450次/24小时；固定全区域成功缓存避免拖图逐次请求，失败不自动切换来源。[S22][S23]
 
 地图底图、地点数据、路线数据和用户报告各自保留来源。使用 OSM 公共瓦片时显示清晰署名，遵守缓存政策，不做批量下载或预取；瓦片地址使用配置项，便于替换服务。[S10]
 
@@ -321,7 +325,7 @@ Payload 文件访问必须保留访问控制，签名下载也先检查身份与
 
 ### 9.2 AI 契约
 
-默认使用 glm-4.6v-flash，后端发送处理后的照片、固定任务指令和指定结果函数的参数 Schema，提取工具参数后再做完整结构与语义校验，不执行模型要求的任意工具。无有效工具结果、非法结构、拒绝或超时明确降级；不要求视觉供应商原生严格 Schema 保证。具体字段与模型结果 Schema 统一见[API 契约](API_CONTRACTS.md)，能力背景见[项目决定](PROJECT.md)。
+默认使用 glm-4.6v，后端发送处理后的照片、固定任务指令和指定结果函数的参数 Schema，提取工具参数后再做完整结构与语义校验，不执行模型要求的任意工具。无有效工具结果、非法结构、拒绝或超时明确降级；不要求视觉供应商原生严格 Schema 保证。具体字段与模型结果 Schema 统一见[API 契约](API_CONTRACTS.md)，能力背景见[项目决定](PROJECT.md)。
 
 Schema 和结果示例在 API 文档维护，本节仅保留识别结果如何进入业务决策的规则。
 
@@ -365,7 +369,11 @@ P0 不做完整公众账号，以服务器生成的不可预测匿名会话标�
 | --- | --- | --- |
 | APP_BASE_URL / APP_MODE | 站点地址与 demo 或 live 模式 | 服务端与有限公开配置 |
 | REGION_ID / REGION_BBOX | 单区域范围和种子数据选择 | 服务端；返回可公开区域字段 |
-| DATABASE_URL | PostgreSQL 连接或等价托管连接配置 | 服务端秘密 |
+| DATABASE_URL | PostgreSQL 连接或等价托管连接配置；Zenith 预览指向内部 db:5432/accessloop | 服务端秘密 |
+| ZENITH_BOOTSTRAP_EMPTY_DATABASE | Zenith 新库首次部署显式允许执行既有迁移；只在 schema 无用户对象时生效，已有库仅核对迁移集 | 服务端部署开关，非通用启动迁移 |
+| POSTGRES_PASSWORD | Zenith 内部 PostgreSQL 初始化密码，须与 DATABASE_URL 一致 | 仅数据库容器秘密 |
+| ADMIN_EMAIL / ADMIN_PASSWORD | 受控命令或 Zenith 一次性初始化首个 operator；已有账户不覆盖 | 服务端私有初始化配置 |
+| PROVIDER_LEDGER_SNAPSHOT | 部署接管时恢复有效预留/封锁与脱敏事件的有界私有快照；不是持续同步 | 服务端私有输入；C 事务/锁恢复，不含行程或原始密钥 |
 | PAYLOAD_SECRET | Payload 认证及加密密钥；与 SESSION_SECRET 分开配置 | 服务端秘密；每实例独立，重启保持一致 |
 | OSS_ENDPOINT / OSS_BUCKET | 阿里云 OSS HTTPS 服务地址与私有 Bucket；Zenith 使用可连通的 endpoint | 服务端配置 |
 | OSS_REGION | Bucket 所在地域；映射为所用 SDK 要求的地域及签名配置，不能照搬 AWS 地域值 | 服务端配置 |
@@ -373,14 +381,20 @@ P0 不做完整公众账号，以服务器生成的不可预测匿名会话标�
 | OSS_SIGNED_URL_TTL_SECONDS | 建议 300；授权后生成的文件临时访问链接有效期 | 服务端配置 |
 | ORS_API_KEY | HeiGIT API Key | 服务端秘密 |
 | ORS_BASE_URL | https://api.heigit.org/openrouteservice | 服务端固定允许列表 |
-| POI_BASE_URL | https://api.heigit.org/openpoiservice/v0 | 服务端固定允许列表 |
+| POI_PROVIDER | 默认 overpass；可显式 heigit | 服务端固定选择；不接受请求代理地址 |
+| OVERPASS_BASE_URL | https://overpass-api.de/api/interpreter | 服务端固定允许列表；无 ORS 凭据 |
+| POI_BASE_URL | https://api.heigit.org/openpoiservice/v0；仅 heigit 使用 | 服务端固定允许列表 |
+| POI_RPM / POI_DAILY_BUDGET | 默认10与450，独立 poi 服务持久门禁 | 服务端可配置 |
 | ORS_RPM / ORS_DAILY_BUDGET | 建议 30 与 1800，共享门禁预算 | 服务端可配置 |
-| VISION_PROVIDER / VISION_MODEL / VISION_API_KEY | 默认 glm / glm-4.6v-flash，原生图片和工具参数提取，后端严格校验；密钥 | 服务端；缺省可启动和人工降级，不计 AI 验收完成 |
+| VISION_PROVIDER / VISION_MODEL / VISION_API_KEY | 默认 glm / glm-4.6v，原生图片和工具参数提取，后端严格校验；密钥 | 服务端；缺省可启动和人工降级，不计 AI 验收完成 |
 | VISION_SCHEMA_VERSION / VISION_PROMPT_VERSION | 输出契约与提示词版本，参与分析缓存键和审计 | 服务端固定配置 |
-| VISION_TIMEOUT_MS / VISION_DAILY_BUDGET | 建议 8000 毫秒超时及模型每日调用预算 | 服务端；与 ORS 预算分开 |
+| VISION_TIMEOUT_MS / VISION_RPM / VISION_DAILY_BUDGET | 建议 8000 毫秒超时、默认 10 次/分钟；日预算须显式正整数，或显式 unlimited 仅关闭应用日上限 | 服务端；与 ORS 预算分开，unlimited 不绕过分钟门禁或上游配额 |
 | PERSONAL_AVOIDANCE_TTL_SECONDS / PUBLIC_HAZARD_TTL_SECONDS | 建议个人 3600 秒、公共 86400 秒 | 服务端可配置运营值 |
-| MAP_TILE_URL / MAP_ATTRIBUTION | 底图地址与署名 | 允许公开 |
+| ACCESSIBILITY_CLOUD_APP_TOKEN | cloud应用Token，仅服务端固定官方HTTPS请求使用 | 服务端秘密；不得入日志、前端或地图URL |
+| ACCESSIBILITY_CLOUD_SOURCE_IDS / ACCESSIBILITY_CLOUD_LICENSE_IDS | JSON字符串数组，明确数据集与许可白名单；未知许可不展示 | 服务端配置，变更隔离缓存 |
+| MAP_TILE_URL / MAP_ATTRIBUTION / MAP_ATTRIBUTION_URL | 默认OSM HTTPS XYZ瓦片、纯文本署名及版权链接；自定义三项配套 | 允许公开；静态页面变更后重建 |
 | SESSION_SECRET | 匿名会话签名或加密 | 服务端秘密；每实例独立 |
+| TRUSTED_MAINTAINER_REFERENCES | JSON字符串数组，默认空数组，最多100个受控来源引用 | 服务端维护方名单；客户端自报不能建立可信身份 |
 
 变量名称为应用配置约定，不能直接当作已确认的 Zenith manifest 字段。`payload.config.ts` 将 DATABASE_URL 映射到 PostgreSQL 适配器，将 OSS_* 映射到 OSS 存储适配层的 endpoint、bucket、region、credentials 及签名有效期，不能假定插件会自动读取这些应用变量。S3 兼容接入固定 `forcePathStyle: false`，保留 Payload 文件访问控制；配置由统一存储封装读取。生产环境缺少 PAYLOAD_SECRET、数据库或 OSS 必要配置时启动失败，不退回临时文件存储。秘密不得冠以 NEXT_PUBLIC_；公开构建变量与运行时服务端配置分别管理。[S8][S17][S20]
 
@@ -400,7 +414,7 @@ P0 不做完整公众账号，以服务器生成的不可预测匿名会话标�
 
 7. 冻结功能，保留上一可用镜像或提交版本；数据库迁移尽量向前兼容，回滚不通过删除真实数据实现。
 
-照片存储供应商已确定为阿里云 OSS，实际账号、地域、Bucket、权限及 Zenith 连通性尚待部署验证。PostgreSQL 托管供应商仍按部署条件确定；如使用 Supabase，仅连接其 PostgreSQL，不额外引入 Auth、Storage 与 Studio 作为本版默认架构。外部数据服务的使用条件须按比赛规则确认；若需将 PostgreSQL 改为 Zenith 内的数据库，先核实数据库容器及持久化卷支持。OSS 或网络不可用时上传明确失败，不能回退到容器临时目录持久化照片。
+照片存储供应商已确定为阿里云 OSS，实际账号、地域、Bucket、权限及 Zenith 连通性尚待部署验证。PostgreSQL 托管供应商仍按部署条件确定；如使用 Supabase，仅连接其 PostgreSQL，不额外引入 Auth、Storage 与 Studio 作为本版默认架构。外部数据服务的使用条件须按比赛规则确认；当前预览按用户选择配置 Zenith 内 PostgreSQL 17.6 与命名持久卷，web/db 分离服务且仅公开 web:3000；依据官方 Compose contract/schema 配置，不代表平台持久性已验。构建与运行固定 Node 22.14.0 / pnpm 10.20.0。当前平台渲染器拒绝 `pre_start` 和输入声明，预览通过 CLI 私密 local-env 注入及容器入口顺序执行受控新库迁移、幂等初始化和 Web。新库迁移必须显式启用且 schema 无用户对象；已有库仅核对完整迁移集合，部分/不兼容库停止等待受控修复。该初始化不在每次重启执行迁移，不清表，实际数据库等待及持久性须看平台日志。同一供应商密钥接管前须停用旧账本的运行实例或改为统一原子仓储，禁止用一次快照维持两套并发预算。操作及通过范围见[预览说明](../deployment/zenith-preview.md)。OSS 或网络不可用时上传明确失败，不能回退到容器临时目录持久化照片。
 
 ## 12 验证方案与需求追踪
 
@@ -479,3 +493,14 @@ P0 不做完整公众账号，以服务器生成的不可预测匿名会话标�
 - [S20 阿里云 OSS 的 S3 API 兼容范围与寻址差异](https://www.alibabacloud.com/help/en/oss/developer-reference/compatibility-with-amazon-s3)
 
 - [S21 阿里云 OSS Node.js SDK 与私有对象签名下载](https://www.alibabacloud.com/help/en/oss/developer-reference/download-objects-using-a-presigned-url-generated-with-oss-sdk-for-node-js)
+
+
+- [S22 Overpass官方查询手册](https://dev.overpass-api.de/overpass-doc/en/criteria/per_tag.html)
+
+- [S23 Overpass官方数据格式与center](https://dev.overpass-api.de/overpass-doc/en/targets/formats.html)
+
+## 15 D 服务实现接线记录（2026-10-17）
+
+实现沿用本文单应用/单仓储架构：地理函数与路线服务位于 `src/features/routing/server`，ORS/Pelias/预算门禁及脱敏摘要位于 `src/server/providers`，真实搜索位于 `src/features/places/server`。`RoutingRepository` 由 C 实现并在 Node 初始化中安装；D 不新建数据库连接，不以进程内 Map 保存生产预算。Map 只用于同键进行中请求去重。详细接线见 [D 服务交接](../handoffs/d-service-integration.md)，实际验证结果见 [D 技术验收](../acceptance/wp-d.md)。未配置仓储或密钥时不把未知有效集当空集；不会提供合成校园成功数据。
+
+- [S24 OpenStreetMap瓦片使用政策](https://operations.osmfoundation.org/policies/tiles/)

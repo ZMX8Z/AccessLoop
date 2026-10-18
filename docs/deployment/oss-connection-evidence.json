@@ -1,0 +1,124 @@
+{
+  "previousProbe": {
+    "recordedAt": "2026-10-17T07:35:48.416Z",
+    "codeEvidenceCommit": "d3e06bded36f2ca4cef98cd2a802dc633acf8a01",
+    "environment": "local development; not Zenith",
+    "sdk": "existing @payloadcms/storage-s3 transitive AWS SDK 3.1152.0",
+    "clientOptions": {
+      "forcePathStyle": false,
+      "requestChecksumCalculation": "WHEN_REQUIRED",
+      "responseChecksumValidation": "WHEN_REQUIRED",
+      "maxAttempts": 1
+    },
+    "scope": "One random synthetic probe object only; no existing objects read or changed. Does not prove C photo API authorization or report workflow.",
+    "configurationPresent": true,
+    "passed": false,
+    "checks": [
+      {
+        "check": "upload",
+        "passed": true,
+        "httpStatus": 200,
+        "bytes": 70
+      },
+      {
+        "check": "metadata",
+        "passed": true
+      },
+      {
+        "check": "authenticated-read",
+        "passed": true
+      },
+      {
+        "check": "anonymous-read-denied",
+        "passed": true,
+        "httpStatus": 403
+      },
+      {
+        "check": "presigned-read",
+        "passed": false,
+        "httpStatus": 403
+      },
+      {
+        "check": "expired-signature-denied",
+        "passed": false,
+        "httpStatus": 403,
+        "evidenceValid": false
+      },
+      {
+        "check": "delete-own-probe",
+        "passed": true,
+        "httpStatus": 204
+      },
+      {
+        "check": "deleted-object-absent",
+        "passed": true,
+        "code": "NotFound",
+        "httpStatus": 404
+      }
+    ],
+    "limitation": "The first URL used a 2-second expiry and was checked after an anonymous request; its 403 is inconclusive. Expiry was not proven because the same URL had not first succeeded."
+  },
+  "recordedAt": "2026-10-17T07:36:24.997Z",
+  "codeEvidenceCommit": "d3e06bded36f2ca4cef98cd2a802dc633acf8a01",
+  "environment": "local development; not Zenith",
+  "sdk": "existing @payloadcms/storage-s3 transitive AWS SDK 3.1152.0",
+  "clientOptions": {
+    "forcePathStyle": false,
+    "requestChecksumCalculation": "WHEN_REQUIRED",
+    "responseChecksumValidation": "WHEN_REQUIRED",
+    "maxAttempts": 1
+  },
+  "scope": "One random synthetic probe object only; no existing objects read or changed. Does not prove C photo API authorization or report workflow.",
+  "configurationPresent": true,
+  "passed": true,
+  "checks": [
+    {
+      "check": "upload",
+      "passed": true,
+      "httpStatus": 200,
+      "bytes": 70
+    },
+    {
+      "check": "metadata",
+      "passed": true
+    },
+    {
+      "check": "authenticated-read",
+      "passed": true
+    },
+    {
+      "check": "anonymous-read-denied",
+      "passed": true,
+      "httpStatus": 403
+    },
+    {
+      "check": "presigned-read",
+      "passed": true,
+      "httpStatus": 200
+    },
+    {
+      "check": "short-signature-initially-valid",
+      "passed": true,
+      "httpStatus": 200
+    },
+    {
+      "check": "expired-signature-denied",
+      "passed": true,
+      "httpStatus": 403
+    },
+    {
+      "check": "delete-own-probe",
+      "passed": true,
+      "httpStatus": 204
+    },
+    {
+      "check": "deleted-object-absent",
+      "passed": true,
+      "code": "NotFound",
+      "httpStatus": 404
+    }
+  ],
+  "probeRuns": 2,
+  "allOwnProbeObjectsDeleted": true,
+  "probeScriptSha256": "a032064142f6e21f1059af244eb007993fdefb27bd2f01e8468a5e2013b07d18"
+}

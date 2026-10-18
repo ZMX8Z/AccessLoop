@@ -1,0 +1,67 @@
+{
+  "recordedAt": "2026-10-17T13:05:35.410Z",
+  "codeEvidenceCommit": "9cfd186a8d2345af9cd970266e22415a9085d2e2",
+  "database": "dedicated-local-development",
+  "scope": "One generated geometric image, real GLM provider connectivity through C persistent budget; no photo/report analysis business or model accuracy acceptance",
+  "budget": {
+    "repository": "C persistent atomic repository via D ProviderGate",
+    "environmentFileChanged": true,
+    "configuredAppDayLimit": 10,
+    "configuredMinuteLimit": 10,
+    "maximumProbeRequests": 1,
+    "totalPersistedVisionReservations": 2
+  },
+  "probe": {
+    "probe": "glm",
+    "status": "failed",
+    "model": "glm-4.6v-flash",
+    "attempt": 1,
+    "requestCount": 1,
+    "elapsedMs": 1179,
+    "code": "PROVIDER_UNAVAILABLE",
+    "upstreamStatus": 429,
+    "upstreamCode": "1305",
+    "toolResultValidated": false,
+    "sample": "synthetic-geometric-scene",
+    "accuracyValidation": "not-performed"
+  },
+  "latestPersistedVisionEvents": [
+    {
+      "service": "vision",
+      "kind": "error",
+      "category": "PROVIDER_UNAVAILABLE",
+      "occurredAt": "2026-10-17T13:04:59.003Z"
+    },
+    {
+      "service": "vision",
+      "kind": "call",
+      "category": null,
+      "occurredAt": "2026-10-17T13:04:57.863Z"
+    }
+  ],
+  "summary": {
+    "windowStart": "2026-10-16T13:05:35.410Z",
+    "windowEnd": "2026-10-17T13:05:35.410Z",
+    "services": {
+      "ors": {
+        "calls": 2,
+        "waits": 0,
+        "errors": 1,
+        "cacheHits": 0
+      },
+      "vision": {
+        "calls": 2,
+        "waits": 0,
+        "errors": 2,
+        "cacheHits": 0
+      }
+    }
+  },
+  "priorEvidence": "vision-connection-evidence.json",
+  "limitations": [
+    "Upstream still returned 429/1305; real model capability remains blocked.",
+    "The daily cap is an application protection value chosen for local integration, not a provider allowance.",
+    "C15 photo/report/analysis and authenticated summary endpoints are now installed; this probe does not exercise the full analysis business endpoint.",
+    "No physical campus or Zenith validation."
+  ]
+}

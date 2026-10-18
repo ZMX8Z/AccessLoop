@@ -12,15 +12,16 @@
 - Stitch 以可导出页面代码交接，由 A 迁入同一个 Next.js 应用，B 沿用其视觉和公共组件。
 - 用户界面、错误提示和报告使用英文；开发交接与验收说明使用中文。本轮不做语言切换。
 - 演示区域为 UNSW Kensington 校园内一个经过实测的小区域，固定起终点和备选通道由 D 选定并交接。
+- 用户于2026-10-18确认公众地图使用现成瓦片底图，accessibility.cloud作为设施信息补充。默认Leaflet/OpenStreetMap瓦片，ORS继续计算轮椅路线；cloud设施保留实际数据集、许可与未知事实，不能替代现场通道核查。
 - 支持本次路线片段和预设通道两种选择方式。选择通道后自动显示后端生成的避让范围，用户明确确认才生效。
 - 匿名身份使用 HttpOnly、SameSite 会话 Cookie，生产环境启用 Secure；不设置持久化的 Expires/Max-Age。刷新页面保留身份，关闭浏览器后不承诺找回，不做跨设备恢复。应用重启不更换会话密钥。
 - 个人避让默认从确认的观察时间起有效 3600 秒，公共核实默认有效 86400 秒，均可配置。过期不表示障碍已消失。
-- 默认 VISION_PROVIDER=glm，VISION_MODEL=glm-4.6v-flash；使用服务端 VISION_API_KEY，具体模型及账号权限在真实调用时验证。
+- 用户于2026-10-18确认切换付费GLM-4.6V，默认 VISION_PROVIDER=glm，VISION_MODEL=glm-4.6v；使用服务端 VISION_API_KEY，具体模型及账号权限在真实调用时验证。
 - GLM 使用原生图片输入和带 Schema 的工具参数提取结果，服务端再次执行结构与语义校验；不将供应商原生严格 Schema 保证作为验收前提。无有效工具结果、结构错误、拒绝和超时均进入明确降级。
 - 个人流程无需管理员；公共发布、纠错、驳回和解除必须鉴权。公共发布不会自动公开原图或全部 AI 证据。
 - P2 的完整公众账号、社区投票、自动市政提交、全城覆盖及完整监控平台不在本次范围。
 
-GLM 方案依据已核对的[视觉模型说明](https://docs.bigmodel.cn/cn/guide/models/free/glm-4.6v-flash)与[对话接口说明](https://docs.bigmodel.cn/api-reference/模型-api/对话补全)。C 实施时验证实际账号能力，不要求前端持有模型密钥。
+GLM 方案参考用户提供的GLM-4.6V文档、[视觉模型说明](https://docs.bigmodel.cn/cn/guide/models/vlm/glm-4.6v)与[对话接口说明](https://docs.bigmodel.cn/api-reference/模型-api/对话补全)。C 实施时验证实际账号能力，不要求前端持有模型密钥。
 
 ## 公共管理与区域配置
 

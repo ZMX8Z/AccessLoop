@@ -1,0 +1,213 @@
+{
+  "recordedAt": "2026-10-18",
+  "baseDevCommit": "9891b3ba7a8e6f14fa5cb3b59a34d713f654cfae",
+  "codeEvidenceCommit": "270b220db892ff0faeb2e3b5cdf90f6e4d5d80c9",
+  "originalFailure": {
+    "sessionId": "01M56FMK83TP7ZMMJBJR6ZFMA4",
+    "code": "ERR_PNPM_UNSUPPORTED_ENGINE",
+    "expectedNode": "22.14.0",
+    "actualNode": "22.23.3",
+    "userProvidedCompleteLog": {
+      "fileName": "01M56FMK83TP7ZMMJBJR6ZFMA4-01M56FMK83TP7ZMMJBJR6ZFMA4-all.log",
+      "bytes": 14032,
+      "lines": 288,
+      "sha256": "7a9b384af966a07b34e9f164ddf96389375a791bd0488fe8ca6f4b4f9a1dac0e",
+      "buildJobs": [
+        "zenith-publish-svfxq",
+        "zenith-publish-shrd7",
+        "zenith-publish-79j9k"
+      ],
+      "unsupportedEngineOccurrences": 3,
+      "expectedNode": "22.14.0",
+      "actualNode": "22.23.3",
+      "verifiedErrorLines": [
+        87,
+        184,
+        280
+      ]
+    }
+  },
+  "checks": {
+    "staticZenithCheck": "passed",
+    "lint": "passed",
+    "typecheck": "passed",
+    "tests": {
+      "passed": 277,
+      "skipped": 12,
+      "failed": 0
+    },
+    "cleanBuildWithoutEnvironmentFiles": {
+      "exitCode": 0,
+      "platform": "local macOS",
+      "containerTested": false,
+      "sourceCommit": "d55e6db7781b54d478a8c0ef2bf8917c5b779119",
+      "elapsedSeconds": 46.3,
+      "compileSeconds": 26.7,
+      "maximumResidentSetBytes": 1737506816
+    },
+    "independentSpecRegression": {
+      "passed": 8,
+      "failed": 0,
+      "skipped": 0
+    },
+    "realPostgresSchemaProtection": {
+      "passed": 1,
+      "failed": 0,
+      "testObjectsRolledBack": true
+    },
+    "buildDiagnosticsRegression": {
+      "passed": 3,
+      "failed": 0,
+      "privateEnvironmentValuesLogged": false
+    },
+    "fullChecksSourceCommit": "270b220db892ff0faeb2e3b5cdf90f6e4d5d80c9",
+    "buildPackagingRegression": {
+      "passed": 11,
+      "failed": 0,
+      "skipped": 0
+    },
+    "boundedHeapColdBuild": {
+      "exitCode": 0,
+      "platform": "local macOS",
+      "sourceCommit": "d55e6db7781b54d478a8c0ef2bf8917c5b779119",
+      "sameCompiledApplicationAs": "270b220db892ff0faeb2e3b5cdf90f6e4d5d80c9",
+      "maxOldSpaceSizeMiB": 1024,
+      "elapsedSeconds": 46.41,
+      "compileSeconds": 26.9,
+      "maximumResidentSetBytes": 1519419392,
+      "containerTested": false
+    }
+  },
+  "privatePreparation": {
+    "exportedAt": "2026-10-18T03:56:01.540Z",
+    "usage": 474,
+    "blocks": 0,
+    "events": 1687,
+    "snapshotSha256": "a94adfd9bdc5b0edae489a95feedf889afc0c029f1fd0f0d69da2c89299b5169",
+    "privateEnvironmentVariables": 26,
+    "privateEnvironmentBytes": 29765,
+    "privateEnvironmentExcludedFromArchive": true,
+    "localDatabaseNotChanged": true,
+    "targetLedgerRestoreExecuted": false
+  },
+  "archiveAudit": {
+    "sourceCommit": "270b220db892ff0faeb2e3b5cdf90f6e4d5d80c9",
+    "files": 393,
+    "expandedBytes": 8434725,
+    "zipBytes": 6135426,
+    "privateOrGeneratedFiles": 0
+  },
+  "deployment": {
+    "uploadExecuted": true,
+    "newPreviewCreated": true,
+    "automaticApproval": "initially rejected; explicit user authorization subsequently granted",
+    "sessionId": "01M56N0A21JF9QGSS7SG0TZ9ZG",
+    "status": "stopped_after_repeated_build_retry",
+    "liveChecks": "blocked_by_repeated_build_retry",
+    "integratedDevCommit": null,
+    "onlineUrl": null,
+    "lastObservedStatus": "deleted",
+    "buildStarted": true,
+    "nodeBaseImageDigest": "sha256:1c18d9ab3af4585870b92e4dbc5cac5a0dc77dd13df1a5905cea89fc720eb05b",
+    "controlPlaneObservations": [
+      {
+        "at": "2026-10-18T04:09:23.792Z",
+        "accountPreviews": 502,
+        "currentPreview": 502,
+        "buildLogs": 502
+      },
+      {
+        "at": "2026-10-18T04:09:37Z",
+        "consoleUrl": "https://app.zenith.hosting/",
+        "httpStatus": 502,
+        "cloudflareHostStatus": "Error",
+        "rayId": "a4c4b0493cbbd367"
+      },
+      {
+        "at": "2026-10-18T04:10:52.132Z",
+        "currentPreview": 502
+      },
+      {
+        "at": "2026-10-18T04:12:19.209Z",
+        "currentPreview": 502
+      }
+    ],
+    "controlPlaneRecoveredAt": "2026-10-18T04:13:43Z",
+    "priorBuildRetries": {
+      "sessionId": "01M56JV8MV4VTSHRF0NZTEGNYF",
+      "jobs": [
+        "zenith-publish-vn92c",
+        "zenith-publish-9n2lf",
+        "zenith-publish-fmppn"
+      ],
+      "errorCode": "PREVIEW_RETRY",
+      "specificBuildFailureCause": null,
+      "stoppedBeforeRuntime": true
+    },
+    "diagnosticSessionsStoppedBeforeRuntime": [
+      "01M56M52ETRD2ATTYGTMKX7KPX",
+      "01M56MABRC39NT4B67N6653VTT",
+      "01M56MFGV6V7PM70TY1THP8860"
+    ],
+    "lastBuildFailureObservation": {
+      "checkedAt": "2026-10-18T04:47:52.354Z",
+      "sessionId": "01M56N0A21JF9QGSS7SG0TZ9ZG",
+      "status": "building",
+      "errorCode": "PREVIEW_RETRY",
+      "errorDetail": "Build or deployment failed. Check CLI logs for details.",
+      "url": null,
+      "buildJobs": [
+        "zenith-publish-7d6z9",
+        "zenith-publish-jtsrx",
+        "zenith-publish-km9ht"
+      ],
+      "actualUploadCommit": "270b220db892ff0faeb2e3b5cdf90f6e4d5d80c9",
+      "runtimeReached": false
+    },
+    "platformTerminatedReasonAvailable": false,
+    "stoppedAt": "2026-10-18T04:48:03.987Z",
+    "cleanupConfirmed": true
+  },
+  "previousCodeEvidenceCommit": "d55e6db7781b54d478a8c0ef2bf8917c5b779119",
+  "compatibility": {
+    "inputDeclarations": "platform render rejected",
+    "preStart": "platform render rejected",
+    "privateLocalEnv": "accepted",
+    "aliasAndGenerate": "accepted",
+    "databaseAndVolume": "accepted",
+    "guardedStartupCompose": "accepted",
+    "priorBuildStoppedBeforeRuntime": true
+  },
+  "buildMitigation": {
+    "webpackBuildWorker": true,
+    "webpackMemoryOptimizations": true,
+    "cpus": 1,
+    "platformOomConfirmed": false,
+    "cgroupLimitObservable": false,
+    "maxOldSpaceSizeMiB": 1024,
+    "heapLimitAppliesTo": "Docker build RUN and its subprocesses only, not runtime",
+    "rejectedOfflineExperiments": [
+      {
+        "configuration": "original configuration, 512 MiB heap",
+        "result": "V8 heap OOM"
+      },
+      {
+        "configuration": "original configuration, 768 MiB heap",
+        "result": "V8 heap OOM"
+      },
+      {
+        "configuration": "disabled webpack cache, 512 MiB heap",
+        "result": "V8 heap OOM"
+      },
+      {
+        "configuration": "externalized payload/postgres/storage, 768 MiB heap",
+        "result": "admin page data collection failed: native CSS import"
+      },
+      {
+        "configuration": "externalized postgres only, 768 MiB heap",
+        "result": "V8 heap OOM"
+      }
+    ],
+    "rejectedExperimentsChangedApplicationSource": false
+  }
+}

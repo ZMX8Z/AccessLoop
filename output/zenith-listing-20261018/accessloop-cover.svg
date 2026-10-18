@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1800" height="1000" viewBox="0 0 1800 1000">
+<defs>
+<linearGradient id="paper" x2="1" y2="1"><stop stop-color="#faf8ff"/><stop offset="1" stop-color="#eff7f1"/></linearGradient>
+<linearGradient id="teal" x2="1" y2="1"><stop stop-color="#0f766e"/><stop offset="1" stop-color="#005c55"/></linearGradient>
+<filter id="shadow" x="-30%" y="-30%" width="160%" height="170%"><feDropShadow dx="0" dy="22" stdDeviation="25" flood-color="#123a34" flood-opacity=".13"/></filter>
+<clipPath id="mapClip"><rect x="0" y="0" width="680" height="570" rx="34"/></clipPath>
+</defs>
+<rect width="1800" height="1000" fill="url(#paper)"/>
+<circle cx="1540" cy="380" r="570" fill="#d4f4e7" fill-opacity=".55"/>
+<circle cx="1740" cy="840" r="280" fill="#bde9da" fill-opacity=".25"/>
+<g transform="translate(110 106)">
+<rect width="80" height="80" rx="21" fill="url(#teal)"/>
+<g transform="translate(9 6) scale(2.6)"><path d="M15 4h.01M10 8h5l-3 5h5l3 5M12 13H8M7 10a6 6 0 1 0 7 9" fill="none" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></g>
+<text x="106" y="59" fill="#131b2e" font-family="Arial,sans-serif" font-size="65" font-weight="700" letter-spacing="-2.5">AccessLoop</text>
+</g>
+<text x="114" y="316" fill="#0f766e" font-family="Arial,sans-serif" font-size="22" font-weight="700" letter-spacing="4">CAMPUS ACCESSIBILITY</text>
+<text x="108" y="438" fill="#131b2e" font-family="Arial,sans-serif" font-size="92" font-weight="700" letter-spacing="-4">Campus access,</text>
+<text x="108" y="548" fill="#005c55" font-family="Arial,sans-serif" font-size="92" font-weight="700" letter-spacing="-4">made clearer.</text>
+<text x="113" y="634" fill="#52615c" font-family="Arial,sans-serif" font-size="28">Maps, wheelchair routes and barrier reports.</text>
+<g transform="translate(112 720)" font-family="Arial,sans-serif" font-size="22" font-weight="700">
+<rect width="150" height="57" rx="28.5" fill="#005c55"/><text x="75" y="37" text-anchor="middle" fill="#ffffff">Explore</text>
+<rect x="166" width="150" height="57" rx="28.5" fill="#d4f4e7"/><text x="241" y="37" text-anchor="middle" fill="#005c55">Report</text>
+<rect x="332" width="150" height="57" rx="28.5" fill="#e2e7ff"/><text x="407" y="37" text-anchor="middle" fill="#283044">Reroute</text>
+</g>
+<text x="114" y="876" fill="#65776e" font-family="Arial,sans-serif" font-size="21">Campus accessibility pilot</text>
+<g transform="translate(1010 178) rotate(3 340 305)" filter="url(#shadow)">
+<rect x="-15" y="-15" width="710" height="680" rx="49" fill="#ffffff"/>
+<g clip-path="url(#mapClip)">
+<image xlink:href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA4MDAgNTAwIj48cmVjdCB3aWR0aD0iODAwIiBoZWlnaHQ9IjUwMCIgZmlsbD0iI2U4ZWRlNyIvPjxnIGZpbGw9IiNkNGUyZDUiPjxwYXRoIGQ9Ik0wIDBIMjQwVjExMEgxMDBWMjUwSDBaIi8+PHBhdGggZD0iTTUzMCAyMzBIODAwVjUwMEg2MjBWMzc1SDUzMFoiLz48cGF0aCBkPSJNMjYwIDI3MEg0MjBWNTAwSDI2MFoiLz48L2c+PGcgc3Ryb2tlPSIjZmZmIiBzdHJva2Utd2lkdGg9IjI0IiBmaWxsPSJub25lIj48cGF0aCBkPSJNMCAzMzBMMjMwIDMzMEw0ODAgMTYwTDgwMCAxNjAiLz48cGF0aCBkPSJNMTQwIDUwMEwxNDAgMjMwTDQyMCAyMzBMNjUwIDAiLz48cGF0aCBkPSJNMCAxMDBINTEwTDY5MCAzODBIODAwIi8+PC9nPjxnIGZpbGw9IiNkOWRkZGYiIHN0cm9rZT0iI2M0Y2VjYSIgc3Ryb2tlLXdpZHRoPSIyIj48cmVjdCB4PSIyNSIgeT0iMTU1IiB3aWR0aD0iNzYiIGhlaWdodD0iMTIwIiByeD0iNCIvPjxyZWN0IHg9IjE5NSIgeT0iMTQwIiB3aWR0aD0iMTM1IiBoZWlnaHQ9IjU3IiByeD0iNCIvPjxwYXRoIGQ9Ik0zNTAgMTVoMTI1djg1SDM1MHoiLz48cGF0aCBkPSJNNTE1IDI3NWg3NXYxMzBoLTc1eiIvPjxyZWN0IHg9IjYyNSIgeT0iMjAwIiB3aWR0aD0iMTE1IiBoZWlnaHQ9IjU1IiByeD0iNCIvPjxyZWN0IHg9IjM2IiB5PSIzNzUiIHdpZHRoPSI3MCIgaGVpZ2h0PSI4MCIgcng9IjQiLz48L2c+PGcgZm9udC1mYW1pbHk9IkFyaWFsLHNhbnMtc2VyaWYiIGZpbGw9IiM2NDc2NmUiIGZvbnQtc2l6ZT0iMTMiPjx0ZXh0IHg9IjM3IiB5PSIxNDciPldFU1QgR0FURTwvdGV4dD48dGV4dCB4PSIxOTgiIHk9IjEzMCI+Tk9SVEggQVRSSVVNPC90ZXh0Pjx0ZXh0IHg9IjYyMCIgeT0iMjg1Ij5FTkdJTkVFUklORzwvdGV4dD48dGV4dCB4PSIyODAiIHk9IjM5MCI+U0NJRU5DRSBMQVdOPC90ZXh0PjwvZz48L3N2Zz4K" width="680" height="570" preserveAspectRatio="xMidYMid slice"/>
+<rect width="680" height="570" fill="#ffffff" fill-opacity=".08"/>
+<path d="M103 425 Q250 330 375 275 T584 165" fill="none" stroke="#b94747" stroke-opacity=".6" stroke-width="5" stroke-dasharray="10 10"/>
+<path d="M103 425 C190 440 275 493 354 422 C426 358 427 230 584 165" fill="none" stroke="#ffffff" stroke-width="18" stroke-linecap="round"/>
+<path d="M103 425 C190 440 275 493 354 422 C426 358 427 230 584 165" fill="none" stroke="#0f766e" stroke-width="10" stroke-linecap="round"/>
+<circle cx="103" cy="425" r="16" fill="#ffffff" stroke="#005c55" stroke-width="7"/>
+<circle cx="354" cy="422" r="19" fill="#97f5cc" stroke="#ffffff" stroke-width="6"/>
+<circle cx="584" cy="165" r="17" fill="#005c55" stroke="#ffffff" stroke-width="7"/>
+<g transform="translate(360 257)"><rect x="-24" y="-24" width="48" height="48" rx="14" fill="#ffdad6"/><path d="M-9-9L9 9M9-9L-9 9" stroke="#93000a" stroke-width="5" stroke-linecap="round"/></g>
+<rect x="32" y="30" width="237" height="54" rx="27" fill="#ffffff"/><circle cx="62" cy="57" r="7" fill="#0f766e"/><text x="82" y="65" fill="#005c55" font-family="Arial,sans-serif" font-size="21" font-weight="700">AccessLoop routes</text>
+</g>
+<g transform="translate(25 599)"><g transform="translate(0 -10) scale(1.6)"><path d="M15 4h.01M10 8h5l-3 5h5l3 5M12 13H8M7 10a6 6 0 1 0 7 9" fill="none" stroke="#0f766e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></g><text x="56" y="18" fill="#131b2e" font-family="Arial,sans-serif" font-size="25" font-weight="700">Explore another way</text><text x="627" y="16" text-anchor="end" fill="#65776e" font-family="Arial,sans-serif" font-size="16">DESIGN PREVIEW</text></g>
+</g>
+</svg>

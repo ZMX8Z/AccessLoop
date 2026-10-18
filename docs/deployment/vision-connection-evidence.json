@@ -1,0 +1,65 @@
+{
+  "recordedAt": "2026-10-17T08:03:37.730Z",
+  "codeEvidenceCommit": "7a5697f10e2c0c354c0b7c3b7a1901e9afd514ee",
+  "baseDevCommit": "9997880921d65739d9efd3bfc3bd507385e57d58",
+  "database": "dedicated-local-development",
+  "scope": "One synthetic geometric image, provider connectivity only; no report/photo business flow or model accuracy acceptance",
+  "budget": {
+    "repository": "C persistent atomic repository via D ProviderGate",
+    "probeOnlyDayLimit": 1,
+    "environmentFileChanged": false,
+    "reservations": 1
+  },
+  "probe": {
+    "probe": "glm",
+    "status": "failed",
+    "model": "glm-4.6v-flash",
+    "attempt": 1,
+    "requestCount": 1,
+    "elapsedMs": 2032,
+    "code": "PROVIDER_UNAVAILABLE",
+    "upstreamStatus": 429,
+    "upstreamCode": "1305",
+    "toolResultValidated": false,
+    "sample": "synthetic-geometric-scene",
+    "accuracyValidation": "not-performed"
+  },
+  "persistedVisionEvents": [
+    {
+      "service": "vision",
+      "kind": "error",
+      "category": "PROVIDER_UNAVAILABLE",
+      "occurredAt": "2026-10-17T08:02:14.877Z"
+    },
+    {
+      "service": "vision",
+      "kind": "call",
+      "category": null,
+      "occurredAt": "2026-10-17T08:02:13.109Z"
+    }
+  ],
+  "summary": {
+    "windowStart": "2026-10-16T08:03:37.730Z",
+    "windowEnd": "2026-10-17T08:03:37.730Z",
+    "services": {
+      "ors": {
+        "calls": 2,
+        "waits": 0,
+        "errors": 1,
+        "cacheHits": 0
+      },
+      "vision": {
+        "calls": 1,
+        "waits": 0,
+        "errors": 1,
+        "cacheHits": 0
+      }
+    }
+  },
+  "limitations": [
+    "GLM returned upstream 429/1305; real model capability remains blocked.",
+    "C1 report/photo/confirmation API and authenticated usage endpoint are not installed.",
+    "Counts include prior recorded ORS local-script input error; see provider-connection-evidence.json.",
+    "No Zenith deployment or physical campus validation."
+  ]
+}
