@@ -1,0 +1,172 @@
+@font-face{font-family:Inter;src:url('/fonts/Inter-variable.ttf') format('truetype');font-style:normal;font-weight:100 900;font-display:swap}
+/* Integrated Stitch surfaces. Inter is served locally under its bundled OFL license, with system fallback while loading. */
+.public-app{--primary:#005c55;--teal:#0f766e;--ink:#131b2e;--muted:#3e4947;--border:#bdc9c6;--canvas:#faf8ff;--mint:#97f5cc;--lavender:#f2f3ff;min-height:100dvh;color:var(--ink);background:var(--canvas);font-family:Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px;line-height:1.45;overflow-wrap:anywhere}
+.public-app [hidden]{display:none!important}
+.public-app main{max-width:none;margin:0;padding:0}
+.public-app .public-main{width:100%;padding:64px 0 calc(72px + env(safe-area-inset-bottom,0px))}
+.public-app h1{margin:0;font-size:18px;font-weight:700;line-height:24px;letter-spacing:-.02em}
+.public-app h2{font-size:18px;line-height:24px;letter-spacing:-.01em;font-weight:700}
+.public-app h3{font-size:16px;line-height:24px}
+.public-app p{line-height:1.5}
+.public-app :is(button,input,select,summary){min-height:44px}
+.public-app button{border-radius:12px}
+.public-app button:disabled{opacity:.62}
+.public-app :is(a,button,input,select,textarea,summary):focus-visible{outline:3px solid var(--teal);outline-offset:3px;box-shadow:0 0 0 2px white}
+.public-app .primary{background:var(--teal);border-color:var(--teal);color:white;font-weight:700}
+.public-app .primary:hover{background:#005c55;border-color:#005c55;color:white}
+.public-app :is(.button-link,.report-link){min-height:44px;display:inline-flex;justify-content:center;align-items:center;gap:8px;text-align:center;font-weight:700}
+.public-app .skip-link{position:fixed;top:-80px;left:16px;z-index:1100;padding:12px 16px;background:white;border-radius:8px}
+.public-app .skip-link:focus{top:10px}
+.public-app .app-header{position:fixed;z-index:30;inset:0 0 auto;height:64px;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 16px;background:#faf8fff5;border-bottom:1px solid #131b2e08;box-shadow:0 1px 8px #131b2e06}
+.public-app .app-header h1{flex:1}
+.public-app .app-header .brand{min-height:44px;gap:8px;color:var(--ink);font-size:21px;font-weight:750;letter-spacing:-.035em}
+.public-app .brand-icon{color:var(--primary);font-size:27px;font-weight:600;line-height:1}
+.public-app .app-header-actions{display:flex;align-items:center;gap:10px;flex-shrink:0}
+.public-app .demo-badge{display:inline-flex;align-items:center;gap:4px;color:#00513a;background:var(--mint);border-radius:30px;padding:3px 9px;font-size:12px;font-weight:700;letter-spacing:.02em}
+.public-app :is(.account-button,.icon-button){display:inline-flex;align-items:center;justify-content:center;width:44px;min-width:44px;height:44px;padding:0;text-decoration:none;font-size:26px;border:0}
+.public-app .account-button{color:white;background:var(--primary);border-radius:50%}
+.public-app .icon-button{color:var(--ink);background:transparent}
+.public-app .route-screen{position:relative;width:100%}
+.public-app .route-map{position:relative;min-width:0;background:#eaedff}
+.public-app .route-map>.map-wrap{border-radius:0}
+.public-app .route-map :is(.map,.empty-state){width:100%;height:44vh;height:44dvh;min-height:300px;max-height:none}
+.public-app .route-map .empty-state{padding:85px 28px 60px;font-size:14px}
+.public-app .route-map .map-wrap{position:relative;isolation:isolate;z-index:0}
+.public-app .map-search-bar{position:absolute;z-index:10;top:12px;left:16px;right:16px;min-height:48px;display:flex;align-items:center;background:#fffffffa;border:1px solid #bdc9c650;border-radius:999px;box-shadow:0 2px 6px #131b2e15;overflow:hidden}
+.public-app .map-search-bar>button:first-child{display:flex;align-items:center;flex:1;min-width:0;gap:12px;padding:0 16px;border:0;background:transparent;text-align:left;color:var(--ink);font-size:16px}
+.public-app .map-search-bar>button:first-child span:first-child{font-size:29px;color:var(--primary);line-height:1}
+.public-app .map-search-bar>button:first-child span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.public-app .map-search-bar>.icon-button{margin-right:6px;color:var(--muted);border-radius:50%}
+.public-app .floating-layers{position:absolute;right:16px;bottom:104px;z-index:10;width:44px;height:44px;padding:0;background:white;border:0;box-shadow:0 2px 8px #131b2e20;font-size:26px}
+.public-app .map-selection-hint{position:absolute;z-index:10;left:16px;right:72px;bottom:90px;display:flex;gap:6px;flex-wrap:wrap;pointer-events:none}
+.public-app .map-selection-hint button{flex:1 1 100px;max-width:100%;min-width:0;padding:8px 10px;background:#ffffffed;border:1px solid #bdc9c650;border-radius:10px;box-shadow:0 1px 5px #131b2e12;color:var(--primary);font-size:12px;font-weight:650;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;pointer-events:auto}
+.public-app .route-sheet{position:relative;z-index:2;margin-top:-16px;padding:10px 16px 16px;border-radius:24px 24px 0 0;background:white;box-shadow:0 -8px 30px #131b2e0d;min-width:0}
+.public-app .sheet-handle{width:40px;height:5px;border-radius:99px;background:#d2d9f4;margin:0 auto 12px}
+.public-app .route-sheet .section-heading{align-items:flex-start;gap:6px;margin-bottom:6px}
+.public-app .route-sheet .eyebrow{font-size:11px;line-height:16px;letter-spacing:.065em;font-weight:700}
+.public-app .route-sheet .pill{padding:3px 7px;font-size:10px;line-height:16px;background:#97f5cc;color:#00513a}
+.public-app .route-sheet .pill.caution{background:#fff3d5;color:#744c09}
+.public-app .route-sheet>h2{font-size:18px;line-height:24px;margin:0}
+.public-app .route-sheet .metrics{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:14px 0}
+.public-app .route-sheet .metrics>div{display:flex;flex-direction:column;justify-content:center;padding:10px;min-height:72px;background:var(--lavender);border-radius:14px}
+.public-app .route-sheet .metrics small{font-size:11px;line-height:16px;font-weight:600;color:var(--muted)}
+.public-app .route-sheet .metrics strong{margin-top:4px;font-size:17px;line-height:23px;font-weight:650;color:var(--ink);font-variant-numeric:tabular-nums}
+.public-app .route-sheet .metrics>div:last-child strong{color:var(--primary)}
+.public-app .route-primary-actions{display:grid;grid-template-columns:1fr;gap:8px;margin-top:14px}
+.public-app .route-primary-actions .plan-button{min-height:48px;margin:0}
+.public-app .start-journey{min-height:48px;padding:12px 16px;font-size:16px;border-radius:12px}
+.public-app .route-primary-actions:has(.start-journey) .plan-button{min-height:44px;color:var(--primary);background:var(--lavender);border-color:transparent;order:2}
+.public-app .setup-journey{width:100%;margin-top:8px;background:var(--lavender);border-color:transparent;color:var(--primary);font-weight:650}
+.public-app .route-sheet .banner{margin:12px 0;padding:12px;border-radius:12px;font-size:13px}
+.public-app .route-sheet .notice{margin:10px 0;font-size:13px}
+.public-app .route-facts{margin-top:10px}
+.public-app .route-facts summary{font-size:12px;color:var(--muted);padding:12px 0}
+.public-app .route-facts p{font-size:12px;line-height:1.6;margin:8px 0;color:var(--muted)}
+.public-app .detour-card{margin:12px 0 0;padding:12px;background:var(--lavender);border-radius:14px}
+.public-app .detour-card strong{display:block;font-size:14px}
+.public-app .detour-card p{margin-top:6px;font-size:13px}
+.public-app .detour-card a{display:flex;align-items:center;min-height:44px;font-weight:650}
+.public-app .journey-nodes{list-style:none;padding:0;margin:20px 0}
+.public-app .journey-nodes li{position:relative;display:flex;align-items:flex-start;gap:16px;padding-bottom:22px}
+.public-app .journey-nodes li:not(:last-child)::before{content:'';position:absolute;top:29px;bottom:0;left:13px;width:3px;border-radius:3px;background:#dae2fd}
+.public-app .journey-nodes .node-dot{position:relative;z-index:1;display:grid;place-items:center;flex:0 0 29px;width:29px;height:29px;background:var(--primary);border-radius:50%;color:white;font-size:13px;font-weight:700}
+.public-app .journey-nodes li:last-child .node-dot{background:#283044}
+.public-app .journey-nodes li>div{flex:1;min-width:0;padding-top:3px}
+.public-app .journey-nodes strong{font-size:14px;font-weight:700}
+.public-app .journey-nodes p{padding:8px 10px;margin-top:6px;border-radius:10px;background:var(--lavender);font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.public-app .journey-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.public-app .journey-actions button{background:#ffdad6;color:#93000a;border-color:transparent;font-weight:650}
+.public-app .journey-actions .button-link{padding:10px;font-size:14px;border-radius:12px}
+.public-app .main-tabs{position:fixed;inset:auto 0 0;z-index:40;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));align-items:start;height:calc(72px + env(safe-area-inset-bottom,0px));padding:6px 12px calc(6px + env(safe-area-inset-bottom,0px));border-top:1px solid #bdc9c640;background:#fffffffa;box-shadow:0 -2px 10px #131b2e08}
+.public-app .main-tabs :is(a,button){display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-width:44px;min-height:60px;padding:0 3px;border:0;border-radius:12px;background:transparent;color:var(--muted);text-decoration:none;font-size:12px;line-height:16px;font-weight:600}
+.public-app .main-tabs :is(a,button)>span{display:grid;place-items:center;width:64px;height:32px;border-radius:999px;font-size:27px;line-height:1}
+.public-app .main-tabs [aria-current='page']{color:var(--primary);font-weight:750}
+.public-app .main-tabs [aria-current='page']>span{background:var(--mint)}
+.public-app .route-panel-backdrop{position:fixed;inset:0;z-index:1000;display:flex;justify-content:center;align-items:flex-end;padding-top:max(16px,env(safe-area-inset-top,0px));background:#131b2e55;overscroll-behavior:contain}
+.public-app .route-control-panel{width:100%;max-width:560px;max-height:85vh;max-height:85dvh;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;scroll-padding:80px 0 24px;padding:0 16px calc(20px + env(safe-area-inset-bottom,0px));border:1px solid #bdc9c6;border-bottom:0;border-radius:24px 24px 0 0;background:white;box-shadow:0 -8px 30px #131b2e20}
+.public-app .route-control-panel>.section-heading{position:sticky;top:0;z-index:3;min-height:72px;margin:0 0 12px;padding:12px 0;border-bottom:1px solid #bdc9c650;background:white}
+.public-app .route-control-panel>.section-heading h2{font-size:18px}
+.public-app .route-control-panel>.section-heading button{width:44px;flex-shrink:0;font-size:26px;padding:0;background:var(--lavender);border:0}
+.public-app .route-control-panel .endpoints{gap:8px;margin:0 0 16px}
+.public-app .route-control-panel .endpoint{min-height:64px;padding:10px 50px 10px 12px;background:var(--lavender);border-color:transparent;border-radius:12px;font-size:14px}
+.public-app .route-control-panel .endpoint.active{border-color:var(--teal);background:#f0fdfa;box-shadow:0 0 0 1px var(--teal)}
+.public-app .route-control-panel .endpoint-letter{width:26px;height:26px;border-color:var(--primary)}
+.public-app .route-control-panel .swap{top:46px;right:10px;width:44px;height:44px;border-radius:50%;background:white;border-color:#bdc9c6}
+.public-app .route-control-panel .search-label{font-size:14px}
+.public-app .route-control-panel :is(input,select){background:white;border-color:#bdc9c6;border-radius:8px;font-size:16px}
+.public-app .route-control-panel .search-results{margin:10px 0;border:1px solid #bdc9c650;border-radius:10px;overflow:hidden}
+.public-app .route-control-panel .search-results li+li{border-top:1px solid #bdc9c650}
+.public-app .route-control-panel .search-results button{min-height:56px;border:0;border-radius:0;padding:12px}
+.public-app .route-control-panel .parameter{min-height:48px;gap:12px;font-size:14px}
+.public-app .route-control-panel .parameter select{flex-shrink:0;max-width:142px;font-size:14px}
+.public-app .route-control-panel .two-column{gap:8px}
+.public-app .route-control-panel .plan-button{min-height:48px;margin-top:16px}
+.public-app .route-control-panel .segmented{margin:16px 0;gap:4px;border-color:transparent;background:var(--lavender)}
+.public-app .route-control-panel .segmented button{min-height:44px;flex:1;padding:6px}
+.public-app .route-control-panel .place-list{min-height:0;padding:0}
+.public-app .route-control-panel .place-list button{padding:14px 0;min-height:56px;border-radius:0}
+.public-app .route-control-panel .legend{padding:12px 0;gap:10px;font-size:12px}
+.public-app .route-control-panel .facility-attributions{padding:12px;margin:12px 0;border-radius:10px;background:var(--lavender)}
+.public-app .route-control-panel .facility-attributions a{display:inline-flex;align-items:center;min-height:44px}
+.public-app .route-control-panel .conditions{margin:24px 0}
+.public-app .route-control-panel .conditions .section-heading{align-items:flex-start}
+.public-app .route-control-panel .conditions .pill{white-space:normal;max-width:110px;text-align:center}
+.public-app .route-control-panel .condition-grid{grid-template-columns:1fr}
+.public-app .route-control-panel .condition-card{padding:16px;background:var(--lavender);border-color:transparent}
+.public-app .route-control-panel .condition-card a{display:inline-flex;align-items:center;min-height:44px}
+/* Markers retain their Leaflet geometry while extending their hit area to 44px. */
+.public-app .leaflet-container{font-family:inherit;background:#eaedff}
+.public-app .route-map .leaflet-top{top:72px}
+.public-app .journey-screen .leaflet-top{top:10px}
+.public-app .leaflet-control-zoom{border:0;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px #131b2e20}
+.public-app .leaflet-control-zoom a{min-width:44px;min-height:44px;color:var(--primary)}
+.public-app .map-point-icon{position:absolute}
+.public-app .map-point-icon::before{content:'';position:absolute;inset:-6px;border-radius:50%}
+.public-app .map-reset{top:182px;left:10px;width:44px;height:44px;padding:0;border:0;border-radius:12px;color:var(--primary);box-shadow:0 2px 8px #131b2e20;font-size:24px}
+.public-app .journey-screen .map-reset{top:120px}
+.public-app .map-attribution{display:flex;align-items:center;justify-content:flex-end;gap:4px;width:100%;min-height:44px;padding:0 8px;background:#fffffff2;font-size:10px;line-height:14px}
+.public-app .map-attribution a{display:inline-flex;align-items:center;min-height:44px;padding:2px 3px}
+.public-app .map-caption{bottom:46px;left:8px;right:8px;max-width:none;width:fit-content;padding:4px 6px;font-size:10px;line-height:14px;background:#fffffff0;border-radius:4px}
+.public-app :is(.map-load-status,.map-tile-warning){top:74px;left:64px;right:12px;padding:8px;border-radius:8px;box-shadow:0 2px 8px #131b2e10;font-size:12px}
+.public-app .journey-screen :is(.map-load-status,.map-tile-warning){top:12px}
+@media(min-width:760px){
+.public-app .app-header{padding:0 32px}
+.public-app .app-header .brand{font-size:24px}
+.public-app .route-screen{display:grid;grid-template-columns:minmax(0,1fr) 380px;min-height:calc(100dvh - 136px - env(safe-area-inset-bottom,0px))}
+.public-app .route-map{position:sticky;top:64px;height:calc(100dvh - 136px - env(safe-area-inset-bottom,0px))}
+.public-app .route-map :is(.map,.empty-state){height:calc(100dvh - 136px - env(safe-area-inset-bottom,0px));min-height:440px}
+.public-app .route-sheet{margin:0;border-radius:0;padding:24px;box-shadow:-5px 0 24px #131b2e06}
+.public-app .sheet-handle{display:none}
+.public-app .route-sheet>h2{font-size:22px;line-height:30px;margin-top:10px}
+.public-app .route-sheet .section-heading{flex-wrap:wrap}
+.public-app .route-sheet .metrics{margin:22px 0}
+.public-app .route-sheet .metrics>div{min-height:84px}
+.public-app .route-sheet .metrics strong{font-size:18px}
+.public-app .route-primary-actions{margin-top:24px}
+.public-app .route-sheet .route-facts{margin-top:22px}
+.public-app .map-search-bar{max-width:520px;top:20px;left:24px;right:24px}
+.public-app .map-selection-hint{bottom:88px;left:24px;max-width:480px}
+.public-app .floating-layers{bottom:88px;right:24px}
+.public-app .main-tabs{padding-left:max(12px,calc((100% - 720px)/2));padding-right:max(12px,calc((100% - 720px)/2))}
+.public-app .route-panel-backdrop{align-items:center;padding:32px}
+.public-app .route-control-panel{border-bottom:1px solid #bdc9c6;border-radius:24px;padding:0 24px 24px}
+.public-app .route-control-panel>.section-heading{min-height:76px}
+}
+@media(min-width:1200px){.public-app .route-screen{grid-template-columns:minmax(0,1fr) 420px}.public-app .route-sheet{padding:28px}}
+@media(max-width:379px){.public-app .app-header{padding:0 12px}.public-app .app-header-actions{gap:6px}.public-app .demo-badge{padding:3px 7px;font-size:11px}.public-app .app-header .brand{font-size:20px}.public-app .route-sheet .eyebrow{font-size:10px}}
+@media(prefers-reduced-motion:reduce){.public-app *,.public-app *::before,.public-app *::after{scroll-behavior:auto!important;transition:none!important}}
+@media print{.public-app :is(.app-header,.main-tabs,.map-search-bar,.floating-layers,.map-selection-hint,.route-panel-backdrop){display:none!important}.public-app .public-main{padding:0}.public-app .route-screen{display:block}.public-app .route-map{position:relative;top:auto;height:auto}.public-app .route-map .map{height:300px;min-height:0}.public-app .route-sheet{box-shadow:none}}
+
+/* Keep the complete attribution hit area above the overlapping route sheet. */
+.public-app .route-map .map-attribution{bottom:16px}
+.public-app .route-map .map-caption{bottom:62px}
+.public-app .map-selection-hint{bottom:110px}
+.public-app .floating-layers{bottom:110px}
+.public-app .route-screen>.banner{grid-column:1/-1}
+.public-app .route-sheet .eyebrow{font-size:12px}
+.public-app .route-sheet .pill,.public-app .route-sheet .metrics small{font-size:12px}
+.public-app .route-facts :is(summary,p),.public-app .route-sheet .note{font-size:14px}
+.public-app .app-header{height:calc(64px + env(safe-area-inset-top,0px));padding-top:env(safe-area-inset-top,0px)}
+.public-app .public-main{padding-top:calc(64px + env(safe-area-inset-top,0px))}
+
+.public-app .fixture-controls{padding:24px;max-width:720px;margin:auto}.public-app .fixture-controls button{margin:8px 8px 0 0}

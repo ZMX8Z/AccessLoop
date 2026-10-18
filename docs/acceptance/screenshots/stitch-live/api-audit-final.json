@@ -1,0 +1,38 @@
+{
+  "at": "2026-10-17T22:47:19.623Z",
+  "since": "2026-10-17T14:30:00.000Z",
+  "reportId": "d85e620a-7892-4c02-bfe3-2e68761f3055",
+  "photoId": "96f93dcf-bee9-414b-b140-a097a2358b56",
+  "rowVersion": 3,
+  "context": {
+    "hazardVersion": 0,
+    "personalVersion": 3,
+    "configVersion": 1,
+    "activeDigestPresent": true,
+    "nextExpiryAt": null
+  },
+  "effectivePersonalCount": 0,
+  "secondSession": {
+    "report": 404,
+    "photo": 404,
+    "export": 404
+  },
+  "providerEventsInWindow": {
+    "poi": {
+      "error": 442,
+      "call": 442,
+      "cache_hit": 439
+    },
+    "ors_directions": {
+      "error": 4,
+      "call": 6
+    },
+    "vision": {
+      "error": 1,
+      "call": 1
+    },
+    "geocoding": {
+      "call": 2
+    }
+  }
+}

@@ -9,7 +9,7 @@ import { createFixtureService, fixturePlaces } from '../src/features/routing/cli
 import type { Context } from '../src/features/routing/client/models';
 
 type Element = {type:unknown;props:Record<string,unknown> & {children?:unknown}};
-function host(service: ReturnType<typeof createFixtureService>) {
+function host(service: ReturnType<typeof createFixtureService>, clock:()=>number=Date.now) {
  const values:unknown[]=[];let cursor=0;
  const effects:(()=>unknown)[]=[];
  const intervals:{run:()=>unknown;ms:number}[]=[];
@@ -18,17 +18,18 @@ function host(service: ReturnType<typeof createFixtureService>) {
   useState:(initial:unknown)=>{const index=cursor++;if(!(index in values))values[index]=initial;return [values[index],(next:unknown)=>{values[index]=typeof next==='function'?next(values[index]):next}]},
   useRef:(initial:unknown)=>{const index=cursor++;return values[index]??=( {current:initial} )},
   useMemo:(factory:()=>unknown)=>{const index=cursor++;return values[index]??=factory()},
-  useEffect:(effect:()=>unknown)=>{const index=cursor++;if(!(index in values)){values[index]=true;effects.push(effect)}},
+  useEffect:(effect:()=>unknown,deps?:unknown[])=>{const index=cursor++,previous=values[index] as unknown[]|undefined;if(!previous||!deps||deps.some((value,i)=>value!==previous[i]))effects.push(effect);values[index]=deps??[]},
  };
- const imports:Record<string,unknown>={'react/jsx-runtime':{jsx:element,jsxs:element},react,'next/link':{default:()=>null},'@/shared/client/api':api,'@/components/map/MapView':{MapView:()=>null},'@/components/map/PassagePicker':{PassagePicker:()=>null},'@/features/hazards/client/ReportWizard':{ReportWizard:()=>null},'./service':{liveService:service},'./fixtures':{createFixtureService:()=>service},'./state':state};
+ const imports:Record<string,unknown>={'react/jsx-runtime':{jsx:element,jsxs:element},react,'next/link':{default:()=>null},'@/shared/client/api':api,'@/components/map/MapView':{MapView:()=>null},'@/components/map/PassagePicker':{PassagePicker:()=>null},'@/features/hazards/client/ReportWizard':{ReportWizard:()=>null},'@/features/hazards/client/ReportsList':{ReportsList:()=>null},'./service':{liveService:service},'./fixtures':{createFixtureService:()=>service},'./state':state};
  const source=readFileSync(new URL('../src/features/routing/client/RoutePlanner.tsx',import.meta.url),'utf8');
  const code=ts.transpileModule(source,{compilerOptions:{jsx:ts.JsxEmit.ReactJSX,module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
  const loaded={exports:{} as {RoutePlanner:(props:object)=>Element}};
- vm.runInNewContext(code,{exports:loaded.exports,require:(name:string)=>{assert.ok(name in imports,`Unexpected import ${name}`);return imports[name]},Date,AbortController,setTimeout:()=>0,clearTimeout:()=>{},setInterval:(run:()=>unknown,ms:number)=>{intervals.push({run,ms});return intervals.length},clearInterval:()=>{}});
- const render=()=>{
+ class ClockDate extends Date { static now(){return clock()} }
+ vm.runInNewContext(code,{exports:loaded.exports,require:(name:string)=>{assert.ok(name in imports,`Unexpected import ${name}`);return imports[name]},Date:ClockDate,AbortController,setTimeout:()=>0,clearTimeout:()=>{},setInterval:(run:()=>unknown,ms:number)=>{intervals.push({run,ms});return intervals.length},clearInterval:()=>{}});
+ const render=(props:object={})=>{
   cursor=0;const nodes:Element[]=[];
   const visit=(value:unknown):void=>{if(Array.isArray(value)){value.forEach(visit);return}if(!value||typeof value!=='object')return;const node=value as Element;nodes.push(node);visit(node.props?.children)};
-  visit(loaded.exports.RoutePlanner({}));return nodes;
+  visit(loaded.exports.RoutePlanner(props));return nodes;
  };
  return {render,effects,intervals};
 }
@@ -150,4 +151,52 @@ test('a failed facility refresh for new region config clears old data and retrie
  await poll.run();nodes=app.render();
  assert.equal(reads,3,'New config facilities must retry instead of marking an old snapshot current.');
  assert.equal((nodes.find(node=>'onPlaceSelect' in node.props)!.props.places as unknown[]).length,0);
+});
+
+
+test('journey action requires a current route and tabs preserve inputs without directions',async()=>{
+ const service=createFixtureService();const original=service.route;let calls=0;
+ service.route=async input=>{calls++;return original(input)};
+ const app=host(service);app.render();app.effects.forEach(effect=>effect());await flush();
+ assert.doesNotMatch(text(app.render()[0]),/Start Journey/);
+ let nodes=app.render();(nodes.find(node=>'onPlaceSelect' in node.props)!.props.onPlaceSelect as (place:unknown)=>void)(fixturePlaces[0]);
+ nodes=app.render();(nodes.find(node=>'onPlaceSelect' in node.props)!.props.onPlaceSelect as (place:unknown)=>void)(fixturePlaces[1]);
+ nodes=app.render();(nodes.find(node=>node.type==='button'&&text(node)==='Plan route →')!.props.onClick as ()=>void)();await flush();
+ assert.match(text(app.render()[0]),/Start Journey/);
+ app.render({pathname:'/my-reports'});app.render({pathname:'/route/journey'});
+ assert.equal(calls,1);
+ nodes=app.render();(nodes.find(node=>'onPlaceSelect' in node.props)!.props.onPlaceSelect as (place:unknown)=>void)(fixturePlaces[2]);
+ assert.doesNotMatch(text(app.render()[0]),/Start Journey/);
+});
+
+test('ordinary detail links capture My Reports as report source and dismiss old layers after navigation',async()=>{
+ const app=host(createFixtureService());app.render({pathname:'/my-reports/report-1'});app.effects.forEach(effect=>effect());await flush();
+ app.render({pathname:'/report'});let nodes=app.render({pathname:'/report'});
+ assert.equal(nodes.find(node=>'returnTo' in node.props&&'onChanged' in node.props)!.props.returnTo,'/my-reports');
+ app.render({pathname:'/route'});nodes=app.render({pathname:'/route'});
+ (nodes.find(node=>node.props['aria-label']==='Map layers and place list')!.props.onClick as ()=>void)();
+ assert.equal(app.render({pathname:'/route'}).find(node=>node.props.className==='route-panel-backdrop')!.props.hidden,false);
+ app.render({pathname:'/route/barriers/report-1'});nodes=app.render({pathname:'/route/barriers/report-1'});
+ assert.equal(nodes.find(node=>node.props.className==='route-panel-backdrop')!.props.hidden,true);
+});
+
+test('successful explicit planning closes its input panel so the route result is visible',async()=>{
+ const app=host(createFixtureService());app.render();app.effects.forEach(effect=>effect());await flush();
+ let nodes=app.render();(nodes.find(node=>'onPlaceSelect' in node.props)!.props.onPlaceSelect as (place:unknown)=>void)(fixturePlaces[0]);
+ nodes=app.render();(nodes.find(node=>'onPlaceSelect' in node.props)!.props.onPlaceSelect as (place:unknown)=>void)(fixturePlaces[1]);
+ nodes=app.render();(nodes.find(node=>node.props['aria-label']==='Wheelchair parameters')!.props.onClick as ()=>void)();
+ assert.equal(app.render().find(node=>node.props.className==='route-panel-backdrop')!.props.hidden,false);
+ nodes=app.render();await (nodes.find(node=>node.type==='button'&&text(node)==='Plan route →')!.props.onClick as ()=>Promise<void>)();await flush();
+ assert.equal(app.render().find(node=>node.props.className==='route-panel-backdrop')!.props.hidden,true);
+});
+
+
+test('unchanged facility suppliers pause outside Route and refresh after returning without directions',async()=>{
+ const service=createFixtureService(),originalPlaces=service.places;let reads=0,time=Date.now(),directions=0;
+ service.places=async(...args)=>{reads++;return originalPlaces(...args)};service.route=async()=>{directions++;throw new Error('unexpected route')};
+ const app=host(service,()=>time);app.render();app.effects.splice(0).forEach(effect=>effect());await flush();assert.equal(reads,1);
+ app.render({pathname:'/report'});app.effects.splice(0).forEach(effect=>effect());time+=61000;
+ await app.intervals.find(timer=>timer.ms===5000)!.run();assert.equal(reads,1,'the photo flow does not keep calling an unseen facility supplier');
+ app.render({pathname:'/route'});app.effects.splice(0).forEach(effect=>effect());await app.intervals.find(timer=>timer.ms===5000)!.run();
+ assert.equal(reads,2);assert.equal(directions,0);
 });

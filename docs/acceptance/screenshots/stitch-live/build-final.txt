@@ -1,0 +1,63 @@
+
+> accessloop@0.1.0 build /Users/coreyli/.codex/worktrees/accessloop-a-fixes/AccessLoop
+> next build --webpack
+
+▲ Next.js 16.3.3 (webpack)
+✓ Running next.config.mjs took 12ms
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 11.1s
+  Running TypeScript ...
+  Finished TypeScript in 2.7s ...
+  Collecting page data using 9 workers ...
+  Generating static pages using 9 workers (0/13) ...
+  Generating static pages using 9 workers (3/13)
+  Generating static pages using 9 workers (6/13)
+  Generating static pages using 9 workers (9/13)
+✓ Generating static pages using 9 workers (13/13) in 1743ms
+  Finalizing page optimization ...
+  Collecting build traces ...
+
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ƒ /admin/[[...segments]]
+├ ƒ /api/admin/region
+├ ƒ /api/admin/usage-summary
+├ ƒ /api/analyze
+├ ƒ /api/health
+├ ƒ /api/passages
+├ ƒ /api/photos/[id]
+├ ƒ /api/places
+├ ƒ /api/region
+├ ƒ /api/reports
+├ ƒ /api/reports/[id]
+├ ƒ /api/reports/[id]/avoidance
+├ ƒ /api/reports/[id]/avoidance-preview
+├ ƒ /api/reports/[id]/export
+├ ƒ /api/reports/[id]/review
+├ ƒ /api/routes
+├ ƒ /api/routing-context
+├ ƒ /api/search
+├ ƒ /api/session
+├ ƒ /api/uploads
+├ ƒ /c0-demo
+├ ƒ /c1-demo
+├ ƒ /cms-api/[...slug]
+├ ○ /live
+├ ○ /my-reports
+├ ƒ /my-reports/[id]
+├ ○ /preview
+├ ○ /report
+├ ○ /report/confirm
+├ ƒ /report/success/[id]
+├ ○ /reports
+├ ƒ /reports/[id]
+├ ○ /reports/new
+├ ○ /route
+├ ƒ /route/barriers/[id]
+└ ○ /route/journey
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand

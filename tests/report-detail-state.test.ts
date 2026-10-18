@@ -4,6 +4,7 @@ import test from 'node:test'
 import vm from 'node:vm'
 import ts from 'typescript'
 import * as client from '../src/shared/client/api'
+import * as reportState from '../src/features/hazards/client/report-state'
 import type { PrivateReportDTO } from '../src/shared/contracts/hazards'
 
 type Node = { type: unknown; props: Record<string, unknown> & { children?: unknown } }
@@ -19,7 +20,7 @@ function text(value: unknown): string {
   if (value && typeof value === 'object') return text((value as Node).props?.children)
   return typeof value === 'string' ? value : ''
 }
-function detailHost({ truncated = false, items = [original] }: { truncated?: boolean; items?: PrivateReportDTO[] } = {}) {
+function detailHost({ truncated = false, items = [original], report = original, copied = [] }: { truncated?: boolean; items?: PrivateReportDTO[]; report?:PrivateReportDTO; copied?:string[] } = {}) {
   const values: unknown[] = [], effects: (() => unknown)[] = []
   let cursor = 0
   const element = (type: unknown, props: Node['props']) => ({ type, props })
@@ -31,14 +32,15 @@ function detailHost({ truncated = false, items = [original] }: { truncated?: boo
   const imports: Record<string, unknown> = {
     'react/jsx-runtime': { jsx: element, jsxs: element }, react: hooks, 'next/link': { default: () => null },
     '@/shared/client/api': client,
-    './api': { fetchReport: async () => original, fetchReports: async () => ({ items, truncated }), loadReportConfig: async () => ({ region: { id: 'region-client' }, passages: [] }) },
+    './report-state': reportState,
+    './api': { fetchReport: async () => report, fetchReports: async () => ({ items, truncated }), loadReportConfig: async () => ({ region: { id: 'region-client' }, passages: [] }) },
     './ReportForm': { ReportForm: () => null }, './PhotoUpload': { PhotoUpload: () => null }, './AIAnalysisFeedback': { AIAnalysisFeedback: () => null },
     './AvoidanceDrawer': { AvoidanceDrawer: () => null }, './ReportsList': { ReportSummary: () => null }, './report.css': {},
   }
   const source = readFileSync(new URL('../src/features/hazards/client/ReportDetail.tsx', import.meta.url), 'utf8')
   const code = ts.transpileModule(source, { compilerOptions: { jsx: ts.JsxEmit.ReactJSX, module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText
   const loaded = { exports: {} as { ReportDetail: (props: { id: string }) => Node } }
-  vm.runInNewContext(code, { exports: loaded.exports, require: (name: string) => { assert.ok(name in imports, `Unexpected import ${name}`); return imports[name] }, Date, AbortController, setInterval: () => 0, clearInterval: () => {} })
+  vm.runInNewContext(code, { exports: loaded.exports, require: (name: string) => { assert.ok(name in imports, `Unexpected import ${name}`); return imports[name] }, navigator:{clipboard:{writeText:async(value:string)=>{copied.push(value)}}}, Date, AbortController, setInterval: () => 0, clearInterval: () => {} })
   const render = () => {
     cursor = 0
     const nodes: Node[] = []
@@ -88,3 +90,14 @@ test('a truncated mine list cannot remove author actions for an older private re
   assert.ok(nodes.find((node) => node.type === 'button' && text(node) === 'Edit report facts / replace photo'))
   assert.match(text(nodes[0]), /server checks ownership/)
 })
+
+
+test('copy text evaluates natural personal expiry and identifies the report authors session',async()=>{
+ const copied:string[]=[];
+ const report={...original,personalAvoidance:{effective:true,active:true,confirmationReportVersion:original.rowVersion,validUntil:'2000-01-01T00:00:00.000Z'}} as PrivateReportDTO;
+ const app=detailHost({report,copied});app.render();app.effects.forEach(effect=>effect());await flush();
+ const copy=app.render().find(node=>node.type==='button'&&text(node)==='Copy report text')!;
+ await (copy.props.onClick as ()=>Promise<void>)();await flush();
+ assert.equal(copied.length,1);assert.match(copied[0],/Personal avoidance: not effective/);
+ assert.doesNotMatch(copied[0],/effective for this session/);
+});

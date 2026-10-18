@@ -150,3 +150,15 @@ test('failed tiles retain the warning until every failure recovers or unloads, a
   h.tileHandlers.tileerror({tile:b});h.tileHandlers.tileload({tile:a});h.tileHandlers.tileunload({tile:b});
   assert.equal(states.length,count,'teardown detaches and invalidates late tile callbacks');
 });
+
+test('an explicit planner route focuses its geometry once, while polling and tab visibility preserve that viewport',()=>{
+ const h=host(),c=h.create(props);
+ const route={routeRef:'planned-route',route:{features:[{geometry:{type:'LineString',coordinates:[[151.2327,-33.917],[151.233,-33.9174]]}}]}} as unknown as NonNullable<MapViewProps['route']>;
+ c.update({...props,route,fitRoute:true});
+ assert.equal(h.bounds.length,2,'the first explicit route is visible at a useful scale');
+ assert.deepEqual(json(h.bounds[1]),[[-33.917,151.2327],[-33.9174,151.233]]);
+ c.update({...props,route,fitRoute:true,now:2000});
+ c.update({...props,route:null,fitRoute:true});
+ c.update({...props,route,fitRoute:true,now:3000});
+ assert.equal(h.bounds.length,2,'ticks, stale hiding and tab restoration do not refit');
+});
