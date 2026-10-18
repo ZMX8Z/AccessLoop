@@ -43,7 +43,7 @@ pnpm exec tsx scripts/deployment-probe.ts --http --database --egress
 
 2026-10-17 读取的 [开发者发布说明](https://zenith.hosting/developers)要求公开 GitHub 仓库、zenith-compose.yml、介绍/图片及审核。当前私有仓库不能据此直接假定满足公开发布要求；比赛专用路径若有不同条件，以实际模板核对。
 
-[官方 Agent 连接页](https://zenith.hosting/connect)提供 OAuth MCP 入口，支持部署、配置及健康读取；新部署另有价格批准。当前未发现已连接的 Zenith MCP；已使用项目锁定的官方 CLI 读取原预览日志、核对真实 contract/schema 并完成静态检查。新上传被自动审批拒绝，未创建新预览、未变更仓库可见性。参阅 [官方指南目录](https://zenith.hosting/guides)。
+[官方 Agent 连接页](https://zenith.hosting/connect)提供 OAuth MCP 入口，支持部署、配置及健康读取；新部署另有价格批准。当前未发现已连接的 Zenith MCP；已使用项目锁定的官方 CLI 读取原预览日志、核对真实 contract/schema 并完成静态检查。初次传输自动审批拒绝后，用户已明确授权；实际源码和私有配置已上传并创建预览，构建作业反复重试后已停止，见[平台排查材料](zenith-build-triage.md)。未变更仓库可见性。参阅 [官方指南目录](https://zenith.hosting/guides)。
 
 ## 发布与同一提交回归
 

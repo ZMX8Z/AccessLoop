@@ -1,6 +1,8 @@
 # D 交接：P0/P1 服务基础阶段
 
-当前地图/cloud阶段见[最新验收](../acceptance/d-map-cloud.md)：真实Leaflet/OSM底图、cloud补充设施15条及来源/许可、生产浏览器和262通过/11跳过/build exit0已验。底图、Token、许可选择及保留Demo入口见[部署接线](../deployment/maps-and-facilities.md)。原HeiGIT/Overpass失败保留，但“无任何实时设施来源”已解除；模型上一阶段已通过。以下旧阶段状态按时间保留，完整P0/P1仍缺现场、最终导航/搜索/公共管理闭环、人工验收和Zenith。
+最新部署阶段见[Zenith验收](../acceptance/d-zenith-preview.md)：用户已授权并实际上传，固定版本、干净生产构建和check277/12/0通过；平台BuildKit反复重试后已停止，暂无在线入口、平台数据库或P0/P1通过结论。可转交的具体作业材料见[排查记录](../deployment/zenith-build-triage.md)。
+
+地图/cloud阶段见[最新验收](../acceptance/d-map-cloud.md)：真实Leaflet/OSM底图、cloud补充设施15条及来源/许可、生产浏览器和262通过/11跳过/build exit0已验。底图、Token、许可选择及保留Demo入口见[部署接线](../deployment/maps-and-facilities.md)。原HeiGIT/Overpass失败保留，但“无任何实时设施来源”已解除；模型上一阶段已通过。以下旧阶段状态按时间保留，完整P0/P1仍缺现场、最终导航/搜索/公共管理闭环、人工验收和Zenith。
 
 上一模型阶段见[付费GLM验收](../acceptance/d-paid-vision.md)：用户指定glm-4.6v并确认充值，本机真实私有照片分析/重放/缓存通过；全量check220通过/11跳过，build exit0。前次[四包集成](../acceptance/d-four-package-integration.md)及以下旧模型失败均保留历史。该模型阶段当时尚未验证地点源；后续地点补充见上述地图/cloud阶段，校园实测、Zenith与最终P0/P1仍未通过。
 
@@ -169,6 +171,10 @@ baseDevCommit=`9891b3ba7a8e6f14fa5cb3b59a34d713f654cfae`；codeEvidenceCommit=`8
 
 ## 已授权的 Zenith 兼容修复跟进
 
-用户明确授权后已上传。平台渲染不接受 input/pre_start 的实测差异已解决；受控空库入口、C原生迁移与账本接管的最新产品/上传提交为2ec148e9a914833b23c414b60bff14ed81c609ae。check274通过/12默认跳过/0失败，真实PG schema保护回归1/1及独立两轴复核通过。当前会话01M56JV8MV4VTSHRF0NZTEGNYF已进入平台构建，线上HTTP/持久性仍待验；此前“待传输授权”不再代表当前状态。完整范围见[Zenith验收](../acceptance/d-zenith-preview.md)。
+用户明确授权后已上传。平台渲染不接受 input/pre_start 的实测差异已解决；受控空库入口、C原生迁移与账本接管的该轮产品/上传提交为2ec148e9a914833b23c414b60bff14ed81c609ae。check274通过/12默认跳过/0失败，真实PG schema保护回归1/1及独立两轴复核通过。该轮会话01M56JV8MV4VTSHRF0NZTEGNYF已进入平台构建，线上HTTP/持久性仍待验；此前“待传输授权”不再代表当前状态。完整范围见[Zenith验收](../acceptance/d-zenith-preview.md)。
 
-最新外部阻塞（2026-10-18 15:10 Sydney）：Zenith账户列表/当前状态/build日志及控制台首页均502，浏览器明确Host Error。实际源码及26项私有输入已上传、构建已启动，最后可读状态building；当前运行状态未知，不宣称在线成功。先恢复读取原会话01M56JV8MV4VTSHRF0NZTEGNYF，避免重复实例/独立预算。PR #23保留draft，尚无新集成SHA、在线入口或平台恢复证据。详见[记录](../acceptance/d-zenith-preview.md)。
+Zenith 控制面已于2026-10-18 15:13（Sydney）恢复；原会话随后连续三个 BuildKit 作业在 Next 编译阶段重试，仅返回 PREVIEW_RETRY，完整日志没有具体编译错误/退出信号。旧作业已在业务运行前停止并确认deleted，未新增供应商调用。当前构建缓解产品 270b220db892ff0faeb2e3b5cdf90f6e4d5d80c9 已通过check（277通过/12默认跳过/0失败）及独立兼容复核；无env生产构建证据来自同应用源码d55e6db的本机测量（默认堆46.30秒；1024MiB堆46.41秒，均exit0）；最终平台会话01M56N0A21JF9QGSS7SG0TZ9ZG两次构建失败后开始第三次重试，15:48（Sydney）显式停止且确认deleted，无线上入口。PR #23保留draft，尚无新集成SHA或平台恢复证据。具体原因不能归为已确认OOM，cgroup限额未暴露。详见[记录](../acceptance/d-zenith-preview.md)。
+
+最终构建缓解：270b220db892ff0faeb2e3b5cdf90f6e4d5d80c9仅限制Docker构建进程旧生代1024MiB，不限制运行内存；同应用源码无env冷构建exit0、46.41秒、峰值RSS1519419392字节，当前提交check277/12/0、定向11/11与独立复核通过。过小堆和外置依赖试验失败后均未采用；具体在线结果以[Zenith阶段验收](../acceptance/d-zenith-preview.md)为准。
+
+最终停止记录：会话01M56N0A21JF9QGSS7SG0TZ9ZG的7d6z9/jtsrx作业失败后自动创建km9ht，错误详情仍仅PREVIEW_RETRY通用消息；2026-10-18T04:48:03.987Z已确认deleted。没有业务运行/线上预算恢复。下一步需平台提供实际构建退出原因/限额，详见[排查材料](../deployment/zenith-build-triage.md)。
