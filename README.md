@@ -30,3 +30,5 @@ D 服务接线见 [仓储与前端交接](docs/handoffs/d-service-integration.md
 本机联调库已按用户授权独立配置，路径、端口和安全复用方式见 [本机 PostgreSQL](docs/deployment/local-development-db.md)；数据库与秘密留在本地忽略文件中。
 
 底图与设施配置见[部署接线](docs/deployment/maps-and-facilities.md)，本次真实覆盖、浏览器和失败回归见[地图/cloud验收](docs/acceptance/d-map-cloud.md)。cloud作为设施补充，不替代校园现场核验。
+
+2026-10-18 用户已授权将当前修复经 dev 同步至 main，供 Zenith 拉取；具体提交与核验见[main同步记录](docs/deployment/main-sync-2026-10-18.md)。线上构建和P0/P1未通过状态保持单独记录。

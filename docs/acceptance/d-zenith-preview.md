@@ -1,12 +1,12 @@
 # D：Zenith 预览失败修复与实际启动
 
-当前：用户已授权上传并启动，源码和26项私有输入已传输。Zenith控制面曾502，已恢复；最终构建缓解仍反复PREVIEW_RETRY，15:48（Sydney）显式停止且确认deleted。没有线上入口，PR #23保持draft，不计为P0/P1部署通过。
+当前：用户已授权上传并启动，源码和26项私有输入已传输。Zenith控制面曾502，已恢复；最终构建缓解仍反复PREVIEW_RETRY，15:48（Sydney）显式停止且确认deleted。没有线上入口，用户随后已明确授权这批配置经dev同步到main；不计为P0/P1部署通过。源码同步见[发布记录](../deployment/main-sync-2026-10-18.md)。
 
 日期：2026-10-18。分支`codex/d-backend-routing`，独立D工作目录。
 
 - baseDevCommit：`9891b3ba7a8e6f14fa5cb3b59a34d713f654cfae`，最新fetch后未前移。
 - 当前codeEvidenceCommit：`270b220db892ff0faeb2e3b5cdf90f6e4d5d80c9`；后续文档提交不代表另一次镜像构建。
-- [PR #23](https://github.com/ZMX8Z/AccessLoop/pull/23)，base=dev，draft；integratedDevCommit：无。
+- [PR #23](https://github.com/ZMX8Z/AccessLoop/pull/23)，base=dev；本次按最新用户授权同步dev/main，实际集成与发布SHA见PR正文发布回执。
 - CLI锁定子提交`56ae499e3d384e814683a7db2fee6ad68a841b92`已先合回D；原子PR #22已改base=dev，不另行向main合并。
 
 ## 已定位的原始失败

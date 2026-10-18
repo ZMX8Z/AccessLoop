@@ -63,8 +63,10 @@ Zenith 预览准备阶段（历史，授权后进展见下文）：base dev `989
 
 用户明确授权后已上传。平台渲染不接受 input/pre_start 的实测差异已解决；受控空库入口、C原生迁移与账本接管的该轮产品/上传提交为2ec148e9a914833b23c414b60bff14ed81c609ae。check274通过/12默认跳过/0失败，真实PG schema保护回归1/1及独立两轴复核通过。该轮会话01M56JV8MV4VTSHRF0NZTEGNYF已进入平台构建，线上HTTP/持久性仍待验；此前“待传输授权”不再代表当前状态。完整范围见[Zenith验收](../acceptance/d-zenith-preview.md)。
 
-Zenith 控制面已于2026-10-18 15:13（Sydney）恢复；原会话随后连续三个 BuildKit 作业在 Next 编译阶段重试，仅返回 PREVIEW_RETRY，完整日志没有具体编译错误/退出信号。旧作业已在业务运行前停止并确认deleted，未新增供应商调用。当前构建缓解产品 270b220db892ff0faeb2e3b5cdf90f6e4d5d80c9 已通过check（277通过/12默认跳过/0失败）及独立兼容复核；无env生产构建证据来自同应用源码d55e6db的本机测量（默认堆46.30秒；1024MiB堆46.41秒，均exit0）；最终平台会话01M56N0A21JF9QGSS7SG0TZ9ZG两次构建失败后开始第三次重试，15:48（Sydney）显式停止且确认deleted，无线上入口。PR #23保留draft，尚无新集成SHA或平台恢复证据。具体原因不能归为已确认OOM，cgroup限额未暴露。详见[记录](../acceptance/d-zenith-preview.md)。
+Zenith 控制面已于2026-10-18 15:13（Sydney）恢复；原会话随后连续三个 BuildKit 作业在 Next 编译阶段重试，仅返回 PREVIEW_RETRY，完整日志没有具体编译错误/退出信号。旧作业已在业务运行前停止并确认deleted，未新增供应商调用。当前构建缓解产品 270b220db892ff0faeb2e3b5cdf90f6e4d5d80c9 已通过check（277通过/12默认跳过/0失败）及独立兼容复核；无env生产构建证据来自同应用源码d55e6db的本机测量（默认堆46.30秒；1024MiB堆46.41秒，均exit0）；最终平台会话01M56N0A21JF9QGSS7SG0TZ9ZG两次构建失败后开始第三次重试，15:48（Sydney）显式停止且确认deleted，无线上入口。用户随后已授权源码经dev同步main，PR #23的实际集成SHA见发布回执；平台恢复证据仍缺。具体原因不能归为已确认OOM，cgroup限额未暴露。详见[记录](../acceptance/d-zenith-preview.md)。
 
 最终构建缓解：270b220db892ff0faeb2e3b5cdf90f6e4d5d80c9仅限制Docker构建进程旧生代1024MiB，不限制运行内存；同应用源码无env冷构建exit0、46.41秒、峰值RSS1519419392字节，当前提交check277/12/0、定向11/11与独立复核通过。过小堆和外置依赖试验失败后均未采用；具体在线结果以[Zenith阶段验收](../acceptance/d-zenith-preview.md)为准。
 
 最终停止记录：会话01M56N0A21JF9QGSS7SG0TZ9ZG的7d6z9/jtsrx作业失败后自动创建km9ht，错误详情仍仅PREVIEW_RETRY通用消息；2026-10-18T04:48:03.987Z已确认deleted。没有业务运行/线上预算恢复。下一步需平台提供实际构建退出原因/限额，详见[排查材料](../deployment/zenith-build-triage.md)。
+
+2026-10-18 main源码同步已获用户明确授权。授权前D头43b2880的check277通过/12默认集成跳过/0失败、实际私有值扫描0命中。实际集成/发布SHA及main候选核验结果由[发布记录](../deployment/main-sync-2026-10-18.md)引用PR #23正文回执；Zenith部署与完整P0/P1验收仍未通过。

@@ -4,7 +4,7 @@
 
 ## 可复查对象
 
-- repository：`github:zmx8z/accessloop`，D固定分支；PR #23 base=dev、draft。
+- repository：`github:zmx8z/accessloop`，D固定分支；PR #23 base=dev；本记录保留构建失败观察，后续已授权的main同步见[发布记录](main-sync-2026-10-18.md)。
 - 实际上传提交：`270b220db892ff0faeb2e3b5cdf90f6e4d5d80c9`。
 - 会话：`01M56N0A21JF9QGSS7SG0TZ9ZG`。
 - 第一作业/Pod：`zenith-publish-7d6z9` / `zenith-publish-7d6z9-zw8s9`。
