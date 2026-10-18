@@ -16,13 +16,15 @@ import { AvoidanceDrawer } from './AvoidanceDrawer'
 import './report.css'
 
 type Step = 'photo' | 'confirm' | 'success'
+const savedReportKey = (id: string | undefined, page: string, context: string | undefined, reload: number) => JSON.stringify([id, page, context, reload])
 export function ReportWizard({ region: suppliedRegion, passages: suppliedPassages, route = null, onChanged,
-  pathname, returnTo = '/route', onNavigate, onStepChange }: {
+  pathname, returnTo = '/route', onNavigate, onStepChange, reportUpdateKey }: {
   region?: RegionDTO; passages?: PresetPassageDTO[]; route?: RouteDTO | null; onChanged?: () => void
-  pathname?: string; returnTo?: string; onNavigate?: (path: string) => void; onStepChange?: (step: Step) => void
+  pathname?: string; returnTo?: string; onNavigate?: (path: string) => void; onStepChange?: (step: Step) => void; reportUpdateKey?: string
 }) {
   const [draft, dispatch] = useReducer(draftReducer, initialDraft)
   const [report, setReport] = useState<PrivateReportDTO | null>(null)
+  const [savedCheck, setSavedCheck] = useState<{key: string; status: 'current' | 'unavailable'}>({key: '', status: 'unavailable'})
   const [completedId, setCompletedId] = useState<string | null>(null)
   const [localPath, setLocalPath] = useState('/report')
   const [photoUrl, setPhotoUrl] = useState(''), [photoEpoch, setPhotoEpoch] = useState(0)
@@ -32,15 +34,20 @@ export function ReportWizard({ region: suppliedRegion, passages: suppliedPassage
   const [configError, setConfigError] = useState('')
   const [error, setError] = useState(''), [analyzing, setAnalyzing] = useState(false), [reload, setReload] = useState(0)
   const currentPhoto = useRef<string | null>(null)
+  const currentSavedReport = useRef<string | null>(null)
   const photoDraftStarted = useRef(false)
   const analysisRequest = useRef(new LatestRequest())
   const resumeRequest = useRef(new LatestRequest())
+  const savedRequest = useRef(new LatestRequest())
   const region = suppliedRegion ?? config?.region
   const passages = suppliedPassages ?? config?.passages ?? []
   const path = pathname ?? localPath
+  const [previousPath, setPreviousPath] = useState(path)
+  if (previousPath !== path) { setPreviousPath(path); setSavedCheck({key: '', status: 'unavailable'}) }
   const step: Step = path.startsWith('/report/success/') ? 'success' : path === '/report/confirm' ? 'confirm' : 'photo'
+  const savedStatus = savedCheck.key === savedReportKey(report?.id, path, reportUpdateKey, reload) ? savedCheck.status : 'checking'
   const validSuccess = !!report && completedId === report.id && path === `/report/success/${encodeURIComponent(report.id)}`
-  function navigate(next: string) { resumeRequest.current.cancel(); setLocalPath(next); onNavigate?.(next) }
+  function navigate(next: string) { resumeRequest.current.cancel(); savedRequest.current.cancel(); setLocalPath(next); onNavigate?.(next) }
   useEffect(() => { onStepChange?.(step) }, [step, onStepChange])
   useEffect(() => {
     const requests = resumeRequest.current
@@ -56,16 +63,36 @@ export function ReportWizard({ region: suppliedRegion, passages: suppliedPassage
     void Promise.all([fetchReport(id, task.signal), fetchReports('mine', task.signal)]).then(([record, mine]) => {
       if (!task.current() || record.id !== id || !('rowVersion' in record)
         || !mine.items.some((item) => item.id === id) || !isPersonalEffective(record, Date.now())) return
-      setReport(record); setCompletedId(record.id); setNow(Date.now())
+      currentSavedReport.current = record.id; setReport(record); setCompletedId(record.id); setNow(Date.now()); setSavedCheck({key: savedReportKey(record.id, path, reportUpdateKey, reload), status: 'current'})
     }).catch(() => { /* Keep the guarded page when either read fails. */ })
     return () => requests.cancel()
-  }, [path, draft.photo, report])
+  }, [path, draft.photo, report, reportUpdateKey, reload])
+  const savedId = report?.id
+  useEffect(() => {
+    if (!savedId || (path !== '/report/confirm' && !path.startsWith('/report/success/'))) return
+    const requests = savedRequest.current, task = requests.begin()
+    void Promise.all([fetchReport(savedId, task.signal), fetchReports('mine', task.signal)]).then(([record, mine]) => {
+      if (!task.current()) return
+      if (!('rowVersion' in record) || record.id !== savedId || !mine.items.some(item => item.id === savedId)) throw new Error('Your saved report is no longer available to this session.')
+      setReport(current => current?.id !== record.id || current.rowVersion > record.rowVersion ? current : record)
+      setSavedCheck({key: savedReportKey(record.id, path, reportUpdateKey, reload), status: 'current'}); setError('')
+    }).catch(failure => {
+      if (task.current()) { setSavedCheck({key: savedReportKey(savedId, path, reportUpdateKey, reload), status: 'unavailable'}); setError(errorMessage(failure)) }
+    })
+    return () => requests.cancel()
+  }, [savedId, path, reportUpdateKey, reload])
+  useEffect(() => {
+    if (!savedId || typeof window === 'undefined') return
+    const changed = () => { savedRequest.current.cancel(); setReload(value => value + 1) }
+    window.addEventListener('accessloop:reports-changed', changed)
+    return () => window.removeEventListener('accessloop:reports-changed', changed)
+  }, [savedId])
   useEffect(() => {
     if (path !== '/report' || !completedId) return
     // A new Report entry after completion starts a separate draft. Merely hiding
     // this mounted flow on Route or My Reports must preserve unfinished work.
     const timer = setTimeout(() => {
-      analysisRequest.current.cancel(); currentPhoto.current = null; photoDraftStarted.current = false
+      analysisRequest.current.cancel(); currentPhoto.current = null; currentSavedReport.current = null; photoDraftStarted.current = false
       dispatch({ type: 'reset' }); setReport(null); setCompletedId(null)
       setPhotoUrl(''); setPhotoEpoch((value) => value + 1); setError('')
     }, 0)
@@ -87,9 +114,9 @@ export function ReportWizard({ region: suppliedRegion, passages: suppliedPassage
     return () => { controller.abort(); clearInterval(timer) }
   }, [suppliedRegion, reload])
   useEffect(() => { const requests = analysisRequest.current; return () => requests.cancel() }, [])
-  function changed(updated: PrivateReportDTO) { setReport(updated); onChanged?.() }
+  function changed(updated: PrivateReportDTO) { currentSavedReport.current = updated.id; savedRequest.current.cancel(); setReport(updated); setSavedCheck({key: savedReportKey(updated.id, path, reportUpdateKey, reload), status: 'current'}); onChanged?.() }
   function complete(updated: PrivateReportDTO) {
-    setReport(updated); setCompletedId(updated.id); navigate(`/report/success/${encodeURIComponent(updated.id)}`)
+    savedRequest.current.cancel(); setReport(updated); setSavedCheck({key: savedReportKey(updated.id, `/report/success/${encodeURIComponent(updated.id)}`, reportUpdateKey, reload), status: 'current'}); setCompletedId(updated.id); navigate(`/report/success/${encodeURIComponent(updated.id)}`)
   }
   async function analyze(photo: UploadDTO | null = draft.photo) {
     if (!photo) return
@@ -114,7 +141,7 @@ export function ReportWizard({ region: suppliedRegion, passages: suppliedPassage
     else { analysisRequest.current.cancel(); setAnalyzing(false); dispatch({ type: 'manual' }) }
   }
   function restart() {
-    analysisRequest.current.cancel(); currentPhoto.current = null; photoDraftStarted.current = false; dispatch({ type: 'reset' }); setReport(null)
+    analysisRequest.current.cancel(); currentPhoto.current = null; currentSavedReport.current = null; photoDraftStarted.current = false; dispatch({ type: 'reset' }); setReport(null)
     setCompletedId(null); setPhotoUrl(''); setPhotoEpoch((value) => value + 1); setError(''); navigate('/report')
   }
   return <div className={`report-flow report-wizard report-step-${step}`} data-report-step={step}>
@@ -150,18 +177,19 @@ export function ReportWizard({ region: suppliedRegion, passages: suppliedPassage
       </>}
       {report && <>
         <section className="report-saved-review"><h2>Review your personal detour</h2><p>Report <strong>{report.id}</strong> is saved. It has not been sent to campus facilities or publicly verified.</p><p>Review the server preview and explicitly confirm personal avoidance, or submit the saved report without it.</p><button className="report-secondary" type="button" onClick={() => navigate(`/my-reports/${encodeURIComponent(report.id)}`)}>Edit saved report facts</button></section>
-        {region && <AvoidanceDrawer report={report} region={region} passages={passages} route={route} onUpdated={(updated) => { changed(updated); if (isPersonalEffective(updated, Date.now())) complete(updated) }} />}
-        <button type="button" className="report-secondary report-primary-wide" onClick={() => complete(report)}>Submit without personal avoidance</button>
+        {region && <AvoidanceDrawer disabled={savedStatus !== 'current'} report={report} region={region} passages={passages} route={route} onBusyChange={setSaving} onUpdated={(updated) => { if (currentSavedReport.current !== updated.id) { onChanged?.(); return } changed(updated); if (isPersonalEffective(updated, Date.now())) complete(updated) }} />}
+        <button type="button" className="report-secondary report-primary-wide" disabled={savedStatus !== 'current' || saving} onClick={() => complete(report)}>Submit without personal avoidance</button>
       </>}
     </div>}
     {step === 'success' && validSuccess && report && <div className="report-success-content">
       <div className="report-success-mark" aria-hidden="true">✓</div><h2>Successfully Reported!</h2><p>Report <strong>#{report.id}</strong></p>
-      <p className="report-success-scope">{isPersonalEffective(report, now) ? `Personal detour for this browser session until ${new Date(report.personalAvoidance!.validUntil).toLocaleString('en-AU',{dateStyle:'short',timeStyle:'short',timeZone:region?.timezone??'Australia/Sydney'})} (${region?.timezone??'Australia/Sydney'}).` : 'Report saved. Personal avoidance is not enabled.'}</p>
-      <p className="report-note">Public activity: {report.publicActivity}. Your photo stays private.</p>
+      <p className="report-success-scope">{savedStatus !== 'current' ? 'Current avoidance status is being checked. Do not rely on the earlier detour status.' : isPersonalEffective(report, now) ? `Personal detour for this browser session until ${new Date(report.personalAvoidance!.validUntil).toLocaleString('en-AU',{dateStyle:'short',timeStyle:'short',timeZone:region?.timezone??'Australia/Sydney'})} (${region?.timezone??'Australia/Sydney'}).` : 'Report saved. Personal avoidance is not enabled.'}</p>
+      <p className="report-note">{savedStatus === 'current' ? `Public activity: ${report.publicActivity}.` : 'Current public activity is unverified.'} Your photo stays private.</p>
       <button type="button" className="report-primary-wide" onClick={() => navigate('/route')}>Return to Route <span aria-hidden="true">→</span></button>
-      <div className="report-actions"><button className="report-secondary" type="button" onClick={() => navigate(`/my-reports/${encodeURIComponent(report.id)}`)}>View report</button><button className="report-secondary" type="button" onClick={restart}>Report another barrier</button></div>
+      <div className="report-actions"><button className="report-secondary" type="button" onClick={() => navigate(`/my-reports/${encodeURIComponent(report.id)}`)}>View report</button><button className="report-secondary" type="button" disabled={saving} onClick={restart}>Report another barrier</button></div>
       {!onNavigate && <Link className="report-link" href="/my-reports">My Reports</Link>}
     </div>}
+    {savedId && savedStatus !== 'current' && <p role="status">{savedStatus === 'checking' ? 'Checking the latest saved report…' : 'Current report status could not be verified.'} <button type="button" className="report-secondary" onClick={() => setReload(value => value + 1)}>Reload saved report</button></p>}
     {(error || (!suppliedRegion && configError)) && <p className="report-error" role="alert">{error || configError} <button type="button" className="report-secondary" onClick={() => { setError(''); setReload((value) => value + 1) }}>Reload configuration</button></p>}
     <p className="report-note report-privacy-note">Your reports belong to this anonymous browser session. Closing the browser may lose access to this identity.</p>
   </div>

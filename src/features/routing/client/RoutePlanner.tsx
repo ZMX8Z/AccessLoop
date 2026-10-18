@@ -201,7 +201,7 @@ export function RoutePlanner({fixture=false,pathname='/route',onNavigate,childre
     node?.addEventListener('keydown',key);return()=>{node?.removeEventListener('keydown',key);previous?.focus()};
   },[panel]);
   const facilityCredits=Array.from(new Map(places.flatMap(p=>p.sourceMetadata?[p.sourceMetadata]:[]).map(metadata=>[`${metadata.datasetId}/${metadata.licenseId}`,metadata])).values());
-  const selectPlace=(p:Place)=>{setSelected(p);choose({name:p.name,location:p.location})};
+  const selectPlace=(p:Place)=>{setSelected(p);if(journey)setPanel('layers');else choose({name:p.name,location:p.location})};
   return <div className={`public-app${focusedReport?' focused-report':''}`}>
     <a className="skip-link" href="#public-main">Skip to content</a>
     <header className="app-header">
@@ -240,7 +240,7 @@ export function RoutePlanner({fixture=false,pathname='/route',onNavigate,childre
           <details className="route-facts"><summary>Sources, parameters & limitations</summary>{route&&<><p>Source: {fixture?'Synthetic fixture':route.source.toUpperCase()} · Calculated {route.computedAt}</p><p>Public v{route.hazardVersion} · Personal v{route.personalVersion} · Config v{route.configVersion}. Reference expires {route.routeRefExpiresAt}.</p>{route.warnings.map(w=><p key={w}>{w}</p>)}</>}<p>Wheelchair limits: {restrictions?.maximum_incline}% maximum incline, {restrictions?.maximum_sloped_kerb} m maximum kerb, {restrictions?.minimum_width} m minimum width. These are requested limits, not measured route values.</p><p>Candidate route only. Unknown or expired data does not mean clear passage. No live navigation. {region?.isDemo?'Demo region and synthetic passages are not field validated.':''}</p></details>
         </section>
       </div>
-      <div hidden={!reportPage} className="report-screen">{!fixture&&<ReportWizard region={region??undefined} passages={passages} route={stale?null:route} onChanged={reportChanged} pathname={pathname} returnTo={reportSource} onNavigate={navigate}/>}</div>
+      <div hidden={!reportPage} className="report-screen">{!fixture&&<ReportWizard reportUpdateKey={context?contextKey(context):undefined} region={region??undefined} passages={passages} route={stale?null:route} onChanged={reportChanged} pathname={pathname} returnTo={reportSource} onNavigate={navigate}/>}</div>
       <div hidden={!listPage} className="reports-screen">{!fixture&&<ReportsList onNavigate={navigate}/>}</div>
       {fixtureControls&&<section className="fixture-controls"><h2>Fixture regression controls</h2><p>Synthetic responses only. No routing supplier requests.</p><button onClick={()=>{choose({name:'Fixture start',location:[0.002,0.002]});setStart({name:'Fixture start',location:[0.002,0.002]});setEnd({name:'Fixture destination',location:[0.008,0.008]})}}>Set fixture endpoints</button><button onClick={()=>fixtureControls.deferNextRoute()}>Delay next fixture route</button><button onClick={()=>fixtureControls.changePublicSet()}>Change fixture public set</button><button onClick={()=>fixtureControls.releaseRoute()}>Release delayed fixture route</button></section>}
       {children}

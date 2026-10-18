@@ -32,7 +32,7 @@ function host({ regionAvailable = true, analysisFails = false }: { regionAvailab
   const imports: Record<string, unknown> = {
     'react/jsx-runtime': { jsx: element, jsxs: element }, react: hooks, 'next/link': { default: component },
     '@/shared/client/api': client, './report-state': state, './report.css': {},
-    './api': { loadReportConfig: async () => { throw new Error('Configuration load failed.') }, analyzePhoto: async (id: string) => { analysisCalls.push(id); if (analysisFails) throw new Error('Analysis provider failed.'); return { photoId: id, analysisId: 'analysis-1', aiStatus: 'unavailable' } } },
+    './api': { fetchReport: async () => report, fetchReports: async () => ({items: [report], truncated: false}), loadReportConfig: async () => { throw new Error('Configuration load failed.') }, analyzePhoto: async (id: string) => { analysisCalls.push(id); if (analysisFails) throw new Error('Analysis provider failed.'); return { photoId: id, analysisId: 'analysis-1', aiStatus: 'unavailable' } } },
     './PhotoUpload': { PhotoUpload: component }, './AIAnalysisFeedback': { AIAnalysisFeedback: component },
     './ReportForm': { ReportForm: component }, './AvoidanceDrawer': { AvoidanceDrawer: component },
   }
@@ -144,4 +144,31 @@ test('a supplied current region removes an earlier configuration warning while a
     assert.doesNotMatch(result, /Configuration load failed/)
     if (analysisFails) assert.match(result, /Analysis provider failed/)
   }
+})
+
+
+test('a late avoidance confirmation cannot replace a restarted photo draft', () => {
+  const app = host()
+  ;(app.render().find(node => 'onPhotoUploaded' in node.props)!.props.onPhotoUploaded as (...args: unknown[]) => void)({ photoId: report.photoId }, 'blob:test')
+  ;(app.render().find(node => 'onContinue' in node.props)!.props.onContinue as (consent: boolean) => void)(false)
+  ;(app.render().find(node => 'onReportCreated' in node.props)!.props.onReportCreated as (value: PrivateReportDTO) => void)(report)
+  const oldDrawer = app.render().find(node => 'onUpdated' in node.props)!
+  ;(app.render().find(node => node.type === 'button' && text(node) === 'Submit without personal avoidance')!.props.onClick as () => void)()
+  ;(app.render().find(node => node.type === 'button' && text(node) === 'Report another barrier')!.props.onClick as () => void)()
+  ;(oldDrawer.props.onUpdated as (value: PrivateReportDTO) => void)(report)
+  assert.doesNotMatch(text(app.render()[0]), /Successfully Reported|Your report is already saved/)
+  assert.ok(app.render().find(node => 'onPhotoUploaded' in node.props))
+})
+
+
+test('an in-flight avoidance change disables early completion and keeps the same report', () => {
+  const app = host()
+  ;(app.render().find(node => 'onPhotoUploaded' in node.props)!.props.onPhotoUploaded as (...args: unknown[]) => void)({ photoId: report.photoId }, 'blob:test')
+  ;(app.render().find(node => 'onContinue' in node.props)!.props.onContinue as (consent: boolean) => void)(false)
+  ;(app.render().find(node => 'onReportCreated' in node.props)!.props.onReportCreated as (value: PrivateReportDTO) => void)(report)
+  const drawer = app.render().find(node => 'onUpdated' in node.props)!
+  ;(drawer.props.onBusyChange as (busy: boolean) => void)(true)
+  assert.equal(app.render().find(node => node.type === 'button' && text(node) === 'Submit without personal avoidance')!.props.disabled, true)
+  ;(drawer.props.onBusyChange as (busy: boolean) => void)(false)
+  assert.equal(app.render().find(node => node.type === 'button' && text(node) === 'Submit without personal avoidance')!.props.disabled, false)
 })

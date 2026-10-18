@@ -26,7 +26,7 @@ function host({ record = active, mine = [active], truncated = false, delayed = f
   record?: PrivateReportDTO | PublicReportDTO; mine?: PrivateReportDTO[]; truncated?: boolean; delayed?: boolean; fails?: boolean
 } = {}) {
   const values: unknown[] = [], pendingEffects: (() => unknown)[] = [], calls: string[] = []
-  let cursor = 0, pathname = `/report/success/${active.id}`, changed = 0
+  let cursor = 0, pathname = `/report/success/${active.id}`, changed = 0, reportUpdateKey = 'initial'
   let resolveRead!: (value: PrivateReportDTO | PublicReportDTO) => void
   const delayedRead = new Promise<PrivateReportDTO | PublicReportDTO>((resolve) => { resolveRead = resolve })
   const component = () => null
@@ -61,10 +61,10 @@ function host({ record = active, mine = [active], truncated = false, delayed = f
     cursor = 0
     const nodes: Node[] = []
     function visit(value: unknown) { if (Array.isArray(value)) { value.forEach(visit); return } if (!value || typeof value !== 'object') return; const node = value as Node; nodes.push(node); visit(node.props?.children) }
-    visit(loaded.exports.ReportWizard({ pathname, region: { id: 'region-1', isDemo: true }, passages: [], onChanged: () => changed++, onNavigate: (path: string) => { pathname = path } }))
+    visit(loaded.exports.ReportWizard({ pathname, region: { id: 'region-1', isDemo: true }, passages: [], onChanged: () => changed++, onNavigate: (path: string) => { pathname = path }, reportUpdateKey }))
     return nodes
   }
-  return { render, calls, effects: () => pendingEffects.splice(0).forEach((effect) => effect()), changes: () => changed, resolve: () => resolveRead(record), navigate: (path: string) => { pathname = path } }
+  return { render, calls, delay: () => { delayed = true }, effects: () => pendingEffects.splice(0).forEach((effect) => effect()), changes: () => changed, resolve: () => resolveRead(record), navigate: (path: string) => { pathname = path }, setMine: (next: PrivateReportDTO[]) => { mine = next }, update: (next: PrivateReportDTO, key = reportUpdateKey) => { record = next; reportUpdateKey = key } }
 }
 const flush = () => new Promise((resolve) => setImmediate(resolve))
 test('success refresh restores only a server-confirmed effective report explicitly owned by this session', async () => {
@@ -111,4 +111,83 @@ test('late recovery cannot replace a changed success URL or a new photo selectio
     assert.doesNotMatch(text(app.render()[0]), /Successfully Reported!/)
     assert.equal(app.changes(), 0)
   }
+})
+
+
+test('returning from report details refreshes stopped avoidance and corrected report versions', async () => {
+  const app = host(); app.render(); app.effects(); await flush()
+  assert.match(text(app.render()[0]), /Personal detour for this browser session/)
+  app.navigate(`/my-reports/${active.id}`); app.render(); app.effects()
+  app.update({ ...active, rowVersion: 3, description: 'Corrected observation', personalAvoidance: { ...active.personalAvoidance!, active: false, effective: false } })
+  app.navigate(`/report/success/${active.id}`);
+  assert.doesNotMatch(text(app.render()[0]), /Personal detour for this browser session/, 'Re-entry must invalidate the previous successful status before a read finishes.')
+  app.effects(); await flush()
+  assert.doesNotMatch(text(app.render()[0]), /Personal detour for this browser session/)
+  assert.match(text(app.render()[0]), /Personal avoidance is not enabled/)
+  assert.ok(app.calls.filter(call => call === `report:${active.id}`).length >= 2)
+})
+
+test('a routing context update rechecks the visible completion status without another supplier call', async () => {
+  const app = host(); app.render(); app.effects(); await flush(); app.render(); app.effects(); await flush()
+  app.update({ ...active, rowVersion: 3, status: 'resolved', personalAvoidance: { ...active.personalAvoidance!, active: false, effective: false } }, 'new-public-context')
+  app.render(); app.effects(); await flush()
+  assert.doesNotMatch(text(app.render()[0]), /Personal detour for this browser session/)
+  assert.match(text(app.render()[0]), /Personal avoidance is not enabled/)
+  assert.ok(app.calls.every(call => call.startsWith('report:') || call === 'list:mine'))
+})
+
+
+test('returning to a saved confirmation uses the corrected row version for avoidance preview', async () => {
+  const app = host(); app.navigate('/report')
+  const upload = app.render().find(node => 'onPhotoUploaded' in node.props)!
+  ;(upload.props.onPhotoUploaded as (...args: unknown[]) => void)({ photoId: active.photoId }, 'blob:test')
+  ;(app.render().find(node => 'onContinue' in node.props)!.props.onContinue as (consent: boolean) => void)(false)
+  ;(app.render().find(node => 'onReportCreated' in node.props)!.props.onReportCreated as (report: PrivateReportDTO) => void)(active)
+  app.render(); app.effects(); await flush()
+  app.navigate(`/my-reports/${active.id}`); app.render(); app.effects()
+  app.update({ ...active, rowVersion: 3, description: 'Corrected report facts', personalAvoidance: null })
+  app.navigate('/report/confirm'); app.render(); app.effects(); await flush()
+  const drawer = app.render().find(node => 'onUpdated' in node.props)!
+  assert.ok(drawer, 'The updated saved report must remain reviewable.')
+  assert.equal((drawer.props.report as PrivateReportDTO).rowVersion, 3)
+  assert.equal((drawer.props.report as PrivateReportDTO).description, 'Corrected report facts')
+})
+
+
+test('a later admin-readable report cannot be claimed as effective for a replaced anonymous session', async () => {
+  const app = host(); app.render(); app.effects(); await flush()
+  app.navigate('/my-reports'); app.render(); app.effects()
+  app.setMine([]); app.navigate(`/report/success/${active.id}`); app.render(); app.effects(); await flush()
+  const html = text(app.render()[0])
+  assert.doesNotMatch(html, /Personal detour for this browser session/)
+  assert.match(html, /Current report status could not be verified/)
+})
+
+
+test('a late saved-report refresh cannot refill a new photo draft after restart', async () => {
+  const app = host(); app.render(); app.effects(); await flush()
+  app.render(); app.delay(); app.effects()
+  const another = app.render().find(node => node.type === 'button' && text(node) === 'Report another barrier')!
+  ;(another.props.onClick as () => void)()
+  app.resolve(); await flush()
+  const html = text(app.render()[0])
+  assert.doesNotMatch(html, /Your report is already saved/)
+  assert.doesNotMatch(html, /Successfully Reported/)
+  assert.ok(app.render().find(node => 'onPhotoUploaded' in node.props))
+})
+
+test('refresh gates a saved avoidance editor without unmounting its draft', async () => {
+  const app = host(); app.navigate('/report')
+  ;(app.render().find(node => 'onPhotoUploaded' in node.props)!.props.onPhotoUploaded as (...args: unknown[]) => void)({ photoId: active.photoId }, 'blob:test')
+  ;(app.render().find(node => 'onContinue' in node.props)!.props.onContinue as (consent: boolean) => void)(false)
+  ;(app.render().find(node => 'onReportCreated' in node.props)!.props.onReportCreated as (report: PrivateReportDTO) => void)(active)
+  const before = app.render().find(node => 'onUpdated' in node.props)!
+  assert.ok(before)
+  app.update(active, 'changed-context')
+  const checking = app.render().find(node => 'onUpdated' in node.props)!
+  assert.ok(checking, 'Keep the same editor mounted so observation and passage inputs survive a refresh.')
+  assert.equal(checking.type, before.type)
+  assert.equal(checking.props.disabled, true)
+  app.effects(); await flush()
+  assert.equal(app.render().find(node => 'onUpdated' in node.props)!.props.disabled, false)
 })

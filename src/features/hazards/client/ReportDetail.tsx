@@ -57,7 +57,8 @@ export function ReportDetail({ id, returnTo = '/my-reports', onNavigate, onChang
   async function copyReport() {
     if (!report || report.id !== id) return
     const text = [`AccessLoop report #${report.id}`, report.description, `Category: ${report.category}`, `Observed: ${report.observedAt}`,
-      `Location: ${report.location[1]}, ${report.location[0]}`, `Lifecycle: ${report.status}`, `Public activity: ${report.publicActivity}`,
+      `Location: ${report.location[1]}, ${report.location[0]}`, `Lifecycle: ${report.status}`, `Public activity: ${report.publicActivity === 'active' && report.publicVerification && Date.parse(report.publicVerification.validUntil) <= Date.now() ? 'expired' : report.publicActivity}`,
+      ...(report.publicVerification ? [`Public validity: ${report.publicVerification.verifiedAt} to ${report.publicVerification.validUntil}`] : []),
       ...(privateReport ? [`AI: ${privateReport.analysis?.aiStatus ?? 'manual report'}`, `Personal avoidance: ${isPersonalEffective(privateReport,Date.now()) ? "effective for the report author's session" : 'not effective'}${privateReport.personalAvoidance ? ` · valid until ${privateReport.personalAvoidance.validUntil}` : ''}`] : []),
       'Expiry does not confirm clear passage. No facilities dispatch is claimed.'].join('\n')
     try { await navigator.clipboard.writeText(text); setCopyState('Report text copied.') }

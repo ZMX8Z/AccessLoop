@@ -200,3 +200,23 @@ test('unchanged facility suppliers pause outside Route and refresh after returni
  app.render({pathname:'/route'});app.effects.splice(0).forEach(effect=>effect());await app.intervals.find(timer=>timer.ms===5000)!.run();
  assert.equal(reads,2);assert.equal(directions,0);
 });
+
+
+test('inspecting a facility during a journey preserves endpoints and the planned route', async () => {
+ const service=createFixtureService();let directions=0;
+ const originalRoute=service.route;service.route=async(...args)=>{directions++;return originalRoute(...args)};
+ const app=host(service);app.render();app.effects.splice(0).forEach(effect=>effect());await flush();
+ for(const place of fixturePlaces.slice(0,2)){
+  const map=app.render().find(node=>'onPlaceSelect' in node.props)!;
+  (map.props.onPlaceSelect as (place:unknown)=>void)(place);
+ }
+ let nodes=app.render();(nodes.find(node=>node.type==='button'&&text(node)==='Plan route →')!.props.onClick as ()=>void)();await flush();
+ nodes=app.render({pathname:'/route/journey'});
+ const before=nodes.find(node=>'onPlaceSelect' in node.props)!;
+ assert.ok(before.props.route);
+ (before.props.onPlaceSelect as (place:unknown)=>void)(fixturePlaces[0]);
+ const after=app.render({pathname:'/route/journey'}).find(node=>'onPlaceSelect' in node.props)!;
+ assert.deepEqual(after.props.start,before.props.start);assert.deepEqual(after.props.end,before.props.end);
+ assert.ok(after.props.route,'Facility inspection must not invalidate the active journey.');
+ assert.equal(directions,1);
+});

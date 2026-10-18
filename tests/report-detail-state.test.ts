@@ -101,3 +101,17 @@ test('copy text evaluates natural personal expiry and identifies the report auth
  assert.equal(copied.length,1);assert.match(copied[0],/Personal avoidance: not effective/);
  assert.doesNotMatch(copied[0],/effective for this session/);
 });
+
+
+test('copy text evaluates public expiry at the time of copying and includes its validity', async () => {
+  const copied: string[] = []
+  const report = { ...original, status: 'verified', publicRevision: 1, publicActivity: 'active',
+    publicVerification: { source: 'admin_field_check', verifiedAt: '2000-01-01T00:00:00.000Z', validUntil: '2000-01-02T00:00:00.000Z' } } as PrivateReportDTO
+  const app = detailHost({ report, copied }); app.render(); app.effects.forEach(effect => effect()); await flush()
+  const copy = app.render().find(node => node.type === 'button' && text(node) === 'Copy report text')!
+  await (copy.props.onClick as () => Promise<void>)(); await flush()
+  assert.equal(copied.length, 1)
+  assert.match(copied[0], /Public activity: expired/)
+  assert.match(copied[0], /2000-01-02T00:00:00.000Z/)
+  assert.doesNotMatch(copied[0], /Public activity: active/)
+})

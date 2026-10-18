@@ -11,9 +11,9 @@ import { localTime } from './ReportForm'
 
 interface Props {
   report: PrivateReportDTO; region: RegionDTO; passages: PresetPassageDTO[]; route?: RouteDTO | null
-  onUpdated: (report: PrivateReportDTO) => void
+  onUpdated: (report: PrivateReportDTO) => void; disabled?: boolean; onBusyChange?: (busy: boolean) => void
 }
-export function AvoidanceDrawer({ report, region, passages, route = null, onUpdated }: Props) {
+export function AvoidanceDrawer({ report, region, passages, route = null, onUpdated, disabled = false, onBusyChange }: Props) {
   const [now, setNow] = useState(0)
   const [reviewing, setReviewing] = useState(!report.personalAvoidance?.effective)
   const [observedAt, setObservedAt] = useState(localTime(report.personalAvoidance?.observedAt ?? report.observedAt))
@@ -25,13 +25,17 @@ export function AvoidanceDrawer({ report, region, passages, route = null, onUpda
   const latest = useRef(new LatestRequest())
   const confirmOperation = useRef<{ body: string; key: string } | null>(null)
   const stopOperation = useRef<{ version: number; key: string } | null>(null)
+  const [previousDisabled, setPreviousDisabled] = useState(disabled)
+  if (previousDisabled !== disabled) {
+    setPreviousDisabled(disabled); setPreview(null); setConsent(false)
+  }
   const observation = observedAt && Number.isFinite(Date.parse(observedAt)) ? new Date(observedAt).toISOString() : null
   const possible = report.status !== 'resolved' && report.status !== 'rejected'
   const effective = isPersonalEffective(report, now)
   useEffect(() => { const timer = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(timer) }, [])
   useEffect(() => {
     const requests = latest.current, task = requests.begin()
-    if (!reviewing || !possible || !passage || !observation) return () => requests.cancel()
+    if (disabled || !reviewing || !possible || !passage || !observation) return () => requests.cancel()
     const timer = setTimeout(async () => {
       setPreview(null); setConsent(false); setLoading(true)
       try {
@@ -45,12 +49,13 @@ export function AvoidanceDrawer({ report, region, passages, route = null, onUpda
       finally { if (task.current()) setLoading(false) }
     }, 200)
     return () => { clearTimeout(timer); requests.cancel() }
-  }, [reviewing, possible, report.id, report.rowVersion, observation, passage, region.configVersion, refresh])
-  const validPreview = preview && Date.parse(preview.expiresAt) > now && Date.parse(preview.validUntil) > now
+  }, [disabled, reviewing, possible, report.id, report.rowVersion, observation, passage, region.configVersion, refresh])
+  const validPreview = !disabled && preview && Date.parse(preview.expiresAt) > now && Date.parse(preview.validUntil) > now
     && preview.expectedVersion === report.rowVersion && preview.configVersion === region.configVersion
     && preview.observedAt === observation && JSON.stringify(preview.passage) === JSON.stringify(passage)
   async function confirm() {
-    setBusy(true); setError('')
+    if (disabled) return
+    setBusy(true); onBusyChange?.(true); setError('')
     try {
       const input = confirmationInput(preview, consent, Date.now())
       const body = JSON.stringify(input)
@@ -67,29 +72,30 @@ export function AvoidanceDrawer({ report, region, passages, route = null, onUpda
         }
         setRefresh((value) => value + 1)
       }
-    } finally { setBusy(false) }
+    } finally { setBusy(false); onBusyChange?.(false) }
   }
   async function deactivate() {
-    setBusy(true); setError('')
+    if (disabled) return
+    setBusy(true); onBusyChange?.(true); setError('')
     if (stopOperation.current?.version !== report.rowVersion) stopOperation.current = { version: report.rowVersion, key: createIdempotencyKey() }
     try {
       const updated = await deleteAvoidance(report.id, report.rowVersion, stopOperation.current.key)
       setReviewing(false); setPreview(null); setConsent(false); onUpdated(updated)
     } catch (failure) { setError(errorMessage(failure)) }
-    finally { setBusy(false) }
+    finally { setBusy(false); onBusyChange?.(false) }
   }
   return <section aria-label="Personal avoidance"><h2>Personal temporary avoidance</h2>
-    <p role="status"><strong>{effective ? "Effective for the report author's session" : report.personalAvoidance?.active ? 'Expired or confirmation no longer effective' : 'Not enabled'}</strong></p>
+    <p role="status"><strong>{disabled ? 'Current report status is being checked' : effective ? "Effective for the report author's session" : report.personalAvoidance?.active ? 'Expired or confirmation no longer effective' : 'Not enabled'}</strong></p>
     <p>Personal avoidance affects your session only. Stopping it does not remove any verified public barrier. Expiry does not mean the passage is clear.</p>
     {report.personalAvoidance && <p className="report-note">Observed {report.personalAvoidance.observedAt}; confirmed {report.personalAvoidance.confirmedAt}; valid until {report.personalAvoidance.validUntil}. Source: {report.personalAvoidance.decisionSource === 'user_manual' ? 'your manual observation' : 'AI suggestion and your confirmation'}.</p>}
     {!possible && <p>This report is {report.status}; personal avoidance cannot be confirmed.</p>}
     <div className="report-actions">
-      {report.personalAvoidance?.active && <button disabled={busy} type="button" onClick={() => void deactivate()}>Stop my personal avoidance</button>}
-      {possible && !reviewing && <button type="button" disabled={busy} onClick={() => {
+      {report.personalAvoidance?.active && <button disabled={busy || disabled} type="button" onClick={() => void deactivate()}>Stop my personal avoidance</button>}
+      {possible && !reviewing && <button type="button" disabled={busy || disabled} onClick={() => {
         setObservedAt(''); setReviewing(true); setConsent(false); setPreview(null); setError('')
       }}>Renew / confirm a new observation</button>}
     </div>
-    {possible && reviewing && <fieldset disabled={busy}>
+    {possible && reviewing && <fieldset disabled={busy || disabled}>
       <legend>Review this observation and the server-generated area</legend>
       <label>Actually observed at · your device time<input type="datetime-local" value={observedAt} onChange={(event) => { setObservedAt(event.target.value); setPreview(null); setConsent(false); setError('') }} /></label>
       <button type="button" className="report-secondary" onClick={() => { setObservedAt(localTime()); setPreview(null); setConsent(false); setError('') }}>Observed now · use device time</button>
