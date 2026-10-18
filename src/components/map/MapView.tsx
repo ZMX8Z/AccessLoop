@@ -1,11 +1,11 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
-import type { BBox, Position } from '@/shared/contracts';
+import type { BBox, Position, LineString } from '@/shared/contracts';
 import type { AvoidGeometry, Place, Route, PublicReport, Mine } from '@/features/routing/client/models';
 import { createLeafletMap, type LeafletMapController } from './LeafletMap';
 import { useMapSettings } from './MapSettings';
 
-export type MapViewProps = { bbox:BBox; places?:Place[]; route?:Route|null; start?:Position|null; end?:Position|null; location?:Position|null; preview?:AvoidGeometry|null; publicReports?:PublicReport[]; mine?:Mine[]; onLocationChange?:(position:Position)=>void; onPlaceSelect?:(place:Place)=>void; now:number; fitRoute?:boolean };
+export type MapViewProps = { bbox:BBox; places?:Place[]; route?:Route|null; passage?:LineString|null; start?:Position|null; end?:Position|null; location?:Position|null; preview?:AvoidGeometry|null; publicReports?:PublicReport[]; mine?:Mine[]; onLocationChange?:(position:Position)=>void; onPlaceSelect?:(place:Place)=>void; now:number; fitRoute?:boolean };
 
 export function MapView(props: MapViewProps) {
   const { tileUrl, attribution, attributionUrl } = useMapSettings();

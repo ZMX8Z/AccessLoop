@@ -1,0 +1,78 @@
+{
+  "recordedAt": "2026-10-18T06:07:17.498782+00:00",
+  "baseDevCommit": "9c2fdaf42788ee881d8379653be076bb9955c35d",
+  "codeEvidenceCommit": "4514b5c43be8447b432b2a7472ef15977f3b047f",
+  "checks": {
+    "check": {
+      "exitCode": 0,
+      "pass": 314,
+      "fail": 0,
+      "skipped": 12
+    },
+    "build": {
+      "exitCode": 0
+    },
+    "targeted": {
+      "pass": 19,
+      "fail": 0
+    },
+    "redBeforeFix": {
+      "pass": 12,
+      "fail": 5
+    }
+  },
+  "browser": {
+    "viewport": [
+      360,
+      800
+    ],
+    "scrollWidth": 360,
+    "invalidPointRejected": [
+      1,
+      2
+    ],
+    "presetSelected": true,
+    "currentRoute": null,
+    "emptyRouteSelectors": 0,
+    "saveEnabledAfterValidFacts": true,
+    "successMessage": "Report saved. Personal avoidance is not enabled.",
+    "aiConsent": false,
+    "syntheticImage": true
+  },
+  "adminRead": {
+    "recordedAt": "2026-10-18T06:06:31.759Z",
+    "adminReadStatus": 200,
+    "reportId": "702f1208-7558-4a87-bc96-b3eb7c3cf5d1",
+    "status": "pending",
+    "syntheticDescriptionConfirmed": true,
+    "location": [
+      151.2295,
+      -33.917
+    ],
+    "preset": {
+      "passageVersion": 1,
+      "presetPassageId": "unsw-kensington-facilities-demo-passage"
+    },
+    "hasAnalysis": false,
+    "personalAvoidance": null,
+    "photoLinked": true
+  },
+  "logs": {
+    "check": {
+      "localPath": "/private/tmp/accessloop-report-location-check.log",
+      "sha256": "73084de919c2f38122cf66e505f3d7fd61a5c36b24ee26705931c350142b10d1"
+    },
+    "build": {
+      "localPath": "/private/tmp/accessloop-report-location-build.log",
+      "sha256": "d27bd4bf51df03f01077ffc7e51de43297eb4bef0449265298ee0c7cb8efb65b"
+    },
+    "green": {
+      "localPath": "/private/tmp/accessloop-report-location-green.log",
+      "sha256": "c018d2e671a966b062072c702be3ec3931efa01ebe652d8fea45025439cd056c"
+    },
+    "red": {
+      "localPath": "/private/tmp/accessloop-report-location-red.log",
+      "sha256": "f9562f8d816fe1ee5e885209b087f35644be7d1498ca5f91768d0f0fd7895ec2"
+    }
+  }
+}

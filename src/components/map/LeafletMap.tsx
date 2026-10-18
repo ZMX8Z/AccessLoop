@@ -21,6 +21,7 @@ export function createLeafletMap(L: typeof Leaflet, container: HTMLElement, sett
   let boundsKey = '';
   let renderKey = '';
   let focusedRouteRef = '';
+  let focusedPassage = '';
   let removed = false;
   const failedTiles = new Set<HTMLElement>();
   tiles.on('tileerror', (event: Leaflet.TileErrorEvent) => {
@@ -67,6 +68,11 @@ export function createLeafletMap(L: typeof Leaflet, container: HTMLElement, sett
           paddingTopLeft: [40, 85], paddingBottomRight: [40, 110], maxZoom: 19, animate: false,
         });
       }
+      const passageKey = JSON.stringify(props.passage ?? null);
+      if (passageKey !== focusedPassage) {
+        focusedPassage = passageKey;
+        if (props.passage) map.fitBounds(props.passage.coordinates.map(point), { padding: [40, 40], maxZoom: 19, animate: false });
+      }
       const publicLayers = (props.publicReports ?? []).map(report => ({
         geometry: report.publicAvoidGeometry,
         status: publicStatus(report, props.now), description: report.description,
@@ -79,7 +85,7 @@ export function createLeafletMap(L: typeof Leaflet, container: HTMLElement, sett
       // projection so a one-second clock tick preserves marker focus and open tooltips.
       const nextRenderKey = JSON.stringify({
         publicLayers, personalGeometries, route: props.route?.route.features[0].geometry ?? null,
-        preview: props.preview ?? null,
+        preview: props.preview ?? null, passage: props.passage ?? null,
         places: (props.places ?? []).map(({ id, name, location, accessibility }) => ({ id, name, location, accessibility })),
         points: [props.start ?? null, props.end ?? null, props.location ?? null],
       });
@@ -107,6 +113,9 @@ export function createLeafletMap(L: typeof Leaflet, container: HTMLElement, sett
         L.geoJSON(geometry, { interactive: false, style: { color: '#ffffff', weight: 10 } }).addTo(overlays);
         L.geoJSON(geometry, { interactive: false, style: { color: '#0f766e', weight: 6 } }).addTo(overlays);
       }
+      if (props.passage) L.geoJSON(props.passage, {
+        interactive: false, style: { className: 'map-passage', color: '#7c3aed', weight: 5, dashArray: '8 5' },
+      }).bindTooltip(text('Selected preset passage — not an accessibility guarantee')).addTo(overlays);
       if (props.preview) polygon(props.preview, 'map-preview', '#0f766e', 'Server preview — not yet confirmed');
       (props.places ?? []).forEach((place, index) => {
         L.marker(point(place.location), {
