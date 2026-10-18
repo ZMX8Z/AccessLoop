@@ -1,0 +1,94 @@
+{
+  "recordedAt": "2026-10-18T05:31:09.116803+00:00",
+  "baseDevCommit": "cad8ebaf8a006d2d8b158a2589d9e7a940b8c904",
+  "aSourceHead": "e7d937de9857ebb0e935d3a9e195392a8e252506",
+  "codeEvidenceCommit": "5a08631034152a10b48141040409989cc222319c",
+  "check": {
+    "exitCode": 0,
+    "passed": 308,
+    "skipped": 12,
+    "failed": 0,
+    "lintWarnings": 0
+  },
+  "build": {
+    "exitCode": 0,
+    "mode": "Next.js Webpack production"
+  },
+  "http": [
+    {
+      "path": "/",
+      "status": 307,
+      "location": "/route"
+    },
+    {
+      "path": "/live",
+      "status": 307,
+      "location": "/route"
+    },
+    {
+      "path": "/stitch/route.html",
+      "status": 307,
+      "location": "/route"
+    },
+    {
+      "path": "/stitch/report-photo.html",
+      "status": 307,
+      "location": "/report"
+    },
+    {
+      "path": "/stitch/report-confirm.html",
+      "status": 307,
+      "location": "/report/confirm"
+    },
+    {
+      "path": "/stitch/my-reports.html",
+      "status": 307,
+      "location": "/my-reports"
+    },
+    {
+      "path": "/route",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/report",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/my-reports",
+      "status": 200,
+      "location": null
+    }
+  ],
+  "browser": {
+    "server": "http://localhost:3101",
+    "source": "production build",
+    "mobile": {
+      "width": 360,
+      "height": 800,
+      "scrollWidth": 360,
+      "loadedTiles": 15,
+      "facilityMarkers": 15
+    },
+    "afterEndpointSelection": {
+      "markers": 17,
+      "start": "Roundhouse - E6",
+      "end": "Bar Navitas",
+      "preservedAfterTabs": true
+    },
+    "desktop": {
+      "width": 1280,
+      "height": 800,
+      "scrollWidth": 1280
+    },
+    "facilitySources": [
+      "Australian National Public Toilet Map",
+      "Wheelmap OSM Mirror"
+    ],
+    "unknownPreserved": "7-Eleven",
+    "unavailableSourceShown": "OpenStreetMap facility data",
+    "explicitProviderActionsThisRun": []
+  },
+  "scope": "Stitch live UI and entry integration; not full P0/P1, campus survey or Zenith acceptance"
+}

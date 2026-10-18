@@ -1,0 +1,27 @@
+{
+  "codeEvidenceCommit": "b288bd90902ca33d5a1720d413b3029551d9d4b9",
+  "mobile": {
+    "viewport": [
+      360,
+      800
+    ],
+    "scrollWidth": 360,
+    "card": {
+      "width": 328,
+      "height": 158,
+      "top": 311.5,
+      "bottom": 469.5
+    }
+  },
+  "desktop": {
+    "viewport": [
+      1280,
+      900
+    ],
+    "card": {
+      "width": 467,
+      "height": 162
+    }
+  },
+  "state": "one real own record; personal avoidance stopped; all=1 active=0 resolved=0"
+}

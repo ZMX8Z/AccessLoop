@@ -5,7 +5,7 @@ import type { AvoidGeometry, Place, Route, PublicReport, Mine } from '@/features
 import { createLeafletMap, type LeafletMapController } from './LeafletMap';
 import { useMapSettings } from './MapSettings';
 
-export type MapViewProps = { bbox:BBox; places?:Place[]; route?:Route|null; start?:Position|null; end?:Position|null; location?:Position|null; preview?:AvoidGeometry|null; publicReports?:PublicReport[]; mine?:Mine[]; onLocationChange?:(position:Position)=>void; onPlaceSelect?:(place:Place)=>void; now:number };
+export type MapViewProps = { bbox:BBox; places?:Place[]; route?:Route|null; start?:Position|null; end?:Position|null; location?:Position|null; preview?:AvoidGeometry|null; publicReports?:PublicReport[]; mine?:Mine[]; onLocationChange?:(position:Position)=>void; onPlaceSelect?:(place:Place)=>void; now:number; fitRoute?:boolean };
 
 export function MapView(props: MapViewProps) {
   const { tileUrl, attribution, attributionUrl } = useMapSettings();

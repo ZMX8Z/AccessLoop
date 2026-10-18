@@ -20,6 +20,7 @@ export function createLeafletMap(L: typeof Leaflet, container: HTMLElement, sett
   let current: MapViewProps | null = null;
   let boundsKey = '';
   let renderKey = '';
+  let focusedRouteRef = '';
   let removed = false;
   const failedTiles = new Set<HTMLElement>();
   tiles.on('tileerror', (event: Leaflet.TileErrorEvent) => {
@@ -60,6 +61,12 @@ export function createLeafletMap(L: typeof Leaflet, container: HTMLElement, sett
       current = props;
       const nextKey = props.bbox.join(',');
       if (nextKey !== boundsKey) { boundsKey = nextKey; fit(); }
+      if (props.fitRoute && props.route && props.route.routeRef !== focusedRouteRef) {
+        focusedRouteRef = props.route.routeRef;
+        map.fitBounds(props.route.route.features[0].geometry.coordinates.map(point), {
+          paddingTopLeft: [40, 85], paddingBottomRight: [40, 110], maxZoom: 19, animate: false,
+        });
+      }
       const publicLayers = (props.publicReports ?? []).map(report => ({
         geometry: report.publicAvoidGeometry,
         status: publicStatus(report, props.now), description: report.description,

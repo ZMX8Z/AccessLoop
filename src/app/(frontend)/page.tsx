@@ -1,2 +1,2 @@
-import { redirect } from 'next/navigation';
-export default function HomePage() { redirect('/stitch/route.html'); }
+import {redirect} from 'next/navigation';
+export default function HomePage(){redirect('/route')}

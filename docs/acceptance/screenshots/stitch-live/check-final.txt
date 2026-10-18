@@ -1,0 +1,1498 @@
+
+> accessloop@0.1.0 check /Users/coreyli/.codex/worktrees/accessloop-a-fixes/AccessLoop
+> pnpm lint && pnpm typecheck && pnpm test
+
+
+> accessloop@0.1.0 lint /Users/coreyli/.codex/worktrees/accessloop-a-fixes/AccessLoop
+> eslint .
+
+
+> accessloop@0.1.0 typecheck /Users/coreyli/.codex/worktrees/accessloop-a-fixes/AccessLoop
+> next typegen && tsc --noEmit
+
+Generating route types...
+✓ Types generated successfully
+
+> accessloop@0.1.0 test /Users/coreyli/.codex/worktrees/accessloop-a-fixes/AccessLoop
+> tsx --test tests/*.test.ts
+
+TAP version 13
+# Subtest: cloud fails closed for missing credentials or an empty/invalid license selection before HTTP
+ok 1 - cloud fails closed for missing credentials or an empty/invalid license selection before HTTP
+  ---
+  duration_ms: 16.710791
+  ...
+# Subtest: cloud uses one official tile request and preserves dataset, license and boolean evidence
+ok 2 - cloud uses one official tile request and preserves dataset, license and boolean evidence
+  ---
+  duration_ms: 135.06325
+  ...
+# Subtest: cloud identities segregate token and source/license visibility without disclosing token
+ok 3 - cloud identities segregate token and source/license visibility without disclosing token
+  ---
+  duration_ms: 1.132167
+  ...
+# Subtest: cloud checks configured sources and explicit licenses locally and marks omitted licenses incomplete
+ok 4 - cloud checks configured sources and explicit licenses locally and marks omitted licenses incomplete
+  ---
+  duration_ms: 28.616625
+  ...
+# Subtest: cloud normalizes boolean wheelchair evidence conservatively without manufacturing OSM tags
+ok 5 - cloud normalizes boolean wheelchair evidence conservatively without manufacturing OSM tags
+  ---
+  duration_ms: 6.316167
+  ...
+# Subtest: cloud maps known facility categories and keeps all others unknown
+ok 6 - cloud maps known facility categories and keeps all others unknown
+  ---
+  duration_ms: 3.911666
+  ...
+# Subtest: cloud bounds raw lookahead, deduplicates IDs and preserves truncation after regional filtering
+ok 7 - cloud bounds raw lookahead, deduplicates IDs and preserves truncation after regional filtering
+  ---
+  duration_ms: 35.862166
+  ...
+# Subtest: cloud chooses a single containing tile, handles tile boundaries and rejects polar bounds
+ok 8 - cloud chooses a single containing tile, handles tile boundaries and rejects polar bounds
+  ---
+  duration_ms: 2.975541
+  ...
+# Subtest: cloud rejects malformed feature identities, coordinates, oversized pages and non-JSON data
+ok 9 - cloud rejects malformed feature identities, coordinates, oversized pages and non-JSON data
+  ---
+  duration_ms: 12.047916
+  ...
+# Subtest: cloud keeps only safe license links and separates equal feature IDs from different datasets
+ok 10 - cloud keeps only safe license links and separates equal feature IDs from different datasets
+  ---
+  duration_ms: 6.257292
+  ...
+# Subtest: cloud preserves actual HTTP license links while rejecting links with credentials
+ok 11 - cloud preserves actual HTTP license links while rejecting links with credentials
+  ---
+  duration_ms: 1.399875
+  ...
+# Subtest: cloud rejects redirects and oversized/interrupted response streams without exposing token
+ok 12 - cloud rejects redirects and oversized/interrupted response streams without exposing token
+  ---
+  duration_ms: 3.753334
+  ...
+# Subtest: cloud aborts both a pending request and pending body at the total deadline
+ok 13 - cloud aborts both a pending request and pending body at the total deadline
+  ---
+  duration_ms: 22.295709
+  ...
+# Subtest: cloud classifies rate, auth, privilege, server and timeout errors as one safe attempt
+ok 14 - cloud classifies rate, auth, privilege, server and timeout errors as one safe attempt
+  ---
+  duration_ms: 5.316125
+  ...
+# Subtest: cloud cancels a response that arrives after the total deadline
+ok 15 - cloud cancels a response that arrives after the total deadline
+  ---
+  duration_ms: 26.405041
+  ...
+# Subtest: cloud accepts localized facility names with English priority and a stable language fallback
+ok 16 - cloud accepts localized facility names with English priority and a stable language fallback
+  ---
+  duration_ms: 67.544458
+  ...
+# Subtest: cloud bounds localized names and returns plain labels with control characters removed
+ok 17 - cloud bounds localized names and returns plain labels with control characters removed
+  ---
+  duration_ms: 12.342625
+  ...
+# Subtest: production admin HTTP enforces role boundaries and completes C2 review and C3 configuration commands
+ok 18 - production admin HTTP enforces role boundaries and completes C2 review and C3 configuration commands # SKIP
+  ---
+  duration_ms: 1.048584
+  ...
+# Subtest: C3 region configuration uses operator authorization, complete active-data impact checks and atomic versioned commands
+ok 19 - C3 region configuration uses operator authorization, complete active-data impact checks and atomic versioned commands # SKIP
+  ---
+  duration_ms: 1.098542
+  ...
+# Subtest: region patches accept only the documented configuration whitelist and require a reason and changes
+ok 20 - region patches accept only the documented configuration whitelist and require a reason and changes
+  ---
+  duration_ms: 6.01225
+  ...
+# Subtest: preset replacement distinguishes existing ids from server-generated new ids and rejects client versions
+ok 21 - preset replacement distinguishes existing ids from server-generated new ids and rejects client versions
+  ---
+  duration_ms: 1.941
+  ...
+# Subtest: region configuration response is a strict DTO and never includes seed metadata or credentials
+ok 22 - region configuration response is a strict DTO and never includes seed metadata or credentials
+  ---
+  duration_ms: 43.954375
+  ...
+# Subtest: anonymous callers cannot create an administrator even when Payload bypasses access control
+ok 23 - anonymous callers cannot create an administrator even when Payload bypasses access control
+  ---
+  duration_ms: 182.258792
+  ...
+# Subtest: report administrators cannot grant administrator privileges
+ok 24 - report administrators cannot grant administrator privileges
+  ---
+  duration_ms: 3.908125
+  ...
+# Subtest: an enabled operator can manage administrator accounts
+ok 25 - an enabled operator can manage administrator accounts
+  ---
+  duration_ms: 1.1475
+  ...
+# Subtest: disabled administrators cannot enter the admin panel or sign in
+ok 26 - disabled administrators cannot enter the admin panel or sign in
+  ---
+  duration_ms: 2.854792
+  ...
+# Subtest: first-register stays closed independently of whether the database has a first user
+ok 27 - first-register stays closed independently of whether the database has a first user
+  ---
+  duration_ms: 3.034292
+  ...
+# Subtest: the controlled bootstrap context creates the first operator and rejects an existing administrator
+ok 28 - the controlled bootstrap context creates the first operator and rejects an existing administrator
+  ---
+  duration_ms: 1.668584
+  ...
+# Subtest: C1 analysis uses durable leases, scoped cache and immutable idempotent outcomes with real PostgreSQL
+ok 29 - C1 analysis uses durable leases, scoped cache and immutable idempotent outcomes with real PostgreSQL # SKIP
+  ---
+  duration_ms: 1.2515
+  ...
+# Subtest: report writes expose 403 and 409 without returning a fabricated success
+ok 30 - report writes expose 403 and 409 without returning a fabricated success
+  ---
+  duration_ms: 74.459542
+  ...
+# Subtest: a repeated write retains the caller idempotency key and the exact payload
+ok 31 - a repeated write retains the caller idempotency key and the exact payload
+  ---
+  duration_ms: 60.041083
+  ...
+# Subtest: renewal previews send the new observation without an idempotency key
+ok 32 - renewal previews send the new observation without an idempotency key
+  ---
+  duration_ms: 29.424625
+  ...
+# Subtest: expired session errors reset the cache without replaying a write under a new identity
+ok 33 - expired session errors reset the cache without replaying a write under a new identity
+  ---
+  duration_ms: 5.18475
+  ...
+# Subtest: upload initializes a session, retains multipart data and validates its DTO
+ok 34 - upload initializes a session, retains multipart data and validates its DTO
+  ---
+  duration_ms: 3.463416
+  ...
+# Subtest: mine list creates a session while public list keeps its strict public DTO boundary
+ok 35 - mine list creates a session while public list keeps its strict public DTO boundary
+  ---
+  duration_ms: 37.956917
+  ...
+# Subtest: configuration loads current region and passages after session initialization
+ok 36 - configuration loads current region and passages after session initialization
+  ---
+  duration_ms: 79.721209
+  ...
+# Subtest: analysis, patch and deactivation use the contract payloads and stable write keys
+ok 37 - analysis, patch and deactivation use the contract payloads and stable write keys
+  ---
+  duration_ms: 23.025625
+  ...
+# Subtest: report detail accepts the authorized DTO and rejects a fabricated partial record
+ok 38 - report detail accepts the authorized DTO and rejects a fabricated partial record
+  ---
+  duration_ms: 13.820084
+  ...
+# Subtest: configuration refuses a passage snapshot from a different config version
+ok 39 - configuration refuses a passage snapshot from a different config version
+  ---
+  duration_ms: 5.447041
+  ...
+# Subtest: a late analysis for the previous photo cannot associate with the replacement photo
+ok 40 - a late analysis for the previous photo cannot associate with the replacement photo
+  ---
+  duration_ms: 26.204375
+  ...
+# Subtest: receiving AI evidence preserves user facts until the user explicitly applies it
+ok 41 - receiving AI evidence preserves user facts until the user explicitly applies it
+  ---
+  duration_ms: 1.949125
+  ...
+# Subtest: manual reporting clears the analysis association while preserving visible evidence and facts
+ok 42 - manual reporting clears the analysis association while preserving visible evidence and facts
+  ---
+  duration_ms: 1.391083
+  ...
+# Subtest: changing photos clears old suggestions and associations but keeps facts the user edited
+ok 43 - changing photos clears old suggestions and associations but keeps facts the user edited
+  ---
+  duration_ms: 1.583708
+  ...
+# Subtest: uncertain analysis remains evidence and cannot overwrite fact fields when applied
+ok 44 - uncertain analysis remains evidence and cannot overwrite fact fields when applied
+  ---
+  duration_ms: 1.733708
+  ...
+# Subtest: renewal confirmation binds the reviewed preview and requires a fresh explicit consent
+ok 45 - renewal confirmation binds the reviewed preview and requires a fresh explicit consent
+  ---
+  duration_ms: 5.335584
+  ...
+# Subtest: confirmation rejects missing previews and expiry at either deadline
+ok 46 - confirmation rejects missing previews and expiry at either deadline
+  ---
+  duration_ms: 3.128458
+  ...
+# Subtest: personal effectiveness needs the server flag, active state, lifecycle, version and unexpired validity
+ok 47 - personal effectiveness needs the server flag, active state, lifecycle, version and unexpired validity
+  ---
+  duration_ms: 1.093291
+  ...
+# Subtest: starting a separate report clears the previous person-edited facts and photo
+ok 48 - starting a separate report clears the previous person-edited facts and photo
+  ---
+  duration_ms: 0.910083
+  ...
+# Subtest: budget denial prevents provider attempt and records a wait, not a call
+ok 49 - budget denial prevents provider attempt and records a wait, not a call
+  ---
+  duration_ms: 2.989334
+  ...
+# Subtest: retry obtains another reservation and each attempt/error is counted
+ok 50 - retry obtains another reservation and each attempt/error is counted
+  ---
+  duration_ms: 0.444875
+  ...
+# Subtest: auth failure is not relabeled as quota and is never retried
+ok 51 - auth failure is not relabeled as quota and is never retried
+  ---
+  duration_ms: 0.232583
+  ...
+# Subtest: failure to persist reservation fails closed
+ok 52 - failure to persist reservation fails closed
+  ---
+  duration_ms: 0.306375
+  ...
+# Subtest: slow telemetry cannot start a new provider attempt after the deadline
+ok 53 - slow telemetry cannot start a new provider attempt after the deadline
+  ---
+  duration_ms: 0.289792
+  ...
+# Subtest: classified error results retain their value and count one failed attempt without retrying
+ok 54 - classified error results retain their value and count one failed attempt without retrying
+  ---
+  duration_ms: 0.350542
+  ...
+# Subtest: failure to persist classified result errors fails closed
+ok 55 - failure to persist classified result errors fails closed
+  ---
+  duration_ms: 0.236375
+  ...
+# Subtest: C0 HTTP initializes and reuses private sessions while rejecting invalid origins and CMS bypasses
+ok 56 - C0 HTTP initializes and reuses private sessions while rejecting invalid origins and CMS bypasses # SKIP
+  ---
+  duration_ms: 0.826333
+  ...
+# Subtest: private HTML export escapes facts and uses only the authorized photo endpoint
+ok 57 - private HTML export escapes facts and uses only the authorized photo endpoint
+  ---
+  duration_ms: 24.351542
+  ...
+# Subtest: public HTML export contains no private photo or AI fields
+ok 58 - public HTML export contains no private photo or AI fields
+  ---
+  duration_ms: 0.855167
+  ...
+# Subtest: HTTP bodies enforce actual byte limits even without a Content-Length header
+ok 59 - HTTP bodies enforce actual byte limits even without a Content-Length header
+  ---
+  duration_ms: 43.2935
+  ...
+# Subtest: C1 local HTTP and real private OSS support the complete manual report lifecycle
+ok 60 - C1 local HTTP and real private OSS support the complete manual report lifecycle # SKIP
+  ---
+  duration_ms: 2.900667
+  ...
+# Subtest: campus candidate cannot present source research as approved runtime configuration
+ok 61 - campus candidate cannot present source research as approved runtime configuration
+  ---
+  duration_ms: 4.327375
+  ...
+# Subtest: both candidate passages preserve every source way vertex and share the audited endpoints
+ok 62 - both candidate passages preserve every source way vertex and share the audited endpoints
+  ---
+  duration_ms: 151.123625
+  ...
+# Subtest: candidate POIs use only bounded OSM node coordinates and retain unknown facility accessibility
+ok 63 - candidate POIs use only bounded OSM node coordinates and retain unknown facility accessibility
+  ---
+  duration_ms: 5.179042
+  ...
+# Subtest: selected source node evidence retains version, source time and acquisition time independently
+ok 64 - selected source node evidence retains version, source time and acquisition time independently
+  ---
+  duration_ms: 1.184666
+  ...
+# Subtest: normalization cannot promote missing, conflicting or unrecognized tags into access claims
+ok 65 - normalization cannot promote missing, conflicting or unrecognized tags into access claims
+  ---
+  duration_ms: 0.187834
+  ...
+# Subtest: positions accept WGS84 boundaries in longitude, latitude order
+ok 66 - positions accept WGS84 boundaries in longitude, latitude order
+  ---
+  duration_ms: 9.311875
+  ...
+# Subtest: positions reject non-finite values, out-of-range coordinates and extra dimensions
+ok 67 - positions reject non-finite values, out-of-range coordinates and extra dimensions
+  ---
+  duration_ms: 1.001667
+  ...
+# Subtest: bounding boxes require finite coordinates and increasing west/east and south/north
+ok 68 - bounding boxes require finite coordinates and increasing west/east and south/north
+  ---
+  duration_ms: 0.839166
+  ...
+# Subtest: opaque identifiers are nonempty and persisted versions start at one
+ok 69 - opaque identifiers are nonempty and persisted versions start at one
+  ---
+  duration_ms: 0.399709
+  ...
+# Subtest: passage references accept either route indices or a versioned preset
+ok 70 - passage references accept either route indices or a versioned preset
+  ---
+  duration_ms: 56.103416
+  ...
+# Subtest: passage references reject mixed variants, arbitrary geometry and invalid index/version bounds
+ok 71 - passage references reject mixed variants, arbitrary geometry and invalid index/version bounds
+  ---
+  duration_ms: 8.368417
+  ...
+# Subtest: restrictions require every finite numeric field and reject unknown keys
+ok 72 - restrictions require every finite numeric field and reject unknown keys
+  ---
+  duration_ms: 2.509333
+  ...
+# Subtest: structural route validation does not pretend to validate the configured region whitelist
+ok 73 - structural route validation does not pretend to validate the configured region whitelist
+  ---
+  duration_ms: 4.198917
+  ...
+# Subtest: route inputs require all fields without injecting defaults
+ok 74 - route inputs require all fields without injecting defaults
+  ---
+  duration_ms: 1.333
+  ...
+# Subtest: route inputs reject client-supplied region, avoidance geometry and version fields
+ok 75 - route inputs reject client-supplied region, avoidance geometry and version fields
+  ---
+  duration_ms: 8.891583
+  ...
+# Subtest: synthetic examples stay explicitly marked and satisfy only their input contracts
+ok 76 - synthetic examples stay explicitly marked and satisfy only their input contracts
+  ---
+  duration_ms: 4.122917
+  ...
+# Subtest: health returns only the liveness status with an uncached matching request identifier
+ok 77 - health returns only the liveness status with an uncached matching request identifier
+  ---
+  duration_ms: 58.722041
+  ...
+# Subtest: health generates a fresh request identifier for each response
+ok 78 - health generates a fresh request identifier for each response
+  ---
+  duration_ms: 4.009833
+  ...
+# Subtest: configuration evidence exposes presence only, including when values resemble secrets or URIs
+ok 79 - configuration evidence exposes presence only, including when values resemble secrets or URIs
+  ---
+  duration_ms: 5.764666
+  ...
+# Subtest: health proves the envelope, matching request id and no-store contract
+ok 80 - health proves the envelope, matching request id and no-store contract
+  ---
+  duration_ms: 63.480708
+  ...
+# Subtest: health rejects misleading success bodies, redirect and mismatched request identifiers without leaking bodies
+ok 81 - health rejects misleading success bodies, redirect and mismatched request identifiers without leaking bodies
+  ---
+  duration_ms: 51.855125
+  ...
+# Subtest: health refuses credentials and query strings instead of requesting secret-bearing URLs
+ok 82 - health refuses credentials and query strings instead of requesting secret-bearing URLs
+  ---
+  duration_ms: 1.678459
+  ...
+# Subtest: database probe blocks missing or malformed connection strings without exposing input
+ok 83 - database probe blocks missing or malformed connection strings without exposing input
+  ---
+  duration_ms: 0.520458
+  ...
+# Subtest: backup refuses missing source configuration without exposing environment values
+ok 84 - backup refuses missing source configuration without exposing environment values
+  ---
+  duration_ms: 25.915708
+  ...
+# Subtest: restore requires an explicit separate empty target before opening a connection
+ok 85 - restore requires an explicit separate empty target before opening a connection
+  ---
+  duration_ms: 20.634625
+  ...
+# Subtest: restore rejects mismatched archive checksums before touching a database
+ok 86 - restore rejects mismatched archive checksums before touching a database
+  ---
+  duration_ms: 146.902041
+  ...
+# Subtest: the operator CLI runs in inspection mode without leaking environment values
+ok 87 - the operator CLI runs in inspection mode without leaking environment values
+  ---
+  duration_ms: 278.003
+  ...
+# Subtest: database connection options are translated to libpq variables rather than a URI database name
+ok 88 - database connection options are translated to libpq variables rather than a URI database name
+  ---
+  duration_ms: 281.870166
+  ...
+# Subtest: malformed optional source configuration fails the places request before upstream calls
+ok 89 - malformed optional source configuration fails the places request before upstream calls
+  ---
+  duration_ms: 3.005209
+  ...
+# Subtest: cloud facilities retain real dataset and license metadata instead of masquerading as OSM tags
+ok 90 - cloud facilities retain real dataset and license metadata instead of masquerading as OSM tags
+  ---
+  duration_ms: 13.718125
+  ...
+# Subtest: facilities report a missing supplement without hiding usable primary places
+ok 91 - facilities report a missing supplement without hiding usable primary places
+  ---
+  duration_ms: 9.725916
+  ...
+# Subtest: facilities preserve usable supplementation and mark primary failure explicitly
+ok 92 - facilities preserve usable supplementation and mark primary failure explicitly
+  ---
+  duration_ms: 2.242791
+  ...
+# Subtest: facilities do not swallow stale-region or out-of-coverage failures as partial source success
+ok 93 - facilities do not swallow stale-region or out-of-coverage failures as partial source success
+  ---
+  duration_ms: 1.210625
+  ...
+# Subtest: combined facilities have a bounded interleaved list without overwriting conflicting sources
+ok 94 - combined facilities have a bounded interleaved list without overwriting conflicting sources
+  ---
+  duration_ms: 2.681167
+  ...
+# Subtest: late request cannot replace a newer result or edited input
+ok 95 - late request cannot replace a newer result or edited input
+  ---
+  duration_ms: 5.723667
+  ...
+# Subtest: route invalidates on public, personal, digest and config changes or expiry
+ok 96 - route invalidates on public, personal, digest and config changes or expiry
+  ---
+  duration_ms: 0.871625
+  ...
+# Subtest: expired report remains unknown, never resolved; public DTO rejects private fields
+ok 97 - expired report remains unknown, never resolved; public DTO rejects private fields
+  ---
+  duration_ms: 14.824709
+  ...
+# Subtest: longitude/latitude and coverage checks reject out-of-region and nonfinite coordinates
+ok 98 - longitude/latitude and coverage checks reject out-of-region and nonfinite coordinates
+  ---
+  duration_ms: 0.188542
+  ...
+# Subtest: request unwraps response, preserves credentials/no-store, and exposes retry delay
+ok 99 - request unwraps response, preserves credentials/no-store, and exposes retry delay
+  ---
+  duration_ms: 37.168208
+  ...
+# Subtest: consumer region validation rejects version zero under the shared contract
+ok 100 - consumer region validation rejects version zero under the shared contract
+  ---
+  duration_ms: 136.196458
+  ...
+# Subtest: consumer geometry validation rejects a polygon without a ring
+ok 101 - consumer geometry validation rejects a polygon without a ring
+  ---
+  duration_ms: 16.720292
+  ...
+# Subtest: consumer context validation accepts the contract timezone-offset timestamps
+ok 102 - consumer context validation accepts the contract timezone-offset timestamps
+  ---
+  duration_ms: 3.195417
+  ...
+# Subtest: context publication is monotonic but accepts a naturally expired effective set
+ok 103 - context publication is monotonic but accepts a naturally expired effective set
+  ---
+  duration_ms: 2.858208
+  ...
+# Subtest: public report layers reject identifiers invalid under the published C contract
+ok 104 - public report layers reject identifiers invalid under the published C contract
+  ---
+  duration_ms: 1.691959
+  ...
+# Subtest: author layers validate the complete C response before retaining only map fields
+ok 105 - author layers validate the complete C response before retaining only map fields
+  ---
+  duration_ms: 3.792333
+  ...
+# Subtest: geometry accepts closed boundary-inclusive rings and either winding
+ok 106 - geometry accepts closed boundary-inclusive rings and either winding
+  ---
+  duration_ms: 21.545166
+  ...
+# Subtest: geometry rejects open, zero-area, crossing, non-finite and out-of-region rings
+ok 107 - geometry rejects open, zero-area, crossing, non-finite and out-of-region rings
+  ---
+  duration_ms: 12.107292
+  ...
+# Subtest: holes must lie strictly inside their shell without overlapping or nesting
+ok 108 - holes must lie strictly inside their shell without overlapping or nesting
+  ---
+  duration_ms: 6.097917
+  ...
+# Subtest: overlapping components are rejected as an invalid MultiPolygon
+ok 109 - overlapping components are rejected as an invalid MultiPolygon
+  ---
+  duration_ms: 0.748958
+  ...
+# Subtest: area and total vertex protections reject rather than truncate geometry
+ok 110 - area and total vertex protections reject rather than truncate geometry
+  ---
+  duration_ms: 1.136542
+  ...
+# Subtest: containment excludes hole interiors but blocks shell and hole boundaries
+ok 111 - containment excludes hole interiors but blocks shell and hole boundaries
+  ---
+  duration_ms: 0.247916
+  ...
+# Subtest: line intersections include crossings, contained segments and boundary touches
+ok 112 - line intersections include crossings, contained segments and boundary touches
+  ---
+  duration_ms: 0.375
+  ...
+# Subtest: metre distances and bbox inclusion preserve coordinate order and exact edges
+ok 113 - metre distances and bbox inclusion preserve coordinate order and exact edges
+  ---
+  duration_ms: 0.306458
+  ...
+# Subtest: buffers use metres at Sydney latitude and preserve a deterministic narrow footprint
+ok 114 - buffers use metres at Sydney latitude and preserve a deterministic narrow footprint
+  ---
+  duration_ms: 74.542541
+  ...
+# Subtest: buffers reject unsupported widths, zero-length passages and bounds overflow
+ok 115 - buffers reject unsupported widths, zero-length passages and bounds overflow
+  ---
+  duration_ms: 9.716375
+  ...
+# Subtest: report passage validation measures distance to the full line and rejects beyond 20 metres
+ok 116 - report passage validation measures distance to the full line and rejects beyond 20 metres
+  ---
+  duration_ms: 0.764208
+  ...
+# Subtest: route geometry checks coverage, snaps, blocked inputs and obstacle crossing
+ok 117 - route geometry checks coverage, snaps, blocked inputs and obstacle crossing
+  ---
+  duration_ms: 1.292958
+  ...
+# Subtest: malformed and degenerate upstream lines never publish as valid routes
+ok 118 - malformed and degenerate upstream lines never publish as valid routes
+  ---
+  duration_ms: 0.287333
+  ...
+# Subtest: avoidance merging unions overlaps, preserves disjoint components and omits empty avoidance
+ok 119 - avoidance merging unions overlaps, preserves disjoint components and omits empty avoidance
+  ---
+  duration_ms: 19.9775
+  ...
+# Subtest: region impact distinguishes display-independent inputs and invalidates buffer previews
+ok 120 - region impact distinguishes display-independent inputs and invalidates buffer previews
+  ---
+  duration_ms: 8.074583
+  ...
+# Subtest: region changes reject lost effective geometry and bound preset confirmations
+ok 121 - region changes reject lost effective geometry and bound preset confirmations
+  ---
+  duration_ms: 5.480583
+  ...
+# Subtest: merged output enforces total area and vertex limits across individually valid obstacles
+ok 122 - merged output enforces total area and vertex limits across individually valid obstacles
+  ---
+  duration_ms: 152.960708
+  ...
+# Subtest: merging preserves holes and accepts components meeting only at a point
+ok 123 - merging preserves holes and accepts components meeting only at a point
+  ---
+  duration_ms: 8.238542
+  ...
+# Subtest: buffer limits are inclusive and report distance uses endcaps beyond a passage endpoint
+ok 124 - buffer limits are inclusive and report distance uses endcaps beyond a passage endpoint
+  ---
+  duration_ms: 4.480166
+  ...
+# Subtest: C1 report and personal avoidance commands use real PostgreSQL transactions without external services
+ok 125 - C1 report and personal avoidance commands use real PostgreSQL transactions without external services # SKIP
+  ---
+  duration_ms: 7.983458
+  ...
+# Subtest: report input schemas reject client ownership, lifecycle, AI results and arbitrary avoidance geometry
+ok 126 - report input schemas reject client ownership, lifecycle, AI results and arbitrary avoidance geometry
+  ---
+  duration_ms: 13.0245
+  ...
+# Subtest: preview and confirmation accept only server passage references and explicit consent
+ok 127 - preview and confirmation accept only server passage references and explicit consent
+  ---
+  duration_ms: 2.382875
+  ...
+# Subtest: preview tokens authenticate the complete binding and expire at the signed deadline
+ok 128 - preview tokens authenticate the complete binding and expire at the signed deadline
+  ---
+  duration_ms: 22.875583
+  ...
+# Subtest: public reports use the complete publication whitelist and never borrow private facts
+ok 129 - public reports use the complete publication whitelist and never borrow private facts
+  ---
+  duration_ms: 8.778542
+  ...
+# Subtest: legal coverage changes preserve inactive and expired historical geometry while active areas remain constrained
+ok 130 - legal coverage changes preserve inactive and expired historical geometry while active areas remain constrained
+  ---
+  duration_ms: 13.066166
+  ...
+# Subtest: the tile map converts bbox and selections between WGS84 and Leaflet and ignores outside clicks
+ok 131 - the tile map converts bbox and selections between WGS84 and Leaflet and ignores outside clicks
+  ---
+  duration_ms: 305.83525
+  ...
+# Subtest: layer refresh preserves the user viewport; only a changed bbox or explicit reset fits it
+ok 132 - layer refresh preserves the user viewport; only a changed bbox or explicit reset fits it
+  ---
+  duration_ms: 139.973333
+  ...
+# Subtest: GeoJSON retains polygon holes and keeps public history, effective private avoidance and preview distinct
+ok 133 - GeoJSON retains polygon holes and keeps public history, effective private avoidance and preview distinct
+  ---
+  duration_ms: 63.355458
+  ...
+# Subtest: facility text stays DOM text and selection remains independent of map point selection
+ok 134 - facility text stays DOM text and selection remains independent of map point selection
+  ---
+  duration_ms: 47.3545
+  ...
+# Subtest: tile failures can recover without removing overlays; teardown disconnects all map resources once
+ok 135 - tile failures can recover without removing overlays; teardown disconnects all map resources once
+  ---
+  duration_ms: 77.312333
+  ...
+# Subtest: two map instances do not share viewport state, layers or cleanup
+ok 136 - two map instances do not share viewport state, layers or cleanup
+  ---
+  duration_ms: 57.963875
+  ...
+# Subtest: clock ticks preserve marker identity until private expiry or a public status transition changes visible layers
+ok 137 - clock ticks preserve marker identity until private expiry or a public status transition changes visible layers
+  ---
+  duration_ms: 54.69425
+  ...
+# Subtest: stable facility markers invoke the newest callback with current facility metadata
+ok 138 - stable facility markers invoke the newest callback with current facility metadata
+  ---
+  duration_ms: 103.409709
+  ...
+# Subtest: a successful neighboring tile cannot hide a tile that still failed
+ok 139 - a successful neighboring tile cannot hide a tile that still failed
+  ---
+  duration_ms: 26.369208
+  ...
+# Subtest: failed tiles retain the warning until every failure recovers or unloads, and removed maps ignore late events
+ok 140 - failed tiles retain the warning until every failure recovers or unloads, and removed maps ignore late events
+  ---
+  duration_ms: 45.034875
+  ...
+# Subtest: an explicit planner route focuses its geometry once, while polling and tab visibility preserve that viewport
+ok 141 - an explicit planner route focuses its geometry once, while polling and tab visibility preserve that viewport
+  ---
+  duration_ms: 45.5815
+  ...
+# Subtest: map settings have an attributed HTTPS OSM default and never expose server secrets
+ok 142 - map settings have an attributed HTTPS OSM default and never expose server secrets
+  ---
+  duration_ms: 0.963667
+  ...
+# Subtest: custom basemaps require a safe XYZ template and their own visible attribution
+ok 143 - custom basemaps require a safe XYZ template and their own visible attribution
+  ---
+  duration_ms: 1.16725
+  ...
+# Subtest: server render offers an accessible loading state and visible attribution without importing Leaflet
+ok 144 - server render offers an accessible loading state and visible attribution without importing Leaflet
+  ---
+  duration_ms: 255.457416
+  ...
+# Subtest: a late dynamic import cannot initialize an unmounted map and StrictMode remount creates one current controller
+ok 145 - a late dynamic import cannot initialize an unmounted map and StrictMode remount creates one current controller
+  ---
+  duration_ms: 100.517834
+  ...
+# Subtest: prop updates reach the existing controller without recreating the base map
+ok 146 - prop updates reach the existing controller without recreating the base map
+  ---
+  duration_ms: 48.71525
+  ...
+# Subtest: browser writes require the exact configured application origin
+ok 147 - browser writes require the exact configured application origin
+  ---
+  duration_ms: 30.009959
+  ...
+# Subtest: same-site fetch metadata does not replace an Origin header
+ok 148 - same-site fetch metadata does not replace an Origin header
+  ---
+  duration_ms: 0.317375
+  ...
+# Subtest: a null or malformed Origin is rejected
+ok 149 - a null or malformed Origin is rejected
+  ---
+  duration_ms: 2.360875
+  ...
+# Subtest: Overpass sends one bounded region query to the fixed endpoint without external credentials
+ok 150 - Overpass sends one bounded region query to the fixed endpoint without external credentials
+  ---
+  duration_ms: 61.286708
+  ...
+# Subtest: Overpass maps node/way/relation identity, centers and four accessibility states from known tags
+ok 151 - Overpass maps node/way/relation identity, centers and four accessibility states from known tags
+  ---
+  duration_ms: 4.425125
+  ...
+# Subtest: Overpass keeps raw source truncation after spatial filtering and duplicate removal
+ok 152 - Overpass keeps raw source truncation after spatial filtering and duplicate removal
+  ---
+  duration_ms: 55.895417
+  ...
+# Subtest: Overpass accepts a genuine empty result and rejects partial HTTP 200 results with any remark
+ok 153 - Overpass accepts a genuine empty result and rejects partial HTTP 200 results with any remark
+  ---
+  duration_ms: 5.263291
+  ...
+# Subtest: Overpass rejects malformed element identities and coordinates instead of returning partial places
+ok 154 - Overpass rejects malformed element identities and coordinates instead of returning partial places
+  ---
+  duration_ms: 8.640292
+  ...
+# Subtest: Overpass rejects arbitrary endpoint URLs and invalid input before making a request
+ok 155 - Overpass rejects arbitrary endpoint URLs and invalid input before making a request
+  ---
+  duration_ms: 0.625166
+  ...
+# Subtest: Overpass bounds streamed bytes and rejects redirects, invalid JSON and interrupted response bodies
+ok 156 - Overpass bounds streamed bytes and rejects redirects, invalid JSON and interrupted response bodies
+  ---
+  duration_ms: 3.087625
+  ...
+# Subtest: Overpass total timeout aborts both a pending fetch and a pending body read
+ok 157 - Overpass total timeout aborts both a pending fetch and a pending body read
+  ---
+  duration_ms: 16.014125
+  ...
+# Subtest: Overpass maps rate, timeout, server and auth failures without leaking provider text or retrying internally
+ok 158 - Overpass maps rate, timeout, server and auth failures without leaking provider text or retrying internally
+  ---
+  duration_ms: 5.974208
+  ...
+# Subtest: switching from a long route resets old segment indices before emitting a new reference
+ok 159 - switching from a long route resets old segment indices before emitting a new reference
+  ---
+  duration_ms: 236.869583
+  ...
+# Subtest: a component handler refuses indices outside the current route even if the structural schema accepts them
+ok 160 - a component handler refuses indices outside the current route even if the structural schema accepts them
+  ---
+  duration_ms: 74.501542
+  ...
+# Subtest: photo commands preserve ownership, durable replay and recovery around external storage
+ok 161 - photo commands preserve ownership, durable replay and recovery around external storage # SKIP
+  ---
+  duration_ms: 2.00175
+  ...
+# Subtest: JPEG and PNG are decoded and returned as matching sanitized bytes with content hashes
+ok 162 - JPEG and PNG are decoded and returned as matching sanitized bytes with content hashes
+  ---
+  duration_ms: 32.152584
+  ...
+# Subtest: image processing rejects forged MIME types, unsupported formats and corrupt image bodies
+ok 163 - image processing rejects forged MIME types, unsupported formats and corrupt image bodies
+  ---
+  duration_ms: 16.613583
+  ...
+# Subtest: re-encoding applies orientation, strips EXIF and resizes the longest edge to 2048
+ok 164 - re-encoding applies orientation, strips EXIF and resizes the longest edge to 2048
+  ---
+  duration_ms: 152.783833
+  ...
+# Subtest: image limits reject original bytes above 5 MiB and decoded images above 20 million pixels
+ok 165 - image limits reject original bytes above 5 MiB and decoded images above 20 million pixels
+  ---
+  duration_ms: 44.446667
+  ...
+# Subtest: OSS configuration uses a private server-only adapter with no local fallback or signed client reads
+ok 166 - OSS configuration uses a private server-only adapter with no local fallback or signed client reads
+  ---
+  duration_ms: 2.860834
+  ...
+# Subtest: missing credentials and non-service, mismatched-region or credential-bearing OSS endpoints fail closed
+ok 167 - missing credentials and non-service, mismatched-region or credential-bearing OSS endpoints fail closed
+  ---
+  duration_ms: 0.993666
+  ...
+# Subtest: the public places handler consumes the configured source and retains incomplete-region semantics
+ok 168 - the public places handler consumes the configured source and retains incomplete-region semantics
+  ---
+  duration_ms: 105.635792
+  ...
+# Subtest: default place source sends a bounded public OSM query without transmitting the ORS key
+ok 169 - default place source sends a bounded public OSM query without transmitting the ORS key
+  ---
+  duration_ms: 69.633583
+  ...
+# Subtest: cloud facility facts and source status survive the HTTP boundary without OSM normalization
+ok 170 - cloud facility facts and source status survive the HTTP boundary without OSM normalization
+  ---
+  duration_ms: 4.345458
+  ...
+# Subtest: POI requests only the official bounded endpoint and preserves source identity and observed labels
+ok 171 - POI requests only the official bounded endpoint and preserves source identity and observed labels
+  ---
+  duration_ms: 59.588959
+  ...
+# Subtest: POI maps facility categories and yes/limited/no/unknown without guessing from names
+ok 172 - POI maps facility categories and yes/limited/no/unknown without guessing from names
+  ---
+  duration_ms: 5.157
+  ...
+# Subtest: POI filters only out-of-bounds points, deduplicates OSM identity and keeps one lookahead item
+ok 173 - POI filters only out-of-bounds points, deduplicates OSM identity and keeps one lookahead item
+  ---
+  duration_ms: 41.30575
+  ...
+# Subtest: POI rejects malformed source geometry and identity instead of reporting an empty result
+ok 174 - POI rejects malformed source geometry and identity instead of reporting an empty result
+  ---
+  duration_ms: 8.943833
+  ...
+# Subtest: POI rejects arbitrary URLs before any request and bounds oversized and redirected responses
+ok 175 - POI rejects arbitrary URLs before any request and bounds oversized and redirected responses
+  ---
+  duration_ms: 2.521041
+  ...
+# Subtest: POI preserves sanitized auth, quota, rate and timeout failures
+ok 176 - POI preserves sanitized auth, quota, rate and timeout failures
+  ---
+  duration_ms: 56.909
+  ...
+# Subtest: places caches the entire configured region across viewports for 24 hours with a separate POI budget
+ok 177 - places caches the entire configured region across viewports for 24 hours with a separate POI budget
+  ---
+  duration_ms: 43.786
+  ...
+# Subtest: places shares in-flight work until durable cache storage has completed
+ok 178 - places shares in-flight work until durable cache storage has completed
+  ---
+  duration_ms: 1.766125
+  ...
+# Subtest: places rejects late configuration changes, out-of-coverage requests and provider failures without caching success
+ok 179 - places rejects late configuration changes, out-of-coverage requests and provider failures without caching success
+  ---
+  duration_ms: 5.277666
+  ...
+# Subtest: places marks a capped source incomplete even when the current viewport contains fewer points
+ok 180 - places marks a capped source incomplete even when the current viewport contains fewer points
+  ---
+  duration_ms: 43.064834
+  ...
+# Subtest: places does not return stale cached data when configuration changes during usage recording
+ok 181 - places does not return stale cached data when configuration changes during usage recording
+  ---
+  duration_ms: 8.398041
+  ...
+# Subtest: places shares a cache persistence failure without retrying the provider
+ok 182 - places shares a cache persistence failure without retrying the provider
+  ---
+  duration_ms: 2.52475
+  ...
+# Subtest: places preserves source truncation after lookahead points are filtered and after cache reload
+ok 183 - places preserves source truncation after lookahead points are filtered and after cache reload
+  ---
+  duration_ms: 47.005708
+  ...
+# Subtest: places does not reserve or start an eight-second retry beyond its overall deadline
+ok 184 - places does not reserve or start an eight-second retry beyond its overall deadline
+  ---
+  duration_ms: 0.625209
+  ...
+# Subtest: facility caches never cross provider credential scopes even when endpoint identity is shared
+ok 185 - facility caches never cross provider credential scopes even when endpoint identity is shared
+  ---
+  duration_ms: 5.064541
+  ...
+# Subtest: a delayed planning context cannot roll back a newer polled public set
+ok 186 - a delayed planning context cannot roll back a newer polled public set
+  ---
+  duration_ms: 448.690541
+  ...
+# Subtest: a route computed under a new configuration waits for matching region parameters
+ok 187 - a route computed under a new configuration waits for matching region parameters
+  ---
+  duration_ms: 242.548917
+  ...
+# Subtest: observing a config change cancels an old plan while region refresh is pending
+ok 188 - observing a config change cancels an old plan while region refresh is pending
+  ---
+  duration_ms: 244.174958
+  ...
+# Subtest: report changes preserve journey inputs, invalidate the old route and never auto-call directions
+ok 189 - report changes preserve journey inputs, invalidate the old route and never auto-call directions
+  ---
+  duration_ms: 130.492917
+  ...
+# Subtest: a delayed pre-save poll cannot replace the freshly published personal report layer
+ok 190 - a delayed pre-save poll cannot replace the freshly published personal report layer
+  ---
+  duration_ms: 117.291417
+  ...
+# Subtest: public condition polling does not repeatedly request unchanged facility sources
+ok 191 - public condition polling does not repeatedly request unchanged facility sources
+  ---
+  duration_ms: 103.096291
+  ...
+# Subtest: a failed facility refresh for new region config clears old data and retries before restoring layers
+ok 192 - a failed facility refresh for new region config clears old data and retries before restoring layers
+  ---
+  duration_ms: 133.852416
+  ...
+# Subtest: journey action requires a current route and tabs preserve inputs without directions
+ok 193 - journey action requires a current route and tabs preserve inputs without directions
+  ---
+  duration_ms: 117.079708
+  ...
+# Subtest: ordinary detail links capture My Reports as report source and dismiss old layers after navigation
+ok 194 - ordinary detail links capture My Reports as report source and dismiss old layers after navigation
+  ---
+  duration_ms: 101.080166
+  ...
+# Subtest: successful explicit planning closes its input panel so the route result is visible
+ok 195 - successful explicit planning closes its input panel so the route result is visible
+  ---
+  duration_ms: 294.492708
+  ...
+# Subtest: unchanged facility suppliers pause outside Route and refresh after returning without directions
+ok 196 - unchanged facility suppliers pause outside Route and refresh after returning without directions
+  ---
+  duration_ms: 117.582667
+  ...
+# Subtest: ORS sends unchanged endpoints and all wheelchair restrictions to the official GeoJSON endpoint
+ok 197 - ORS sends unchanged endpoints and all wheelchair restrictions to the official GeoJSON endpoint
+  ---
+  duration_ms: 31.58575
+  ...
+# Subtest: ORS omits avoid_polygons when there is no avoidance
+ok 198 - ORS omits avoid_polygons when there is no avoidance
+  ---
+  duration_ms: 1.327708
+  ...
+# Subtest: provider configuration rejects arbitrary hosts, paths, credentials, query strings and non-HTTPS URLs before fetching
+ok 199 - provider configuration rejects arbitrary hosts, paths, credentials, query strings and non-HTTPS URLs before fetching
+  ---
+  duration_ms: 1.177583
+  ...
+# Subtest: missing keys fail only the requested capability without making an external call
+ok 200 - missing keys fail only the requested capability without making an external call
+  ---
+  duration_ms: 12.478208
+  ...
+# Subtest: ORS rejects zero or multiple routes, malformed LineStrings and invalid summaries
+ok 201 - ORS rejects zero or multiple routes, malformed LineStrings and invalid summaries
+  ---
+  duration_ms: 25.682459
+  ...
+# Subtest: both providers distinguish quota exhaustion from authentication and server failures without leaking upstream details or retrying
+ok 202 - both providers distinguish quota exhaustion from authentication and server failures without leaking upstream details or retrying
+  ---
+  duration_ms: 3.595708
+  ...
+# Subtest: quota responses expose only a validated reset timestamp and rate limits expose bounded numeric retry metadata
+ok 203 - quota responses expose only a validated reset timestamp and rate limits expose bounded numeric retry metadata
+  ---
+  duration_ms: 7.52475
+  ...
+# Subtest: ORS maps explicit not-found route codes to NO_ROUTE and rejects redirects without retry
+ok 204 - ORS maps explicit not-found route codes to NO_ROUTE and rejects redirects without retry
+  ---
+  duration_ms: 1.195958
+  ...
+# Subtest: network failures and timeouts stay distinguishable, and deadlines include response-body reads
+ok 205 - network failures and timeouts stay distinguishable, and deadlines include response-body reads
+  ---
+  duration_ms: 25.3105
+  ...
+# Subtest: search sends regional bounds, five-result and data-source limits to official Pelias and filters outside results again
+ok 206 - search sends regional bounds, five-result and data-source limits to official Pelias and filters outside results again
+  ---
+  duration_ms: 8.534583
+  ...
+# Subtest: search caps results at five, removes duplicates and keeps IDs stable across result ordering and label changes
+ok 207 - search caps results at five, removes duplicates and keeps IDs stable across result ordering and label changes
+  ---
+  duration_ms: 3.361416
+  ...
+# Subtest: search returns an empty list only for valid empty or region-filtered results
+ok 208 - search returns an empty list only for valid empty or region-filtered results
+  ---
+  duration_ms: 3.86475
+  ...
+# Subtest: search rejects invalid query lengths and bounds without calling the provider
+ok 209 - search rejects invalid query lengths and bounds without calling the provider
+  ---
+  duration_ms: 0.572583
+  ...
+# Subtest: malformed success JSON and interrupted body streams remain distinct provider failures
+ok 210 - malformed success JSON and interrupted body streams remain distinct provider failures
+  ---
+  duration_ms: 1.14
+  ...
+# Subtest: real report commands propagate private and public effective sets to both sessions and stale-route detection
+ok 211 - real report commands propagate private and public effective sets to both sessions and stale-route detection # SKIP
+  ---
+  duration_ms: 1.281709
+  ...
+# Subtest: a pending fact correction disables photo replacement until the write settles
+ok 212 - a pending fact correction disables photo replacement until the write settles
+  ---
+  duration_ms: 396.00325
+  ...
+# Subtest: an earlier saved correction cannot close or overwrite a replacement-photo draft
+ok 213 - an earlier saved correction cannot close or overwrite a replacement-photo draft
+  ---
+  duration_ms: 120.024041
+  ...
+# Subtest: a truncated mine list cannot remove author actions for an older private report
+ok 214 - a truncated mine list cannot remove author actions for an older private report
+  ---
+  duration_ms: 60.807625
+  ...
+# Subtest: copy text evaluates natural personal expiry and identifies the report authors session
+ok 215 - copy text evaluates natural personal expiry and identifies the report authors session
+  ---
+  duration_ms: 66.331625
+  ...
+# Subtest: a description-only correction preserves the original precise observation instant
+ok 216 - a description-only correction preserves the original precise observation instant
+  ---
+  duration_ms: 331.97475
+  ...
+# Subtest: external AI consent starts unchecked until the person selects it
+ok 217 - external AI consent starts unchecked until the person selects it
+  ---
+  duration_ms: 23.910708
+  ...
+# Subtest: report facts require an editable observation time instead of fabricating submission time
+ok 218 - report facts require an editable observation time instead of fabricating submission time
+  ---
+  duration_ms: 1.764042
+  ...
+# Subtest: uncertain AI findings still expose the saved description, evidence and uncertainty
+ok 219 - uncertain AI findings still expose the saved description, evidence and uncertainty
+  ---
+  duration_ms: 0.970875
+  ...
+# Subtest: C2 review commands enforce independent evidence, publication history and atomic PostgreSQL state
+ok 220 - C2 review commands enforce independent evidence, publication history and atomic PostgreSQL state # SKIP
+  ---
+  duration_ms: 0.874541
+  ...
+# Subtest: review commands strictly separate evidence, facts, lifecycle and server ownership
+ok 221 - review commands strictly separate evidence, facts, lifecycle and server ownership
+  ---
+  duration_ms: 36.928792
+  ...
+# Subtest: maintainer evidence accepts identifiers or HTTPS references and never needs a fetchable URL
+ok 222 - maintainer evidence accepts identifiers or HTTPS references and never needs a fetchable URL
+  ---
+  duration_ms: 1.174833
+  ...
+# Subtest: review transitions preserve explicit publication and reopening rules
+ok 223 - review transitions preserve explicit publication and reopening rules
+  ---
+  duration_ms: 0.959917
+  ...
+# Subtest: public validity uses evidence observation time and preserves an omitted correction expiry
+ok 224 - public validity uses evidence observation time and preserves an omitted correction expiry
+  ---
+  duration_ms: 0.439042
+  ...
+# Subtest: without C repository, mounted endpoints fail closed with private safe envelopes
+ok 225 - without C repository, mounted endpoints fail closed with private safe envelopes
+  ---
+  duration_ms: 80.9235
+  ...
+# Subtest: unsupported business method returns controlled JSON and Allow header
+ok 226 - unsupported business method returns controlled JSON and Allow header
+  ---
+  duration_ms: 0.665958
+  ...
+# Subtest: public cache shares geometry, never another session reference or personal version
+ok 227 - public cache shares geometry, never another session reference or personal version
+  ---
+  duration_ms: 94.2565
+  ...
+# Subtest: expiry changes activeDigest with unchanged version; stale response is recomputed
+ok 228 - expiry changes activeDigest with unchanged version; stale response is recomputed
+  ---
+  duration_ms: 14.278375
+  ...
+# Subtest: a continuously changing context is never published after one recomputation
+ok 229 - a continuously changing context is never published after one recomputation
+  ---
+  duration_ms: 6.429708
+  ...
+# Subtest: concurrent public requests share one provider attempt but create separate routeRefs
+ok 230 - concurrent public requests share one provider attempt but create separate routeRefs
+  ---
+  duration_ms: 27.462709
+  ...
+# Subtest: snapshot failure and unsupported restrictions never call upstream
+ok 231 - snapshot failure and unsupported restrictions never call upstream
+  ---
+  duration_ms: 4.236042
+  ...
+# Subtest: atomic publication conflict refuses to return a stale reference
+ok 232 - atomic publication conflict refuses to return a stale reference
+  ---
+  duration_ms: 11.637959
+  ...
+# Subtest: routeRef ownership and expiry are required for passage selection
+ok 233 - routeRef ownership and expiry are required for passage selection
+  ---
+  duration_ms: 16.968042
+  ...
+# Subtest: personal cache and in-flight work are isolated by server session namespace
+ok 234 - personal cache and in-flight work are isolated by server session namespace
+  ---
+  duration_ms: 14.590334
+  ...
+# Subtest: private row changes on a public report cannot change the public routing digest
+ok 235 - private row changes on a public report cannot change the public routing digest
+  ---
+  duration_ms: 7.874875
+  ...
+# Subtest: malformed stored expiry fails closed instead of silently removing an avoidance
+ok 236 - malformed stored expiry fails closed instead of silently removing an avoidance
+  ---
+  duration_ms: 2.179958
+  ...
+# Subtest: after discarding stale results, exhausted recompute budget reports ROUTE_STALE
+ok 237 - after discarding stale results, exhausted recompute budget reports ROUTE_STALE
+  ---
+  duration_ms: 2.147708
+  ...
+# Subtest: dedup remains active during post-provider context checks and cache publication
+ok 238 - dedup remains active during post-provider context checks and cache publication
+  ---
+  duration_ms: 6.240459
+  ...
+# Subtest: recomputation consumes the same request deadline as provider retries
+ok 239 - recomputation consumes the same request deadline as provider retries
+  ---
+  duration_ms: 32.497417
+  ...
+# Subtest: a deduplicated waiter keeps its own deadline without cancelling the owner
+ok 240 - a deduplicated waiter keeps its own deadline without cancelling the owner
+  ---
+  duration_ms: 2.426208
+  ...
+# Subtest: atomic route reference publication carries exactly the four declared context fields
+ok 241 - atomic route reference publication carries exactly the four declared context fields
+  ---
+  duration_ms: 1.280625
+  ...
+# Subtest: search reuses normalized query, preserves no results and distinct failure
+ok 242 - search reuses normalized query, preserves no results and distinct failure
+  ---
+  duration_ms: 59.830791
+  ...
+# Subtest: search strips out-of-region and excess results; config change drops in-flight result
+ok 243 - search strips out-of-region and excess results; config change drops in-flight result
+  ---
+  duration_ms: 54.582041
+  ...
+# Subtest: HTTP origin/session/input checks and private error envelopes
+ok 244 - HTTP origin/session/input checks and private error envelopes
+  ---
+  duration_ms: 35.090458
+  ...
+# Subtest: places cap complete repository results and preserve unknown accessibility
+ok 245 - places cap complete repository results and preserve unknown accessibility
+  ---
+  duration_ms: 9.11475
+  ...
+# Subtest: OSM accessibility treats absent, unrecognized and conflicting tags as unknown
+ok 246 - OSM accessibility treats absent, unrecognized and conflicting tags as unknown
+  ---
+  duration_ms: 0.161958
+  ...
+# Subtest: session credentials resist forgery, duplicate cookies and key changes
+ok 247 - session credentials resist forgery, duplicate cookies and key changes
+  ---
+  duration_ms: 2.330958
+  ...
+# Subtest: initialize, refresh and separate browsers retain the correct private owner without disclosing it
+ok 248 - initialize, refresh and separate browsers retain the correct private owner without disclosing it
+  ---
+  duration_ms: 34.067209
+  ...
+# Subtest: untrusted origins and invalid bodies are rejected before touching storage
+ok 249 - untrusted origins and invalid bodies are rejected before touching storage
+  ---
+  duration_ms: 7.075042
+  ...
+# Subtest: storage failures never issue a cookie or leak internal error details
+ok 250 - storage failures never issue a cookie or leak internal error details
+  ---
+  duration_ms: 28.271292
+  ...
+# Subtest: generated Stitch page roots allow responsive width and growing report content
+ok 251 - generated Stitch page roots allow responsive width and growing report content
+  ---
+  duration_ms: 208.396083
+  ...
+# Subtest: step flow uploads without external analysis; only explicit continue invokes analysis
+ok 252 - step flow uploads without external analysis; only explicit continue invokes analysis
+  ---
+  duration_ms: 353.626375
+  ...
+# Subtest: direct confirmation and success URLs cannot fabricate a draft or submission
+ok 253 - direct confirmation and success URLs cannot fabricate a draft or submission
+  ---
+  duration_ms: 66.81
+  ...
+# Subtest: server save stays in confirmation until explicit save-only completion
+ok 254 - server save stays in confirmation until explicit save-only completion
+  ---
+  duration_ms: 74.216
+  ...
+# Subtest: my reports filters use current effective avoidance and never relabel expiry as resolved
+ok 255 - my reports filters use current effective avoidance and never relabel expiry as resolved
+  ---
+  duration_ms: 0.497584
+  ...
+# Subtest: starting Report after success creates a new photo draft; hidden route keeps unfinished drafts
+ok 256 - starting Report after success creates a new photo draft; hidden route keeps unfinished drafts
+  ---
+  duration_ms: 74.455792
+  ...
+# Subtest: the first upload can continue analysis with that photo before React commits the draft
+ok 257 - the first upload can continue analysis with that photo before React commits the draft
+  ---
+  duration_ms: 47.947458
+  ...
+# Subtest: a supplied current region removes an earlier configuration warning while analysis errors remain visible
+ok 258 - a supplied current region removes an earlier configuration warning while analysis errors remain visible
+  ---
+  duration_ms: 82.905416
+  ...
+# Subtest: success refresh restores only a server-confirmed effective report explicitly owned by this session
+ok 259 - success refresh restores only a server-confirmed effective report explicitly owned by this session
+  ---
+  duration_ms: 321.798417
+  ...
+# Subtest: public, admin-readable, unconfirmed, expired, stopped and unknown-owner records keep the success guard
+ok 260 - public, admin-readable, unconfirmed, expired, stopped and unknown-owner records keep the success guard
+  ---
+  duration_ms: 361.315125
+  ...
+# Subtest: late recovery cannot replace a changed success URL or a new photo selection
+ok 261 - late recovery cannot replace a changed success URL or a new photo selection
+  ---
+  duration_ms: 72.348583
+  ...
+# Subtest: the photo step has a single upload-and-analyze primary action
+ok 262 - the photo step has a single upload-and-analyze primary action
+  ---
+  duration_ms: 13.947792
+  ...
+# Subtest: manual continue uploads once, passes that DTO, and retains retry idempotency
+ok 263 - manual continue uploads once, passes that DTO, and retains retry idempotency
+  ---
+  duration_ms: 209.134875
+  ...
+# Subtest: a late upload for a replaced photo cannot navigate or start analysis
+ok 264 - a late upload for a replaced photo cannot navigate or start analysis
+  ---
+  duration_ms: 61.518542
+  ...
+# Subtest: the combined analyze action still requires explicit consent and passes the uploaded photo
+ok 265 - the combined analyze action still requires explicit consent and passes the uploaded photo
+  ---
+  duration_ms: 40.843167
+  ...
+# Subtest: route reference expiry invalidates the displayed route even without a version increment
+ok 266 - route reference expiry invalidates the displayed route even without a version increment
+  ---
+  duration_ms: 1.481
+  ...
+# Subtest: seed data cannot masquerade as live coverage or use outside passages
+ok 267 - seed data cannot masquerade as live coverage or use outside passages
+  ---
+  duration_ms: 65.686625
+  ...
+# Subtest: seed data rejects duplicate passage ids, invalid timezone and unsupported defaults
+ok 268 - seed data rejects duplicate passage ids, invalid timezone and unsupported defaults
+  ---
+  duration_ms: 1.554708
+  ...
+# Subtest: session storage accepts only derived SHA-256 identifiers, never cookie material
+ok 269 - session storage accepts only derived SHA-256 identifiers, never cookie material
+  ---
+  duration_ms: 0.330042
+  ...
+# Subtest: basic persisted polygons reject unclosed rings and nonfinite coordinates
+ok 270 - basic persisted polygons reject unclosed rings and nonfinite coordinates
+  ---
+  duration_ms: 2.130416
+  ...
+# Subtest: idempotency fingerprints ignore JSON key order but distinguish submitted values
+ok 271 - idempotency fingerprints ignore JSON key order but distinguish submitted values
+  ---
+  duration_ms: 3.1685
+  ...
+# Subtest: D services use C persisted snapshots, atomic references and event telemetry
+ok 272 - D services use C persisted snapshots, atomic references and event telemetry # SKIP
+  ---
+  duration_ms: 0.889917
+  ...
+# Subtest: C0 repositories share real PostgreSQL transactions and isolate anonymous state
+ok 273 - C0 repositories share real PostgreSQL transactions and isolate anonymous state # SKIP
+  ---
+  duration_ms: 1.231541
+  ...
+# Subtest: usage counts actual sanitized events in rolling 24h, separate from budget balance
+ok 274 - usage counts actual sanitized events in rolling 24h, separate from budget balance
+  ---
+  duration_ms: 3.242333
+  ...
+# Subtest: summary asks the repository for exactly the current 24h and validates it
+ok 275 - summary asks the repository for exactly the current 24h and validates it
+  ---
+  duration_ms: 10.52875
+  ...
+# Subtest: vision accepts the complete seven-field result and rejects missing, extra and coerced fields
+ok 276 - vision accepts the complete seven-field result and rejects missing, extra and coerced fields
+  ---
+  duration_ms: 9.036667
+  ...
+# Subtest: only usable visible obstruction evidence forms a completed analysis
+ok 277 - only usable visible obstruction evidence forms a completed analysis
+  ---
+  duration_ms: 6.516541
+  ...
+# Subtest: blank model descriptions and evidence never form an accepted analysis
+ok 278 - blank model descriptions and evidence never form an accepted analysis
+  ---
+  duration_ms: 0.845
+  ...
+# Subtest: text, wrong tools, multiple tools, multiple choices and truncated output never count as a result
+ok 279 - text, wrong tools, multiple tools, multiple choices and truncated output never count as a result
+  ---
+  duration_ms: 0.371792
+  ...
+# Subtest: invalid JSON, schema mismatch and refusal preserve explicit unavailable reasons
+ok 280 - invalid JSON, schema mismatch and refusal preserve explicit unavailable reasons
+  ---
+  duration_ms: 0.191375
+  ...
+# Subtest: analysis DTO rejects mismatched status, result and unavailability reason
+ok 281 - analysis DTO rejects mismatched status, result and unavailability reason
+  ---
+  duration_ms: 3.05275
+  ...
+# Subtest: GLM sends native image bytes and the sole result tool only to the official endpoint
+ok 282 - GLM sends native image bytes and the sole result tool only to the official endpoint
+  ---
+  duration_ms: 36.136083
+  ...
+# Subtest: paid GLM default separates model caches while preserving the shared key budget
+ok 283 - paid GLM default separates model caches while preserving the shared key budget
+  ---
+  duration_ms: 0.347042
+  ...
+# Subtest: GLM validates configuration and processed image size before requesting
+ok 284 - GLM validates configuration and processed image size before requesting
+  ---
+  duration_ms: 2.88025
+  ...
+# Subtest: GLM authentication and server errors are sanitized and are never automatically called quota failures
+ok 285 - GLM authentication and server errors are sanitized and are never automatically called quota failures
+  ---
+  duration_ms: 12.277209
+  ...
+# Subtest: explicit GLM quota codes on 403 block the shared budget without treating other auth failures as quota
+ok 286 - explicit GLM quota codes on 403 block the shared budget without treating other auth failures as quota
+  ---
+  duration_ms: 35.767709
+  ...
+# Subtest: invalid successful GLM responses remain unavailable while counting exactly one provider error
+ok 287 - invalid successful GLM responses remain unavailable while counting exactly one provider error
+  ---
+  duration_ms: 1.891333
+  ...
+# Subtest: completed and valid uncertain GLM results do not count as provider errors
+ok 288 - completed and valid uncertain GLM results do not count as provider errors
+  ---
+  duration_ms: 1.494125
+  ...
+# Subtest: GLM rate limits expose only bounded numeric retry metadata
+ok 289 - GLM rate limits expose only bounded numeric retry metadata
+  ---
+  duration_ms: 0.969541
+  ...
+# Subtest: GLM official business codes distinguish balance, period quota, capacity, rate and account configuration
+ok 290 - GLM official business codes distinguish balance, period quota, capacity, rate and account configuration
+  ---
+  duration_ms: 2.1325
+  ...
+# Subtest: GLM error diagnostics reject arbitrary strings and oversized bodies without leaking messages
+ok 291 - GLM error diagnostics reject arbitrary strings and oversized bodies without leaking messages
+  ---
+  duration_ms: 1.119959
+  ...
+# Subtest: GLM rejects redirects and preserves network versus timeout errors
+ok 292 - GLM rejects redirects and preserves network versus timeout errors
+  ---
+  duration_ms: 23.136541
+  ...
+# Subtest: malformed successful JSON is unavailable while an interrupted response stream is a provider error
+ok 293 - malformed successful JSON is unavailable while an interrupted response stream is a provider error
+  ---
+  duration_ms: 1.112958
+  ...
+# Subtest: vision budget supports an explicit unlimited daily choice and still requires a positive minute policy
+ok 294 - vision budget supports an explicit unlimited daily choice and still requires a positive minute policy
+  ---
+  duration_ms: 0.532125
+  ...
+1..294
+# tests 294
+# suites 0
+# pass 283
+# fail 0
+# cancelled 0
+# skipped 11
+# todo 0
+# duration_ms 12679.235333

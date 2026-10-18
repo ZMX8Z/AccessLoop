@@ -1,2 +1,2 @@
-import { redirect } from 'next/navigation';
-export default function PreviewPage() { redirect('/stitch/route.html'); }
+import {RoutePlanner} from '@/features/routing/client/RoutePlanner';
+export default function PreviewPage(){return <RoutePlanner fixture/>}

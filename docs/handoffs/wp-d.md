@@ -1,5 +1,7 @@
 # D 交接：P0/P1 服务基础阶段
 
+最新公众界面集成见[Stitch 真实主入口验收](../acceptance/d-stitch-live-integration.md)：复用 A PR #21，默认进入真实 `/route`，三 Tab 已接现有业务与 Leaflet；旧 `/live`/静态 HTML 兼容跳转。该阶段与 Zenith、校园实测和完整 P0/P1 验收分别记录。
+
 最新部署阶段见[Zenith验收](../acceptance/d-zenith-preview.md)：用户已授权并实际上传，固定版本、干净生产构建和check277/12/0通过；平台BuildKit反复重试后已停止，暂无在线入口、平台数据库或P0/P1通过结论。可转交的具体作业材料见[排查记录](../deployment/zenith-build-triage.md)。
 
 地图/cloud阶段见[最新验收](../acceptance/d-map-cloud.md)：真实Leaflet/OSM底图、cloud补充设施15条及来源/许可、生产浏览器和262通过/11跳过/build exit0已验。底图、Token、许可选择及保留Demo入口见[部署接线](../deployment/maps-and-facilities.md)。原HeiGIT/Overpass失败保留，但“无任何实时设施来源”已解除；模型上一阶段已通过。以下旧阶段状态按时间保留，完整P0/P1仍缺现场、最终导航/搜索/公共管理闭环、人工验收和Zenith。
